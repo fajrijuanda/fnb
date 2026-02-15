@@ -25,11 +25,37 @@ def create_users():
 
     if not User.objects.filter(username=admin_username).exists():
         print(f"Creating Admin: {admin_username}")
-        User.objects.create_superuser(admin_username, admin_email, admin_password)
-        # Profile created by signal
-        print("Admin created successfully.")
+        user = User.objects.create_superuser(admin_username, admin_email, admin_password)
+        
+        # Create Lifetime Subscription for Admin
+        from subscriptions.models import Subscription
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        Subscription.objects.create(
+            user=user,
+            plan_name='Lifetime Access (Admin)',
+            status='active',
+            start_date=timezone.now().date(),
+            end_date=timezone.now().date() + timedelta(days=36500) # 100 Years
+        )
+        print("Admin created successfully with Lifetime Subscription.")
     else:
         print(f"Admin {admin_username} already exists.")
+        # Ensure subscription exists
+        user = User.objects.get(username=admin_username)
+        from subscriptions.models import Subscription
+        if not Subscription.objects.filter(user=user).exists():
+             from django.utils import timezone
+             from datetime import timedelta
+             Subscription.objects.create(
+                user=user,
+                plan_name='Lifetime Access (Admin)',
+                status='active',
+                start_date=timezone.now().date(),
+                end_date=timezone.now().date() + timedelta(days=36500)
+            )
+             print("Added Lifetime Subscription to existing Admin.")
 
     # 2. Mitra Users
     mitras = [
@@ -68,16 +94,24 @@ def _create_mitra(data):
         # Create Mitra Profile
         Mitra.objects.create(user=user, location=data['location'])
         
-        # Create Subscription
-        if data['subscribed']:
+        # Create Subscription (2 YEARS for Mitra / Lifetime for Admin)
+        if data.get('subscribed', False):
+            # Check if user is superuser (Admin) -> Lifetime
+            if user.is_superuser:
+                duration_days = 36500 # 100 Years
+                plan_name = 'Lifetime Access (Admin)'
+            else:
+                duration_days = 730 # 2 Years
+                plan_name = data.get('plan', 'Standard')
+
             Subscription.objects.create(
                 user=user,
-                plan_name=data['plan'],
+                plan_name=plan_name,
                 status='active',
                 start_date=timezone.now().date(),
-                end_date=timezone.now().date() + timedelta(days=30)
+                end_date=timezone.now().date() + timedelta(days=duration_days)
             )
-        print(f"  -> Mitra {username} created.")
+        print(f"  -> Mitra {username} created with {duration_days/365:.1f} years subscription.")
     else:
         print(f"  Mitra {username} exists. Updating...")
         user = User.objects.get(username=username)
@@ -90,17 +124,29 @@ def _create_mitra(data):
             
         # Update Subscription
         sub = Subscription.objects.filter(user=user).first()
-        if data['subscribed']:
+        if data.get('subscribed', False):
+            # Check if user is superuser (Admin) -> Lifetime
+            if user.is_superuser:
+                 duration_days = 36500
+                 plan_name = 'Lifetime Access (Admin)'
+            else:
+                 duration_days = 730
+                 plan_name = data.get('plan', 'Standard')
+
             if not sub:
                  Subscription.objects.create(
                     user=user,
-                    plan_name=data['plan'],
+                    plan_name=plan_name,
                     status='active',
                     start_date=timezone.now().date(),
-                    end_date=timezone.now().date() + timedelta(days=30)
+                    end_date=timezone.now().date() + timedelta(days=duration_days)
                 )
-            elif sub.plan_name != data['plan']:
-                sub.plan_name = data['plan']
+            else:
+                # OPTIONAL: Reset end_date if needed, but usually we just ensure it exists.
+                # Only update plan name for clarity
+                sub.plan_name = plan_name
+                # Ensure active
+                sub.status = 'active'
                 sub.save()
         
 def _create_cashier(data):

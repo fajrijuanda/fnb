@@ -1,6 +1,6 @@
 'use client';
 
-import { CreditCard, Sparkles, Users, Activity, TrendingUp, Search, Filter, MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
+import { CreditCard, Users, Activity, TrendingUp, Search, Filter, MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useAuthStore } from '@/store/useAuthStore';
 import { formatRupiah } from '@/lib/utils';
@@ -162,25 +162,19 @@ export default function SubscriptionsPage() {
                     Nantikan pembaruan selanjutnya!
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
+                <div className="w-full max-w-md">
                     {[
-                        { title: 'Starter', price: 'Rp 99.000', desc: 'Untuk usaha kecil', features: ['1 Kasir', '100 Transaksi/bulan', 'Laporan Dasar'] },
-                        { title: 'Business', price: 'Rp 199.000', desc: 'Untuk usaha menengah', features: ['3 Kasir', 'Unlimited Transaksi', 'AI Insights', 'Laporan Lengkap'] },
-                        { title: 'Enterprise', price: 'Rp 499.000', desc: 'Untuk usaha besar', features: ['Unlimited Kasir', 'Unlimited Transaksi', 'AI Priority', 'Support Dedicated'] },
+                        {
+                            title: 'Paket Lanjutan (Maintenance)',
+                            price: 'Rp 200.000',
+                            desc: 'Biaya langganan mulai Tahun ke-3',
+                            features: ['Akses Penuh Sistem', 'Server & Database', 'Maintenance Rutin', 'Update Fitur Berkala']
+                        },
                     ].map((plan) => (
                         <div
                             key={plan.title}
-                            className={`relative p-6 rounded-2xl border transition-all ${plan.title === 'Business'
-                                ? 'bg-gradient-to-br from-primary/10 to-red-500/5 border-primary/30 shadow-lg shadow-primary/10 scale-105'
-                                : 'bg-white/50 dark:bg-white/5 border-gray-200 dark:border-white/10'
-                                }`}
+                            className="relative p-6 rounded-2xl border bg-white/50 dark:bg-white/5 border-gray-200 dark:border-white/10"
                         >
-                            {plan.title === 'Business' && (
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                                    <Sparkles size={10} />
-                                    POPULER
-                                </div>
-                            )}
                             <h3 className="font-bold text-lg text-gray-900 dark:text-white">{plan.title}</h3>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{plan.desc}</p>
                             <p className="text-2xl font-bold text-primary mt-3">{plan.price}<span className="text-xs text-gray-400 font-normal">/bulan</span></p>
@@ -192,12 +186,9 @@ export default function SubscriptionsPage() {
                                     </li>
                                 ))}
                             </ul>
-                            <button
-                                disabled
-                                className="w-full mt-6 py-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-white/30 font-bold text-sm cursor-not-allowed"
-                            >
-                                Segera Hadir
-                            </button>
+                            <div className="mt-6 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs text-center font-medium">
+                                Tagihan ini baru akan aktif setelah periode gratis 2 tahun berakhir.
+                            </div>
                         </div>
                     ))}
                 </div>
