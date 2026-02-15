@@ -6,6 +6,8 @@ export const TOPPING_OPTIONS = [
   "Jamur",
 ];
 
+export const MAX_TOPPINGS = 7;
+
 export const PRODUCT_VARIANT_MAP: Record<string, number> = {
   // Dimsum
   "Dimsum - Paket Single": 3,
@@ -15,8 +17,8 @@ export const PRODUCT_VARIANT_MAP: Record<string, number> = {
   // Gyoza
   "Gyoza Kukus - Paket Single": 4,
   "Gyoza Goreng - Paket Single": 4,
-  "Gyoza Kukus - Paket Bareng": 10,
-  "Gyoza Goreng - Paket Bareng": 10,
+  "Gyoza Kukus - Paket Bareng": 7,
+  "Gyoza Goreng - Paket Bareng": 7,
   "Gyoza Mentai": 7,
 
   // Wonton usually doesn't have mixed toppings per piece in the same way,

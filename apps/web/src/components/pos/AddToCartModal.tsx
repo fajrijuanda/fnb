@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Minus, Plus, ShoppingCart, MessageSquare, X } from 'lucide-react';
 import { Product } from '@/types/api';
 import { formatRupiah, cn } from '@/lib/utils';
-import { TOPPING_OPTIONS, PRODUCT_VARIANT_MAP } from '@/lib/constants';
+import { TOPPING_OPTIONS, PRODUCT_VARIANT_MAP, MAX_TOPPINGS } from '@/lib/constants';
 
 interface AddToCartModalProps {
     isOpen: boolean;
@@ -19,8 +19,8 @@ export function AddToCartModal({ isOpen, onClose, product, onConfirm }: AddToCar
     const [toppings, setToppings] = useState<Record<string, number>>({});
     const [isAnimating, setIsAnimating] = useState(false);
 
-    // Determine max toppings based on product name
-    const maxToppings = product ? (PRODUCT_VARIANT_MAP[product.name] || 0) : 0;
+    // Determine max toppings based on product name, capped at MAX_TOPPINGS (7)
+    const maxToppings = product ? Math.min(PRODUCT_VARIANT_MAP[product.name] || 0, MAX_TOPPINGS) : 0;
     const currentToppingCount = Object.values(toppings).reduce((a, b) => a + b, 0);
 
     useEffect(() => {
