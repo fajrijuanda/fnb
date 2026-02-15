@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/ToastContext";
+import { SecurityPuller } from "@/components/security/SecurityPuller";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={`${plusJakarta.variable} font-sans antialiased`}>
         <ThemeProvider>
           <ToastProvider>
+            <SecurityPuller />
             {children}
           </ToastProvider>
         </ThemeProvider>

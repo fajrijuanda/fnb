@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Mitra, Cashier
+from .models import Mitra, Cashier, TrustedDevice, LoginAttempt
 from subscriptions.models import Subscription
 from django.utils import timezone
 from datetime import timedelta
@@ -149,5 +149,18 @@ class UserSerializer(serializers.ModelSerializer):
              instance.profile.save()
         
         return instance
+
+
+class TrustedDeviceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrustedDevice
+        fields = ['id', 'device_name', 'ip_address', 'last_used', 'created_at']
+
+
+class LoginAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoginAttempt
+        fields = ['id', 'device_name', 'ip_address', 'status', 'created_at', 'expires_at']
+
 
 

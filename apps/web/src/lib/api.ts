@@ -11,12 +11,29 @@ const api = axios.create({
   },
 });
 
-// Request interceptor for auth token
+// Helper to get or create device ID
+const getDeviceId = () => {
+  if (typeof window === "undefined") return "";
+  let deviceId = localStorage.getItem("device_id");
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem("device_id", deviceId);
+  }
+  return deviceId;
+};
+
+// Request interceptor for auth token and device ID
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) {
     config.headers.Authorization = `Token ${token}`;
   }
+
+  const deviceId = getDeviceId();
+  if (deviceId) {
+    config.headers["X-Device-ID"] = deviceId;
+  }
+
   return config;
 });
 

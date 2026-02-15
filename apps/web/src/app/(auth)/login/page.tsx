@@ -19,6 +19,9 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Pending Approval State
+    const [pendingAttempt, setPendingAttempt] = useState<{ id: string; expires_in: number } | null>(null);
+
     useEffect(() => {
         if (isAuthenticated && user) {
             if (user.role === 'superadmin' || user.role === 'mitra') {
@@ -29,16 +32,75 @@ export default function LoginPage() {
         }
     }, [isAuthenticated, user, router]);
 
+    // Polling for Pending Attempt
+    useEffect(() => {
+        if (!pendingAttempt) return;
+
+        const pollInterval = setInterval(async () => {
+            try {
+                const response = await api.get<{ status: string; data: LoginResponse }>(
+                    `/auth/status/${pendingAttempt.id}/`
+                );
+
+                if (response.data.status === 'success') {
+                    // Approved!
+                    clearInterval(pollInterval);
+                    const data = response.data.data;
+                    login(data);
+
+                    if (data.role === 'superadmin' || data.role === 'mitra') {
+                        router.replace('/admin');
+                    } else {
+                        router.replace('/cashier');
+                    }
+                } else if (response.data.status === 'rejected') {
+                    clearInterval(pollInterval);
+                    setPendingAttempt(null);
+                    setError('Permintaan login ditolak oleh pemilik akun.');
+                    setIsLoading(false);
+                } else if (response.data.status === 'expired') {
+                    clearInterval(pollInterval);
+                    setPendingAttempt(null);
+                    setError('Permintaan login kadaluarsa.');
+                    setIsLoading(false);
+                }
+            } catch {
+                // Ignore polling errors
+            }
+        }, 2000); // Check every 2 seconds
+
+        return () => clearInterval(pollInterval);
+    }, [pendingAttempt, login, router]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
 
+        // Ensure Device ID exists
+        let deviceId = localStorage.getItem('device_id');
+        if (!deviceId) {
+            deviceId = crypto.randomUUID();
+            localStorage.setItem('device_id', deviceId);
+        }
+
         try {
-            const response = await api.post<WrappedResponse<LoginResponse>>('/users/login/', {
+            const response = await api.post<WrappedResponse<LoginResponse> | { status: string; message: string; data: { attempt_id: string; expires_in: number } }>('/users/login/', {
                 username,
-                password
+                password,
+                device_id: deviceId,
+                device_name: navigator.userAgent
             });
+
+            if (response.status === 202) {
+                // Pending Approval
+                const data = response.data as { status: string; message: string; data: { attempt_id: string; expires_in: number } };
+                setPendingAttempt({
+                    id: data.data.attempt_id,
+                    expires_in: data.data.expires_in
+                });
+                return; // Keep loading true while polling
+            }
 
             if (response.data.status === 'success') {
                 const data = response.data.data as LoginResponse;
@@ -68,6 +130,30 @@ export default function LoginPage() {
             setIsLoading(false);
         }
     };
+
+    if (isLoading && pendingAttempt) {
+        return (
+            <div className="flex min-h-screen items-center justify-center p-4 bg-futuristic-theme">
+                <div className="w-full max-w-md p-8 rounded-2xl bg-white/40 dark:bg-black/40 backdrop-blur-3xl border border-primary/20 text-center animate-in fade-in zoom-in duration-300">
+                    <Loader2 className="mx-auto h-12 w-12 text-primary animate-spin mb-4" />
+                    <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Menunggu Persetujuan</h2>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
+                        Akun ini sedang aktif di perangkat lain. <br />
+                        Silakan setujui notifikasi login yang muncul di perangkat tersebut.
+                    </p>
+                    <button
+                        onClick={() => {
+                            setPendingAttempt(null);
+                            setIsLoading(false);
+                        }}
+                        className="text-sm text-red-500 hover:text-red-400 font-medium"
+                    >
+                        Batalkan
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (isLoading) {
         return <LoadingScreen />;
@@ -159,7 +245,7 @@ export default function LoginPage() {
                         {isLoading ? (
                             <>
                                 <Loader2 className="h-5 w-5 animate-spin" />
-                                Masuk...
+                                <span className="animate-pulse">Memproses...</span>
                             </>
                         ) : (
                             <>

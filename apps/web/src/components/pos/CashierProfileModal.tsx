@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, Loader2, Save, User, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useToast } from '@/components/ToastContext';
+import { DeviceManagement } from '@/components/settings/DeviceManagement';
 
 interface CashierProfileModalProps {
     isOpen: boolean;
@@ -122,6 +123,13 @@ export function CashierProfileModal({ isOpen, onClose }: CashierProfileModalProp
                             >
                                 {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                             </button>
+                        </div>
+
+                        <div className="my-4 border-t border-gray-100 dark:border-white/5" />
+
+                        {/* Device Management */}
+                        <div className="space-y-2">
+                            <DeviceManagement />
                         </div>
                     </div>
 

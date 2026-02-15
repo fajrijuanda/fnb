@@ -17,6 +17,7 @@ import {
     Sparkles,
     Crown
 } from 'lucide-react';
+import { DeviceManagement } from '@/components/settings/DeviceManagement';
 
 
 export default function SettingsPage() {
@@ -242,6 +243,11 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 </div>
+            </section>
+
+            {/* DEVICE MANAGEMENT SECTION */}
+            <section className="space-y-4 pt-4">
+                <DeviceManagement />
             </section>
 
             {/* PREMIUM FEATURES (BLURRED) */}
