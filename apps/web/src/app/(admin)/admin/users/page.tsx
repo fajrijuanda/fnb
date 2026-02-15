@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Pencil, Trash2, X, Loader2, Save, Users, Shield, UserCircle, Store } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 import api from '@/lib/api';
 import type { User, ApiResponse } from '@/types/api';
 import { extractApiArray } from '@/lib/api-utils';
@@ -146,7 +147,6 @@ export default function UsersPage() {
                     </div>
                     <div>
                         <div className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px] lg:max-w-none">{user.username}</div>
-                        <div className="text-[9px] text-gray-500 dark:text-gray-400">ID: {user.id}</div>
                     </div>
                 </div>
             )
@@ -352,13 +352,15 @@ export default function UsersPage() {
             )}
 
             {/* Save Confirmation */}
-            <DeleteConfirmationModal
+            <ConfirmationModal
                 isOpen={showSaveConfirm}
                 onClose={() => setShowSaveConfirm(false)}
                 onConfirm={handleConfirmSave}
                 title="Simpan Perubahan?"
                 message={`Apakah Anda yakin ingin menyimpan perubahan pada pengguna "${formData.username}"?`}
-                isBulk={false}
+                variant="primary"
+                confirmLabel="Simpan"
+                icon={Save}
             />
 
             {/* Delete Confirmation */}
