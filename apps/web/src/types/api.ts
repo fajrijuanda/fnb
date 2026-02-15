@@ -58,6 +58,7 @@ export interface User {
     avatar?: string;
     owner?: number;
   };
+  plan_name?: string;
 }
 
 export interface LoginResponse {
@@ -67,6 +68,17 @@ export interface LoginResponse {
   email: string;
   role: "superadmin" | "mitra" | "cashier";
   is_subscribed: boolean;
+}
+
+export interface Subscription {
+  id: number;
+  user: number;
+  user_details: User;
+  plan_name: string;
+  start_date: string;
+  end_date: string;
+  status: "active" | "expired" | "pending" | "cancelled";
+  created_at: string;
 }
 
 // Order & Sales

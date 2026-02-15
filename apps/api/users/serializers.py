@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(source='profile.avatar', required=False, allow_null=True)
     location = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
-    plan_name = serializers.CharField(write_only=True, required=False)
+    plan_name = serializers.SerializerMethodField()
     # owner_id = serializers.IntegerField(source='profile.owner.id', read_only=True) # Deprecated
 
     class Meta:
@@ -41,6 +41,12 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.is_superuser:
             return True
         return False
+
+    def get_plan_name(self, obj):
+        if hasattr(obj, 'mitra_profile'):
+            sub = Subscription.objects.filter(user=obj, status='active').first()
+            return sub.plan_name if sub else 'No Plan'
+        return None
         
     def get_role(self, obj):
         if obj.is_superuser:

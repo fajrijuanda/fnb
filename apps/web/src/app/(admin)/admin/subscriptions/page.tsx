@@ -1,13 +1,44 @@
-'use client';
-
-import { CreditCard, Users, Activity, TrendingUp, Search, Filter, MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { CreditCard, Users, MoreHorizontal, CheckCircle, X as XIcon } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useAuthStore } from '@/store/useAuthStore';
-import { formatRupiah } from '@/lib/utils';
+import api from '@/lib/api';
+import { Subscription } from '@/types/api';
 
 export default function SubscriptionsPage() {
     const { user } = useAuthStore();
     const isSuperAdmin = user?.role === 'superadmin';
+
+    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchSubscriptions = useCallback(async () => {
+        try {
+            const response = await api.get('/subscriptions/');
+            // Handle both array and paginated response
+            const data = Array.isArray(response.data) ? response.data :
+                (response.data as any).results ? (response.data as any).results :
+                    (response.data as any).data ? (response.data as any).data : [];
+            setSubscriptions(data);
+        } catch (error) {
+            console.error('Failed to fetch subscriptions:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchSubscriptions();
+    }, [fetchSubscriptions]);
+
+    const calculateDaysRemaining = (endDate: string) => {
+        const end = new Date(endDate);
+        const now = new Date();
+        const diffTime = end.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) return 'Expired';
+        return `${diffDays} Hari lagi`;
+    };
 
     if (isSuperAdmin) {
         return (
@@ -17,8 +48,9 @@ export default function SubscriptionsPage() {
                     description="Pantau dan kelola langganan mitra"
                 />
 
-                {/* Stats Cards */}
+                {/* Stats Cards - Simplified for now */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* ... (Keep existing stats or make dynamic later) ... */}
                     <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
                         <div className="flex items-center gap-4">
                             <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
@@ -26,31 +58,7 @@ export default function SubscriptionsPage() {
                             </div>
                             <div>
                                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Mitra Aktif</h3>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">124</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-xl bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400">
-                                <Activity size={24} />
-                            </div>
-                            <div>
-                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Langganan Baru</h3>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">+12</p>
-                                <span className="text-xs text-green-500">Bulan ini</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
-                                <TrendingUp size={24} />
-                            </div>
-                            <div>
-                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Pendapatan</h3>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">Rp 45.2jt</p>
-                                <span className="text-xs text-green-500">+8% dari bulan lalu</span>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{subscriptions.filter(s => s.status === 'active').length}</p>
                             </div>
                         </div>
                     </div>
@@ -60,19 +68,6 @@ export default function SubscriptionsPage() {
                 <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/5 overflow-hidden">
                     <div className="p-4 border-b border-gray-200 dark:border-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-gray-900 dark:text-white">Daftar Langganan</h3>
-                        <div className="flex items-center gap-2">
-                            <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Cari mitra..."
-                                    className="pl-9 pr-4 py-2 rounded-xl bg-gray-50 dark:bg-white/5 border-none text-sm focus:ring-1 focus:ring-primary w-48"
-                                />
-                            </div>
-                            <button className="p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 text-gray-500">
-                                <Filter size={18} />
-                            </button>
-                        </div>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
@@ -83,53 +78,60 @@ export default function SubscriptionsPage() {
                                     <th className="px-6 py-4">Paket</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4">Berakhir</th>
-                                    <th className="px-6 py-4">Tagihan</th>
+                                    <th className="px-6 py-4">Periode</th>
                                     <th className="px-6 py-4"></th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                                {[
-                                    { name: 'mitra1', location: 'Jakarta Selatan', plan: 'Business', status: 'Active', end: '30 Hari lagi', bill: 199000 },
-                                    { name: 'Kopi Kenangan', location: 'Jakarta Pusat', plan: 'Business', status: 'Active', end: '24 Okt 2024', bill: 199000 },
-                                    { name: 'Janji Jiwa', location: 'Bandung', plan: 'Enterprise', status: 'Active', end: '12 Nov 2024', bill: 499000 },
-                                    { name: 'Es Teh Indonesia', location: 'Surabaya', plan: 'Starter', status: 'Expiring', end: '2 Hari lagi', bill: 99000 },
-                                    { name: 'Mixue', location: 'Medan', plan: 'Business', status: 'Inactive', end: 'Expired', bill: 199000 },
-                                ].map((item, i) => (
-                                    <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                                            {item.name}
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                                            {item.location}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${item.plan === 'Enterprise' ? 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-900/20 dark:border-purple-900/30' :
-                                                item.plan === 'Business' ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:border-blue-900/30' :
-                                                    'bg-gray-50 text-gray-600 border-gray-100 dark:bg-white/5 dark:border-white/10'
-                                                }`}>
-                                                {item.plan}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1.5">
-                                                {item.status === 'Active' && <CheckCircle size={14} className="text-green-500" />}
-                                                {item.status === 'Expiring' && <Clock size={14} className="text-orange-500" />}
-                                                {item.status === 'Inactive' && <XIcon size={14} className="text-red-500" />}
-                                                <span className={
-                                                    item.status === 'Active' ? 'text-green-600' :
-                                                        item.status === 'Expiring' ? 'text-orange-600' : 'text-gray-500'
-                                                }>{item.status}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-500">{item.end}</td>
-                                        <td className="px-6 py-4 font-medium">{formatRupiah(item.bill)}</td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 transition-colors">
-                                                <MoreHorizontal size={16} />
-                                            </button>
+                                {isLoading ? (
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                            Memuat data...
                                         </td>
                                     </tr>
-                                ))}
+                                ) : subscriptions.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                            Belum ada data langganan.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    subscriptions.map((item, i) => (
+                                        <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                                {item.user_details?.username || `User #${item.user}`}
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                                                {item.user_details?.location || '-'}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${item.plan_name === 'Eksklusif'
+                                                    ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/20 dark:border-amber-900/30'
+                                                    : 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:border-blue-900/30'
+                                                    }`}>
+                                                    {item.plan_name}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1.5">
+                                                    {item.status === 'active' && <CheckCircle size={14} className="text-green-500" />}
+                                                    {item.status === 'expired' && <XIcon size={14} className="text-red-500" />}
+                                                    <span className={
+                                                        item.status === 'active' ? 'text-green-600' : 'text-red-500'
+                                                    }>{item.status === 'active' ? 'Aktif' : 'Expired'}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-500">{calculateDaysRemaining(item.end_date)}</td>
+                                            <td className="px-6 py-4 font-medium text-gray-500">
+                                                {item.start_date} - {item.end_date}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 transition-colors">
+                                                    <MoreHorizontal size={16} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )))}
                             </tbody>
                         </table>
                     </div>
@@ -197,22 +199,4 @@ export default function SubscriptionsPage() {
     );
 }
 
-function XIcon({ className, size }: { className?: string; size?: number }) {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width={size}
-            height={size}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={className}
-        >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 18 18" />
-        </svg>
-    )
-}
+

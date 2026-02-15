@@ -59,19 +59,21 @@ def create_users():
 
     # 2. Mitra Users
     mitras = [
-        {'username': 'mitra1', 'email': 'mitra1@example.com', 'location': 'Jakarta Selatan', 'plan': 'Eksekutif', 'subscribed': True},
-        {'username': 'mitra2', 'email': 'mitra2@example.com', 'location': 'Bandung', 'plan': 'Eksklusif', 'subscribed': True},
-        {'username': 'mitra_eksekutif', 'email': 'eksekutif@example.com', 'location': 'Surabaya', 'plan': 'Eksekutif', 'subscribed': False},
-        {'username': 'mitra_eksklusif', 'email': 'eksklusif@example.com', 'location': 'Medan', 'plan': 'Eksklusif', 'subscribed': False},
+        {'username': 'mitra1', 'email': 'mitra1@example.com', 'location': 'Jakarta Selatan', 'plan': 'Eksekutif', 'subscribed': True, 'expired': False},
+        {'username': 'mitra2', 'email': 'mitra2@example.com', 'location': 'Bandung', 'plan': 'Eksklusif', 'subscribed': True, 'expired': False},
+        {'username': 'mitra3', 'email': 'mitra3@example.com', 'location': 'Surabaya', 'plan': 'Eksekutif', 'subscribed': True, 'expired': True},
+        {'username': 'mitra4', 'email': 'mitra4@example.com', 'location': 'Medan', 'plan': 'Eksklusif', 'subscribed': True, 'expired': True},
     ]
 
     for m_data in mitras:
         _create_mitra(m_data)
 
-    # 3. Cashier Users
+    # 3. Cashier Users (1 per Mitra)
     cashiers = [
         {'username': 'kasir1', 'email': 'kasir1@example.com', 'owner': 'mitra1'},
         {'username': 'kasir2', 'email': 'kasir2@example.com', 'owner': 'mitra2'},
+        {'username': 'kasir3', 'email': 'kasir3@example.com', 'owner': 'mitra3'},
+        {'username': 'kasir4', 'email': 'kasir4@example.com', 'owner': 'mitra4'},
     ]
 
     for c_data in cashiers:
@@ -100,18 +102,31 @@ def _create_mitra(data):
             if user.is_superuser:
                 duration_days = 36500 # 100 Years
                 plan_name = 'Lifetime Access (Admin)'
+                start_date = timezone.now().date()
             else:
                 duration_days = 730 # 2 Years
                 plan_name = data.get('plan', 'Standard')
+                
+                # Check if expired requested
+                if data.get('expired', False):
+                    start_date = timezone.now().date() - timedelta(days=duration_days + 1)
+                    end_date = timezone.now().date() - timedelta(days=1)
+                    status = 'expired'
+                else:
+                    start_date = timezone.now().date()
+                    end_date = timezone.now().date() + timedelta(days=duration_days)
+                    status = 'active'
+            
+            if not user.is_superuser: # Admin handled above or logic same
+                 Subscription.objects.create(
+                    user=user,
+                    plan_name=plan_name,
+                    status=status,
+                    start_date=start_date,
+                    end_date=end_date
+                )
 
-            Subscription.objects.create(
-                user=user,
-                plan_name=plan_name,
-                status='active',
-                start_date=timezone.now().date(),
-                end_date=timezone.now().date() + timedelta(days=duration_days)
-            )
-        print(f"  -> Mitra {username} created with {duration_days/365:.1f} years subscription.")
+        print(f"  -> Mitra {username} created.")
     else:
         print(f"  Mitra {username} exists. Updating...")
         user = User.objects.get(username=username)

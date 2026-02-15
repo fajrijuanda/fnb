@@ -31,7 +31,7 @@ export default function UsersPage() {
         username: '',
         password: '',
         email: '',
-        role: 'cashier',
+        role: 'mitra',
         location: '',
         plan_name: 'Eksekutif'
     });
@@ -73,7 +73,7 @@ export default function UsersPage() {
                 username: '',
                 password: '',
                 email: '',
-                role: 'cashier',
+                role: 'mitra',
                 location: '',
                 plan_name: 'Eksekutif'
             });
@@ -84,7 +84,7 @@ export default function UsersPage() {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingUser(null);
-        setFormData({ username: '', password: '', email: '', role: 'cashier', location: '', plan_name: 'Eksekutif' });
+        setFormData({ username: '', password: '', email: '', role: 'mitra', location: '', plan_name: 'Eksekutif' });
     };
 
     const handleConfirmSave = async () => {
@@ -156,9 +156,12 @@ export default function UsersPage() {
         setShowSaveConfirm(true);
     };
 
-    const filteredUsers = users.filter(user =>
-        user.username.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredUsers = users.filter(user => {
+        // Hide Cashiers
+        if (user.role === 'cashier') return false;
+
+        return user.username.toLowerCase().includes(searchQuery.toLowerCase());
+    });
 
     // Pagination Logic
     const paginatedUsers = filteredUsers.slice(
@@ -189,13 +192,28 @@ export default function UsersPage() {
             accessor: (user) => (
                 <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'superadmin'
                     ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
-                    : user.role === 'mitra'
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
-                        : 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300'
+                    : 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
                     }`}>
-                    {user.role === 'superadmin' ? <Shield size={10} /> : user.role === 'mitra' ? <Store size={10} /> : <Users size={10} />}
-                    {user.role === 'superadmin' ? 'Super Admin' : user.role === 'mitra' ? 'Mitra' : 'Kasir'}
+                    {user.role === 'superadmin' ? <Shield size={10} /> : <Store size={10} />}
+                    {user.role === 'superadmin' ? 'Super Admin' : 'Mitra'}
                 </span>
+            )
+        },
+        {
+            header: "Lokasi",
+            accessor: (user) => user.location || '-'
+        },
+        {
+            header: "Paket",
+            accessor: (user) => (
+                user.role === 'mitra' ? (
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-medium border ${user.plan_name === 'Eksklusif'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800'
+                        : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800'
+                        }`}>
+                        {user.plan_name || 'Standard'}
+                    </span>
+                ) : '-'
             )
         },
         {
@@ -333,11 +351,40 @@ export default function UsersPage() {
                                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                     className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
                                 >
-                                    <option value="cashier">Kasir</option>
                                     <option value="mitra">Mitra</option>
                                     <option value="superadmin">Super Admin</option>
                                 </select>
                             </div>
+
+                            {formData.role === 'mitra' && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Lokasi Mitra
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.location}
+                                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
+                                            placeholder="Contoh: Jakarta Selatan"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Paket Langganan
+                                        </label>
+                                        <select
+                                            value={formData.plan_name}
+                                            onChange={(e) => setFormData({ ...formData, plan_name: e.target.value })}
+                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
+                                        >
+                                            <option value="Eksekutif">Eksekutif</option>
+                                            <option value="Eksklusif">Eksklusif</option>
+                                        </select>
+                                    </div>
+                                </>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

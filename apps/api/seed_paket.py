@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from apps.api.catalog.models import Category, Product  # noqa: E402
+from catalog.models import Category, Product  # noqa: E402
 
 # 1. Create or Get 'Paket' Category
 # Ensure it's first by setting order=0 and shifting others if needed (or just ensure it has lowest)

@@ -15,7 +15,8 @@ import {
     Users,
     Receipt,
     X,
-    CreditCard
+    CreditCard,
+    Tags
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
@@ -29,6 +30,12 @@ const superadminNav = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/users', label: 'Pengguna', icon: Users },
     { href: '/admin/subscriptions', label: 'Langganan', icon: CreditCard },
+    { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
+    { href: '/admin/categories', label: 'Kategori', icon: Tags },
+    { href: '/admin/inventory', label: 'Inventori', icon: Package },
+    { href: '/admin/orders', label: 'Pesanan', icon: Receipt },
+    { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
+    { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 
 const mitraNav = [
