@@ -28,7 +28,7 @@ export function LoadingScreen() {
 
                 {/* Logo Circle */}
                 {/* Logo Circle */}
-                <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-[#C5161D] to-[#A01217] flex items-center justify-center shadow-2xl shadow-red-900/30 animate-bounce p-4 border-2 border-white/10 ring-1 ring-red-500/20">
+                <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-[#C5161D] to-[#A01217] flex items-center justify-center shadow-2xl shadow-red-900/30 p-4 border-2 border-white/10 ring-1 ring-red-500/20">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/logo.png" alt="OMDEN" className="w-full h-full object-contain drop-shadow-md animate-pulse" />
                 </div>
