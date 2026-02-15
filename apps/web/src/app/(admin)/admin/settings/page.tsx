@@ -252,30 +252,37 @@ export default function SettingsPage() {
                         <Sparkles className="h-5 w-5" />
                         <h2 className="font-bold text-lg">Fitur Premium</h2>
                     </div>
-                    <span className="px-3 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 text-xs font-bold rounded-full uppercase tracking-wide">
-                        Pro Plan
-                    </span>
+                    {user?.is_subscribed || user?.role === 'superadmin' ? (
+                        <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-300 text-xs font-bold rounded-full uppercase tracking-wide">
+                            Unlocked
+                        </span>
+                    ) : (
+                        <span className="px-3 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 text-xs font-bold rounded-full uppercase tracking-wide">
+                            Pro Plan
+                        </span>
+                    )}
                 </div>
 
                 <div className="relative group overflow-hidden rounded-3xl">
                     {/* Locked Overlay */}
-                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/60 dark:bg-black/60 backdrop-blur-sm transition-opacity">
-                        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-2xl shadow-violet-500/50 mb-4 animate-bounce">
-                            <Lock className="h-8 w-8 text-white" />
+                    {!(user?.is_subscribed || user?.role === 'superadmin') && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/60 dark:bg-black/60 backdrop-blur-sm transition-opacity">
+                            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-2xl shadow-violet-500/50 mb-4 animate-bounce">
+                                <Lock className="h-8 w-8 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Unlock Fitur Premium</h3>
+                            <p className="text-gray-600 dark:text-gray-300 max-w-md text-center mb-6">
+                                Tingkatkan ke CloudPOS Pro untuk akses fitur analytics canggih, manajemen multi-cabang, dan white-labeling.
+                            </p>
+                            <button className="px-8 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105 transition-all flex items-center gap-2">
+                                <Crown size={20} />
+                                Upgrade Sekarang
+                            </button>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Unlock Fitur Premium</h3>
-                        <p className="text-gray-600 dark:text-gray-300 max-w-md text-center mb-6">
-                            Tingkatkan ke CloudPOS Pro untuk akses fitur analytics canggih, manajemen multi-cabang, dan white-labeling.
-                        </p>
-                        <button className="px-8 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105 transition-all flex items-center gap-2">
-                            <Crown size={20} />
-                            Upgrade Sekarang
-                        </button>
-                    </div>
+                    )}
 
-                    {/* Blurred Content */}
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 filter blur-sm select-none opacity-50 pointer-events-none">
-
+                    {/* Content (No Blur if Subscribed) */}
+                    <div className={`grid gap-6 md:grid-cols-2 lg:grid-cols-3 ${!(user?.is_subscribed || user?.role === 'superadmin') ? 'filter blur-sm select-none opacity-50 pointer-events-none' : ''}`}>
                         {/* Feature 1 */}
                         <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 border border-violet-200 dark:border-violet-500/20 shadow-sm relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-3 opacity-10">
@@ -286,7 +293,9 @@ export default function SettingsPage() {
                             </div>
                             <h3 className="font-bold text-lg mb-2">Smart Forecasting</h3>
                             <p className="text-sm text-gray-500">Prediksi penjualan menggunakan AI untuk optimasi stok bahan baku.</p>
-                            <div className="mt-4 h-20 bg-violet-50 dark:bg-violet-900/10 rounded-lg w-full"></div>
+                            <div className="mt-4 h-20 bg-violet-50 dark:bg-violet-900/10 rounded-lg w-full flex items-center justify-center text-xs text-violet-400">
+                                AI Analysis Graph
+                            </div>
                         </div>
 
                         {/* Feature 2 */}
@@ -299,7 +308,7 @@ export default function SettingsPage() {
                             </div>
                             <h3 className="font-bold text-lg mb-2">Multi-Outlet</h3>
                             <p className="text-sm text-gray-500">Kelola hingga 100 cabang dalam satu dashboard terpusat.</p>
-                            <div className="mt-4 space-y-2">
+                            <div className="mt-4 flex gap-2">
                                 <div className="h-2 w-full bg-gray-100 rounded"></div>
                                 <div className="h-2 w-2/3 bg-gray-100 rounded"></div>
                             </div>

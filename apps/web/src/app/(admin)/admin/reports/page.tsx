@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     BarChart3,
     TrendingUp,
@@ -8,67 +8,64 @@ import {
     Lock,
     Phone,
     Receipt,
-    Loader2,
-    Ghost,
-    Printer,
-    LucideIcon
+    LucideIcon,
+    Package
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import type { OrderResponse, ApiResponse, PaginatedData, WrappedResponse } from '@/types/api';
+import type { OrderResponse, ApiResponse, StockLog } from '@/types/api';
+import { extractApiArray } from '@/lib/api-utils';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { useAuthStore } from '@/store/useAuthStore';
 
 type TabType = 'sales' | 'profit_loss' | 'stock';
 
 export default function ReportsPage() {
+    const { user } = useAuthStore();
+    const isUnlocked = user?.role === 'superadmin' || user?.is_subscribed;
+
     const [activeTab, setActiveTab] = useState<TabType>('sales');
     const [orders, setOrders] = useState<OrderResponse[]>([]);
+    const [stockLogs, setStockLogs] = useState<StockLog[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    // Fetch Orders for Sales Report
-    useEffect(() => {
-        if (activeTab === 'sales') {
-            fetchOrders();
-        }
-        setCurrentPage(1);
-    }, [activeTab, pageSize]);
-
-    const fetchOrders = async () => {
+    // Fetch Data based on Tab
+    const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await api.get<ApiResponse<OrderResponse[]>>('/sales/orders/');
-            const resData = response.data;
-            if (Array.isArray(resData)) {
-                setOrders(resData);
-            } else if ('results' in resData) {
-                setOrders((resData as PaginatedData<OrderResponse[]>).results);
-            } else if ('data' in resData) {
-                const innerData = (resData as WrappedResponse<OrderResponse[]>).data;
-                if (Array.isArray(innerData)) {
-                    setOrders(innerData);
-                } else if ('results' in innerData) {
-                    setOrders(innerData.results);
-                }
+            if (activeTab === 'sales') {
+                const response = await api.get<ApiResponse<OrderResponse[]>>('/sales/orders/');
+                setOrders(extractApiArray(response.data));
+            } else if (activeTab === 'stock' && isUnlocked) {
+                const response = await api.get<ApiResponse<StockLog[]>>('/inventory/logs/?limit=100');
+                setStockLogs(extractApiArray(response.data));
             }
         } catch (error) {
-            console.error('Failed to fetch orders:', error);
+            console.error('Failed to fetch data:', error);
+            setOrders([]);
+            setStockLogs([]);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [activeTab, isUnlocked]);
 
-    // Calculate Summary Stats
+    useEffect(() => {
+        fetchData();
+        setCurrentPage(1);
+    }, [fetchData, pageSize]);
+
+    // Summary Stats
     const totalRevenue = orders.reduce((sum, order) => sum + order.total_amount, 0);
     const totalTransactions = orders.length;
     const averageOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
-    // Sub-components
+    // Components
     const TabButton = ({ value, label, icon: Icon }: { value: TabType, label: string, icon: LucideIcon }) => (
         <button
             onClick={() => setActiveTab(value)}
@@ -99,7 +96,6 @@ export default function ReportsPage() {
                         </div>
                     </div>
                 </div>
-
                 <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 lg:p-6 rounded-xl lg:rounded-2xl">
                     <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
                         <div className="p-1.5 md:p-2 lg:p-3 rounded-lg lg:rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
@@ -113,7 +109,6 @@ export default function ReportsPage() {
                         </div>
                     </div>
                 </div>
-
                 <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 lg:p-6 rounded-xl lg:rounded-2xl">
                     <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
                         <div className="p-1.5 md:p-2 lg:p-3 rounded-lg lg:rounded-xl bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400">
@@ -129,8 +124,8 @@ export default function ReportsPage() {
                 </div>
             </div>
 
-            {/* Transactions Table - Desktop */}
-            <div className="hidden md:block bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
+            {/* Transactions Table */}
+            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
                 <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
                     <h3 className="font-bold text-sm md:text-lg text-gray-900 dark:text-white">Riwayat Transaksi</h3>
                     <div className="flex items-center gap-2">
@@ -139,225 +134,176 @@ export default function ReportsPage() {
                             onChange={(val) => setPageSize(val as number)}
                             options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
                         />
-                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Per Halaman</span>
                     </div>
                 </div>
-
-                <table className="w-full text-xs lg:text-base">
-                    <thead>
-                        <tr className="bg-primary/10 dark:bg-white/5 text-left text-xs lg:text-sm">
-                            <th className="px-3 lg:px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Invoice</th>
-                            <th className="px-3 lg:px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Waktu</th>
-                            <th className="px-3 lg:px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Metode</th>
-                            <th className="px-3 lg:px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Total</th>
-                            <th className="px-3 lg:px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Status</th>
-                            <th className="px-3 lg:px-4 py-3 font-semibold text-gray-700 dark:text-gray-200 text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                        {isLoading ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                    <div className="flex justify-center items-center gap-2">
-                                        <Loader2 size={20} className="animate-spin" />
-                                        <span>Memuat data transaksi...</span>
-                                    </div>
-                                </td>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-xs lg:text-sm">
+                        <thead>
+                            <tr className="bg-primary/10 dark:bg-white/5 text-left">
+                                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Invoice</th>
+                                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Waktu</th>
+                                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Total</th>
+                                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Status</th>
                             </tr>
-                        ) : orders.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <Ghost className="h-8 w-8 opacity-50" />
-                                        <p>Belum ada data penjualan hari ini</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        ) : (
-                            orders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => (
-                                <tr key={order.id} className="hover:bg-red-50 dark:hover:bg-white/5 transition-colors text-xs lg:text-sm">
-                                    <td className="px-3 lg:px-4 py-2">
-                                        <span className="font-mono font-medium text-gray-900 dark:text-white">
-                                            {order.invoice_number}
-                                        </span>
-                                    </td>
-                                    <td className="px-3 lg:px-4 py-2 text-gray-600 dark:text-gray-300">
-                                        {formatDate(order.created_at)}
-                                    </td>
-                                    <td className="px-3 lg:px-4 py-2">
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${order.payment_method === 'QRIS'
-                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                                            : order.payment_method === 'TRANSFER'
-                                                ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                                                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                            }`}>
-                                            {order.payment_method}
-                                        </span>
-                                    </td>
-                                    <td className="px-3 lg:px-4 py-2 font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                                        {formatCurrency(order.total_amount)}
-                                    </td>
-                                    <td className="px-3 lg:px-4 py-2">
-                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400" />
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                            {isLoading ? (
+                                <tr><td colSpan={4} className="p-6 text-center">Memuat...</td></tr>
+                            ) : orders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => (
+                                <tr key={order.id} className="hover:bg-red-50 dark:hover:bg-white/5">
+                                    <td className="px-4 py-3 font-medium">{order.invoice_number}</td>
+                                    <td className="px-4 py-3 text-gray-500">{formatDate(order.created_at)}</td>
+                                    <td className="px-4 py-3">{formatCurrency(order.total_amount)}</td>
+                                    <td className="px-4 py-3">
+                                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
                                             {order.status_display}
                                         </span>
                                     </td>
-                                    <td className="px-3 lg:px-4 py-2 text-right">
-                                        <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                                            <Printer size={14} />
-                                        </button>
-                                    </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <AdminPagination currentPage={currentPage} totalItems={orders.length} pageSize={pageSize} onPageChange={setCurrentPage} />
+        </div>
+    );
+
+    const StockView = () => (
+        <div className="space-y-6 animation-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white/50 dark:bg-white/5 p-6 rounded-2xl border border-gray-200 dark:border-white/10">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">Total Perpindahan Stok</h3>
+                    <p className="text-3xl font-bold text-primary">{stockLogs.length}</p>
+                    <p className="text-sm text-gray-500">Aktivitas tercatat</p>
+                </div>
+                <div className="bg-white/50 dark:bg-white/5 p-6 rounded-2xl border border-gray-200 dark:border-white/10">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">Perubahan Terakhir</h3>
+                    <p className="text-3xl font-bold text-green-600">
+                        {stockLogs.length > 0 ? formatDate(stockLogs[0].created_at) : '-'}
+                    </p>
+                </div>
             </div>
 
-            <div className="mt-6">
-                <AdminPagination
-                    currentPage={currentPage}
-                    totalItems={orders.length}
-                    pageSize={pageSize}
-                    onPageChange={setCurrentPage}
-                />
+            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/10">
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">Riwayat Mutasi Stok</h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-xs lg:text-sm text-left">
+                        <thead className="bg-primary/10 dark:bg-white/5">
+                            <tr>
+                                <th className="px-4 py-3 font-semibold">Bahan / Produk</th>
+                                <th className="px-4 py-3 font-semibold">Jenis</th>
+                                <th className="px-4 py-3 font-semibold">Jumlah</th>
+                                <th className="px-4 py-3 font-semibold">Stok Akhir</th>
+                                <th className="px-4 py-3 font-semibold">Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                            {isLoading ? (
+                                <tr><td colSpan={5} className="p-6 text-center">Memuat...</td></tr>
+                            ) : stockLogs.length === 0 ? (
+                                <tr><td colSpan={5} className="p-6 text-center text-gray-500">Belum ada data mutasi.</td></tr>
+                            ) : (
+                                stockLogs.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((log) => (
+                                    <tr key={log.id} className="hover:bg-red-50 dark:hover:bg-white/5">
+                                        <td className="px-4 py-3 font-medium">
+                                            {log.ingredient_name || log.product_name || '-'}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={`px-2 py-1 rounded-xs font-bold text-xs ${log.movement_type === 'IN' ? 'text-green-600 bg-green-100' :
+                                                log.movement_type === 'OUT' ? 'text-blue-600 bg-blue-100' :
+                                                    'text-red-600 bg-red-100'
+                                                }`}>
+                                                {log.movement_type}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={log.change_amount > 0 ? 'text-green-600' : 'text-red-600'}>
+                                                {log.change_amount > 0 ? '+' : ''}{log.change_amount}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 font-mono">{log.final_stock}</td>
+                                        <td className="px-4 py-3 text-gray-500">{formatDate(log.created_at)}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
+            <AdminPagination currentPage={currentPage} totalItems={stockLogs.length} pageSize={pageSize} onPageChange={setCurrentPage} />
+        </div>
+    );
 
-            {/* Transactions Cards - Mobile */}
-            <div className="md:hidden space-y-3">
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-bold text-sm text-gray-900 dark:text-white">Riwayat Transaksi</h3>
-                    <button className="text-xs text-red-700 dark:text-red-500 hover:underline">
-                        Lihat Semua
-                    </button>
+    const ProfitLossView = () => (
+        <div className="space-y-6 animation-fade-in text-center py-12">
+            <div className="bg-white/50 dark:bg-white/5 p-8 rounded-3xl border border-gray-200 dark:border-white/10 max-w-2xl mx-auto">
+                <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
+                    <PieChart size={40} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Analisa Laba Rugi</h2>
+                <p className="text-gray-500 mb-6">Fitur ini menghitung selisih antara Pendapatan Penjualan dan Harga Pokok Penjualan (HPP) berdasarkan resep.</p>
+
+                <div className="grid grid-cols-2 gap-4 text-left p-6 bg-gray-50 dark:bg-white/5 rounded-2xl mb-6">
+                    <div>
+                        <p className="text-sm text-gray-500">Pendapatan Kotor</p>
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency(totalRevenue)}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-500">Estimasi Laba Bersih</p>
+                        <p className="text-xl font-bold text-green-600">{formatCurrency(totalRevenue * 0.4)} <span className="text-xs text-gray-400 font-normal">(Est. 40%)</span></p>
+                    </div>
                 </div>
 
-                {isLoading ? (
-                    <div className="flex justify-center items-center gap-2 py-8 text-gray-500 dark:text-gray-400">
-                        <Loader2 size={18} className="animate-spin" />
-                        <span className="text-sm">Memuat...</span>
-                    </div>
-                ) : orders.length === 0 ? (
-                    <div className="flex flex-col items-center gap-3 py-12 text-gray-500 dark:text-gray-400">
-                        <Ghost className="h-6 w-6 opacity-50" />
-                        <p className="text-sm">Belum ada data penjualan</p>
-                    </div>
-                ) : (
-                    orders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => (
-                        <div key={order.id} className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
-                            <div className="flex items-start justify-between mb-2">
-                                <div>
-                                    <p className="font-mono font-medium text-sm text-gray-900 dark:text-white">
-                                        {order.invoice_number}
-                                    </p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                        {formatDate(order.created_at)}
-                                    </p>
-                                </div>
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400">
-                                    <div className="w-1 h-1 rounded-full bg-green-600 dark:bg-green-400" />
-                                    {order.status_display}
-                                </span>
-                            </div>
-                            <div className="flex items-center justify-between mt-3">
-                                <div className="flex items-center gap-2">
-                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${order.payment_method === 'QRIS'
-                                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                                        : order.payment_method === 'TRANSFER'
-                                            ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                                            : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                                        }`}>
-                                        {order.payment_method}
-                                    </span>
-                                </div>
-                                <p className="font-bold text-sm text-gray-900 dark:text-white">
-                                    {formatCurrency(order.total_amount)}
-                                </p>
-                            </div>
-                        </div>
-                    ))
-                )}
+                <p className="text-xs text-gray-400">
+                    Catatan: Input Data Resep dan Data Pembelian Bahan Baku diperlukan untuk kalkulasi akurat.
+                </p>
             </div>
         </div>
     );
 
     const LockedView = () => (
-        <div className="relative min-h-[500px]">
-            {/* Blurred Dummy Content */}
-            <div className="filter blur-md pointer-events-none select-none opacity-40">
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                    <div className="h-40 bg-white dark:bg-white/5 rounded-2xl p-6" />
-                    <div className="h-40 bg-white dark:bg-white/5 rounded-2xl p-6" />
+        <div className="relative min-h-[500px] flex items-center justify-center">
+            <div className="absolute inset-0 filter blur-md bg-white/50 dark:bg-white/5 opacity-50 pointer-events-none" />
+            <div className="relative z-10 max-w-lg w-full bg-white/80 dark:bg-black/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-3xl p-8 text-center shadow-2xl">
+                <div className="h-16 w-16 mx-auto rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg shadow-red-500/30 mb-6">
+                    <Lock className="h-8 w-8 text-white" />
                 </div>
-                <div className="h-96 bg-white dark:bg-white/5 rounded-2xl p-6" />
-            </div>
-
-            {/* Lock Overlay */}
-            <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
-                <div className="relative max-w-lg w-full bg-white/80 dark:bg-black/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-3xl p-8 text-center shadow-2xl animation-scale-in">
-                    {/* Decorative Background Glow */}
-                    <div className="absolute -top-20 -left-20 w-40 h-40 bg-primary/30 rounded-full blur-3xl" />
-                    <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-blue-500/30 rounded-full blur-3xl" />
-
-                    <div className="relative z-10 flex flex-col items-center">
-                        <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg shadow-primary/30 mb-6">
-                            <Lock className="h-10 w-10 text-white" />
-                        </div>
-
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                            Fitur Laporan Premium 🔒
-                        </h2>
-
-                        <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                            Fitur <span className="font-semibold text-red-700 dark:text-red-500">
-                                {activeTab === 'profit_loss' ? 'Analisa Laba Rugi' : 'Analisa Stok'}
-                            </span> hanya tersedia untuk pengguna Premium.
-                            Dapatkan wawasan mendalam tentang keuntungan bisnis dan perputaran stok Anda secara real-time.
-                        </p>
-
-                        <div className="flex flex-col w-full gap-3">
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                                Hubungi Developer untuk Upgrade:
-                            </p>
-                            <Link
-                                href="https://wa.me/6285217861296?text=Halo%2C%20saya%20tertarik%20upgrade%20fitur%20Laporan%20Premium%20CloudPOS."
-                                target="_blank"
-                                className="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold transition-all shadow-lg hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                                <Phone size={24} />
-                                <span>Hubungi via WhatsApp</span>
-                            </Link>
-
-                            <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-primary/10">
-                                <p className="text-xs font-mono text-red-700 dark:text-red-500">
-                                    Developer Contact: 0852-1786-1296
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Fitur Premium Terkunci</h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                    Anda perlu berlangganan paket <span className="font-bold text-primary">Eksekutif</span> atau <span className="font-bold text-primary">Eksklusif</span> untuk mengakses laporan mendalam ini.
+                </p>
+                <Link
+                    href="https://wa.me/6285217861296"
+                    target="_blank"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition-colors"
+                >
+                    <Phone size={18} /> Hubungi Sales
+                </Link>
             </div>
         </div>
     );
 
     return (
         <div className="space-y-4 lg:space-y-6">
-            {/* Header */}
             <div>
                 <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">Laporan & Analitik</h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Pantau performa bisnis dan penjualan Anda</p>
             </div>
 
-            {/* Tabs */}
             <div className="flex flex-wrap gap-2 lg:gap-3">
                 <TabButton value="sales" label="Laporan Penjualan" icon={TrendingUp} />
                 <TabButton value="profit_loss" label="Laba Rugi" icon={PieChart} />
-                <TabButton value="stock" label="Analisa Stok" icon={BarChart3} />
+                <TabButton value="stock" label="Analisa Stok" icon={Package} />
             </div>
 
-            {/* Content Area */}
-            {activeTab === 'sales' ? <SalesView /> : <LockedView />}
+            <div className="min-h-[400px]">
+                {activeTab === 'sales' && <SalesView />}
+                {activeTab === 'profit_loss' && (isUnlocked ? <ProfitLossView /> : <LockedView />)}
+                {activeTab === 'stock' && (isUnlocked ? <StockView /> : <LockedView />)}
+            </div>
         </div>
     );
 }

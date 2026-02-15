@@ -130,6 +130,21 @@ export interface Ingredient {
   status: IngredientStatus;
 }
 
+export interface StockLog {
+  id: number;
+  ingredient: number;
+  ingredient_name?: string;
+  product?: number;
+  product_name?: string;
+  change_amount: number;
+  final_stock: number;
+  movement_type: "IN" | "OUT" | "ADJUSTMENT" | "WASTE";
+  reason?: string;
+  notes?: string;
+  created_at: string;
+  created_by?: number;
+}
+
 // API Response Wrapper
 export interface PaginatedData<T> {
   count: number;
