@@ -455,12 +455,13 @@ select:focus {
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
 }
 
-background: radial-gradient(at 40% 20%, rgba(197, 22, 29, 0.15) 0px, transparent 50%),
-radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
-radial-gradient(at 0% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
-radial-gradient(at 80% 50%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
-radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
-linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+.bg-gradient-mesh {
+  background: radial-gradient(at 40% 20%, rgba(197, 22, 29, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+    linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
 }
 
 /* Animated Gradient */
