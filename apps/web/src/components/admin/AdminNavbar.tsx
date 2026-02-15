@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Bell, User, Settings, LogOut, ChevronDown, Menu } from 'lucide-react';
+import { Search, User, Settings, LogOut, ChevronDown, Menu } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuthStore } from '@/store/useAuthStore';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
+import { NotificationDropdown } from './NotificationDropdown';
 import Link from 'next/link';
 
 interface AdminNavbarProps {
@@ -51,10 +52,7 @@ export function AdminNavbar({ onMenuClick }: AdminNavbarProps) {
             <div className="flex items-center gap-2 lg:gap-4">
                 <ThemeToggle dropdownAlign="bottom" dropdownSide="right" />
 
-                <button className="relative rounded-xl p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                    <Bell size={18} className="lg:w-5 lg:h-5" />
-                    <span className="absolute top-1.5 right-1.5 lg:top-2 lg:right-2 h-2 w-2 rounded-full bg-[#C5161D] ring-2 ring-white dark:ring-black" />
-                </button>
+                <NotificationDropdown />
 
                 <div className="h-6 w-px bg-gray-200 dark:bg-white/10" />
 

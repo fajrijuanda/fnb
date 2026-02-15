@@ -127,3 +127,15 @@ export interface WrappedResponse<T> {
 }
 
 export type ApiResponse<T> = T | PaginatedData<T> | WrappedResponse<T>;
+
+// Notifications
+export interface Notification {
+  id: number;
+  recipient: number;
+  title: string;
+  message: string;
+  notification_type: "info" | "warning" | "success" | "error";
+  is_read: boolean;
+  related_link?: string | null;
+  created_at: string;
+}

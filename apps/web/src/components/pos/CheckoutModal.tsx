@@ -33,9 +33,21 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
         setTimeout(() => setMounted(true), 0);
     }, []);
 
+    const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
+
     useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const response = await api.get<StoreSettings>('/settings/store/');
+                setStoreSettings(response.data);
+            } catch (error) {
+                console.error('Failed to fetch store settings', error);
+            }
+        };
+
         if (isOpen) {
             const timer = setTimeout(() => setIsVisible(true), 10);
+            fetchSettings();
             return () => clearTimeout(timer);
         } else {
             const timer = setTimeout(() => setIsVisible(false), 300);
@@ -208,6 +220,73 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                         ))}
                     </div>
                 </div>
+                {/* Payment Method Details */}
+                {storeSettings && paymentMethod === 'QRIS' && (
+                    <div className="mb-6 p-4 bg-white dark:bg-black/20 rounded-xl border border-gray-200 dark:border-white/10 flex flex-col items-center text-center">
+                        {storeSettings.qris_image ? (
+                            <div className="relative w-48 h-48 mb-3">
+                                <Image
+                                    src={storeSettings.qris_image}
+                                    alt="QRIS Code"
+                                    fill
+                                    className="object-contain"
+                                    unoptimized
+                                />
+                            </div>
+                        ) : (
+                            <div className="w-48 h-48 mb-3 bg-gray-100 dark:bg-white/5 rounded-lg flex items-center justify-center">
+                                <QrCode className="text-gray-400" size={48} />
+                            </div>
+                        )}
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">Scan QRIS untuk membayar</p>
+                        <p className="text-xs text-gray-500">Dana / GoPay / OVO / ShopeePay</p>
+                    </div>
+                )}
+
+                {storeSettings && paymentMethod === 'TRANSFER' && (
+                    <div className="mb-6 space-y-3">
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
+                            <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Bank Transfer</p>
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-bold text-gray-900 dark:text-white">{storeSettings.bank_name}</span>
+                                <span className="text-sm font-mono text-gray-700 dark:text-gray-300 bg-white dark:bg-black/20 px-2 py-1 rounded">{storeSettings.bank_account}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">a.n. {storeSettings.bank_holder}</p>
+                        </div>
+                        {(storeSettings.dana_number || storeSettings.gopay_number || storeSettings.ovo_number || storeSettings.shopeepay_number) && (
+                            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-900/30">
+                                <p className="text-xs text-green-600 dark:text-green-400 font-medium mb-2">E-Wallet</p>
+                                <div className="space-y-1">
+                                    {storeSettings.dana_number && (
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-600 dark:text-gray-400">DANA</span>
+                                            <span className="font-mono text-gray-900 dark:text-white">{storeSettings.dana_number}</span>
+                                        </div>
+                                    )}
+                                    {storeSettings.gopay_number && (
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-600 dark:text-gray-400">GoPay</span>
+                                            <span className="font-mono text-gray-900 dark:text-white">{storeSettings.gopay_number}</span>
+                                        </div>
+                                    )}
+                                    {storeSettings.ovo_number && (
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-600 dark:text-gray-400">OVO</span>
+                                            <span className="font-mono text-gray-900 dark:text-white">{storeSettings.ovo_number}</span>
+                                        </div>
+                                    )}
+                                    {storeSettings.shopeepay_number && (
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-600 dark:text-gray-400">ShopeePay</span>
+                                            <span className="font-mono text-gray-900 dark:text-white">{storeSettings.shopeepay_number}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
 
                 {/* Error */}
                 {error && (
