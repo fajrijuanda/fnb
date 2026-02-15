@@ -15,6 +15,11 @@ django.setup()
 User = get_user_model()
 
 def create_users():
+    from django.conf import settings
+    db_settings = settings.DATABASES['default']
+    print(f"DEBUG: Using Database Host: {db_settings.get('HOST', 'localhost')}")
+    print(f"DEBUG: Using Database Name: {db_settings.get('NAME', 'unknown')}")
+
     # 1. Create Admin (Superuser)
     admin_username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
     admin_email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')

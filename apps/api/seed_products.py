@@ -15,6 +15,11 @@ django.setup()
 from apps.api.catalog.models import Category, Product  # noqa: E402
 
 def seed_products():
+    from django.conf import settings
+    db_settings = settings.DATABASES['default']
+    print(f"DEBUG: Using Database Host: {db_settings.get('HOST', 'localhost')}")
+    print(f"DEBUG: Using Database Name: {db_settings.get('NAME', 'unknown')}")
+
     print("Seeding Categories and Products...")
 
     # 1. Define Categories
