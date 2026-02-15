@@ -91,3 +91,89 @@ def restock_ingredient(ingredient_id: int, quantity: float, notes: str = "") -> 
             reason='PURCHASE',
             notes=notes
         )
+
+
+class ExternalOrderService:
+    """
+    Scaffold for samdenidimsum external API integration.
+    Handles communication between OMDEN and HQ system.
+
+    Configuration (in Django settings):
+        EXTERNAL_HQ_API_URL = 'https://api.samdenidimsum.com/v1'
+        EXTERNAL_HQ_API_KEY = 'your-api-key-here'
+    """
+
+    def __init__(self):
+        from django.conf import settings
+        self.base_url = getattr(settings, 'EXTERNAL_HQ_API_URL', '')
+        self.api_key = getattr(settings, 'EXTERNAL_HQ_API_KEY', '')
+        self.timeout = 30
+
+    def _get_headers(self) -> dict:
+        """Return auth headers for HQ API calls."""
+        return {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json',
+        }
+
+    def submit_order(self, order) -> dict:
+        """
+        POST order to external HQ system.
+        Returns: { 'success': bool, 'external_id': str, 'message': str }
+        """
+        if not self.base_url:
+            # API not configured yet — store locally only
+            return {
+                'success': True,
+                'external_id': '',
+                'message': 'External API not configured. Order saved locally.'
+            }
+
+        # TODO: Implement when samdenidimsum API is ready
+        # import requests
+        # payload = {
+        #     'order_number': order.order_number,
+        #     'items': [
+        #         {
+        #             'ingredient_name': item.ingredient.name,
+        #             'quantity': float(item.quantity),
+        #             'unit': item.unit,
+        #         }
+        #         for item in order.items.all()
+        #     ],
+        #     'shipping_address': order.shipping_address,
+        #     'payment_method': order.payment_method,
+        #     'notes': order.notes,
+        # }
+        # response = requests.post(
+        #     f'{self.base_url}/orders/',
+        #     json=payload,
+        #     headers=self._get_headers(),
+        #     timeout=self.timeout
+        # )
+        # data = response.json()
+        # return {
+        #     'success': response.ok,
+        #     'external_id': data.get('id', ''),
+        #     'message': data.get('message', ''),
+        # }
+
+        return {
+            'success': True,
+            'external_id': '',
+            'message': 'External API not configured. Order saved locally.'
+        }
+
+    def get_hq_bank_details(self) -> dict:
+        """
+        GET HQ payment account details from external system.
+        Returns bank info for Mitra to transfer to.
+        """
+        # Fallback: return from environment/settings
+        from django.conf import settings
+        return {
+            'bank_name': getattr(settings, 'HQ_BANK_NAME', 'BCA'),
+            'bank_account': getattr(settings, 'HQ_BANK_ACCOUNT', ''),
+            'bank_holder': getattr(settings, 'HQ_BANK_HOLDER', 'PT Samdenidimsum'),
+        }
+

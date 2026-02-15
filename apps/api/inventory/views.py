@@ -1,12 +1,14 @@
 from django.db import models
+from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Ingredient, Recipe, StockLog
+from .models import Ingredient, Recipe, StockLog, RestockOrder
 from .serializers import (
     IngredientSerializer,
     RecipeSerializer,
-    StockLogSerializer
+    StockLogSerializer,
+    RestockOrderSerializer,
 )
 from .services import restock_ingredient
 
@@ -115,3 +117,114 @@ class StockLogViewSet(viewsets.ReadOnlyModelViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return Response({'status': 'success', 'data': serializer.data})
+
+
+class RestockOrderViewSet(viewsets.ModelViewSet):
+    """
+    CRUD API for Restock Orders.
+    Mitra creates orders, status is updated by HQ or external system.
+    """
+    queryset = RestockOrder.objects.prefetch_related('items__ingredient').all()
+    serializer_class = RestockOrderSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        # Filter by status
+        order_status = request.query_params.get('status')
+        if order_status:
+            queryset = queryset.filter(status=order_status.upper())
+
+        # Filter active (non-terminal) vs history (terminal)
+        view = request.query_params.get('view')
+        if view == 'active':
+            queryset = queryset.exclude(status__in=['RECEIVED', 'CANCELLED'])
+        elif view == 'history':
+            queryset = queryset.filter(status__in=['RECEIVED', 'CANCELLED'])
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'status': 'success', 'data': serializer.data})
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {'status': 'success', 'data': serializer.data},
+            status=status.HTTP_201_CREATED
+        )
+
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        """
+        Update order status (used by HQ / external system).
+        POST /api/v1/inventory/restock-orders/{id}/update-status/
+        Body: { "status": "PREPARING" }
+        """
+        order = self.get_object()
+        new_status = request.data.get('status', '').upper()
+        valid_statuses = dict(RestockOrder.STATUS_CHOICES).keys()
+
+        if new_status not in valid_statuses:
+            return Response(
+                {'status': 'error', 'message': f'Invalid status. Valid: {list(valid_statuses)}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        now = timezone.now()
+        order.status = new_status
+
+        # Set timestamp for the new status
+        status_timestamp_map = {
+            'PAID': 'paid_at',
+            'PREPARING': 'preparing_at',
+            'SHIPPED': 'shipped_at',
+            'RECEIVED': 'received_at',
+            'CANCELLED': 'cancelled_at',
+        }
+        timestamp_field = status_timestamp_map.get(new_status)
+        if timestamp_field:
+            setattr(order, timestamp_field, now)
+
+        order.save()
+
+        serializer = self.get_serializer(order)
+        return Response({
+            'status': 'success',
+            'message': f'Status updated to {order.get_status_display()}',
+            'data': serializer.data
+        })
+
+    @action(detail=True, methods=['post'], url_path='confirm-received')
+    def confirm_received(self, request, pk=None):
+        """
+        Mitra confirms order received. Auto-restocks ingredients.
+        POST /api/v1/inventory/restock-orders/{id}/confirm-received/
+        """
+        order = self.get_object()
+
+        if order.status not in ('SHIPPED', 'PREPARING', 'PAID'):
+            return Response(
+                {'status': 'error', 'message': 'Order cannot be confirmed in current status.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Auto-restock each ingredient
+        for item in order.items.all():
+            restock_ingredient(
+                ingredient_id=item.ingredient_id,
+                quantity=float(item.quantity),
+                notes=f"Restock Order {order.order_number}"
+            )
+
+        order.status = 'RECEIVED'
+        order.received_at = timezone.now()
+        order.save()
+
+        serializer = self.get_serializer(order)
+        return Response({
+            'status': 'success',
+            'message': 'Pesanan dikonfirmasi diterima. Stok telah diperbarui.',
+            'data': serializer.data
+        })
+

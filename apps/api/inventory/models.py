@@ -111,3 +111,88 @@ class StockLog(models.Model):
     def __str__(self):
         item = self.ingredient.name if self.ingredient else (self.product.name if self.product else "Unknown")
         return f"{self.movement_type} {self.change_amount} of {item} - {self.reason}"
+
+
+class RestockOrder(models.Model):
+    """
+    Restock order from Mitra to HQ (samdenidimsum).
+    Tracks the full lifecycle: PENDING → PAID → PREPARING → SHIPPED → RECEIVED.
+    """
+    STATUS_CHOICES = [
+        ('PENDING', 'Menunggu Pembayaran'),
+        ('PAID', 'Dibayar'),
+        ('PREPARING', 'Disiapkan'),
+        ('SHIPPED', 'Dikirim'),
+        ('RECEIVED', 'Diterima'),
+        ('CANCELLED', 'Dibatalkan'),
+    ]
+    PAYMENT_CHOICES = [
+        ('TRANSFER', 'Transfer Bank'),
+        ('DANA', 'DANA'),
+        ('GOPAY', 'GoPay'),
+        ('SHOPEEPAY', 'ShopeePay'),
+        ('OVO', 'OVO'),
+    ]
+
+    order_number = models.CharField(max_length=30, unique=True, editable=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='TRANSFER')
+
+    shipping_address = models.TextField(blank=True, help_text="Alamat pengiriman Mitra")
+    shipping_cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    notes = models.TextField(blank=True)
+
+    # Timestamps per status
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    preparing_at = models.DateTimeField(null=True, blank=True)
+    shipped_at = models.DateTimeField(null=True, blank=True)
+    received_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    # External system reference
+    external_order_id = models.CharField(max_length=100, blank=True, help_text="ID from samdenidimsum system")
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = self._generate_order_number()
+        # Recalculate total
+        self.total_amount = self.subtotal + self.shipping_cost
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def _generate_order_number():
+        from django.utils import timezone
+        import random
+        today = timezone.now().strftime('%Y%m%d')
+        rand = random.randint(1000, 9999)
+        return f"RST-{today}-{rand}"
+
+    def __str__(self):
+        return f"{self.order_number} ({self.get_status_display()})"
+
+
+class RestockOrderItem(models.Model):
+    """Individual item within a restock order."""
+    order = models.ForeignKey(RestockOrder, on_delete=models.CASCADE, related_name='items')
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT, related_name='restock_items')
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    unit = models.CharField(max_length=20, help_text="Unit snapshot from ingredient")
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Harga per unit dari HQ")
+
+    @property
+    def line_total(self):
+        return self.quantity * self.unit_price
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return f"{self.quantity} {self.unit} of {self.ingredient.name}"
+

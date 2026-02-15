@@ -4,32 +4,24 @@ import { useState, useEffect, useCallback } from 'react';
 import { InventoryPrediction } from '@/components/admin/ai/InventoryPrediction';
 import {
     Lock, Phone, Plus, Search, AlertTriangle, CheckCircle, RefreshCw,
-    X, Pencil, Trash2, Mail, Loader2, Save, Send, Truck
+    X, Pencil, Trash2, Loader2, Save, ShoppingCart,
+    Package, ClipboardList, History, Truck, Clock, CheckCircle2, XCircle, CreditCard
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import { extractApiArray } from '@/lib/api-utils';
-import { Ingredient, ApiResponse } from '@/types/api';
+import type { Ingredient, ApiResponse, RestockOrder, RestockOrderStatus, RestockPaymentMethod } from '@/types/api';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 
-// Simple shipping cost lookup by city keyword
+// ── Constants ──
 const SHIPPING_RATES: Record<string, number> = {
-    'jakarta': 15000,
-    'bandung': 20000,
-    'surabaya': 30000,
-    'semarang': 25000,
-    'yogyakarta': 25000,
-    'jogja': 25000,
-    'malang': 28000,
-    'solo': 25000,
-    'bekasi': 15000,
-    'tangerang': 15000,
-    'depok': 15000,
-    'bogor': 18000,
+    'jakarta': 15000, 'bandung': 20000, 'surabaya': 30000, 'semarang': 25000,
+    'yogyakarta': 25000, 'jogja': 25000, 'malang': 28000, 'solo': 25000,
+    'bekasi': 15000, 'tangerang': 15000, 'depok': 15000, 'bogor': 18000,
 };
 const DEFAULT_SHIPPING = 35000;
 
@@ -45,6 +37,10 @@ function formatCurrency(value: number): string {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 }
 
+function formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 const UNIT_OPTIONS = [
     { value: 'gram', label: 'Gram' },
     { value: 'ml', label: 'Milliliter' },
@@ -53,11 +49,80 @@ const UNIT_OPTIONS = [
     { value: 'liter', label: 'Liter' },
 ];
 
+const PAYMENT_OPTIONS: { value: RestockPaymentMethod; label: string }[] = [
+    { value: 'TRANSFER', label: 'Transfer Bank' },
+    { value: 'DANA', label: 'DANA' },
+    { value: 'GOPAY', label: 'GoPay' },
+    { value: 'SHOPEEPAY', label: 'ShopeePay' },
+    { value: 'OVO', label: 'OVO' },
+];
+
+const STATUS_CONFIG: Record<RestockOrderStatus, { label: string; color: string; icon: typeof Clock }> = {
+    PENDING: { label: 'Menunggu Pembayaran', color: 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-500/10 dark:border-yellow-500/20 dark:text-yellow-400', icon: Clock },
+    PAID: { label: 'Dibayar', color: 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 dark:text-blue-400', icon: CreditCard },
+    PREPARING: { label: 'Disiapkan', color: 'text-orange-600 bg-orange-50 border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/20 dark:text-orange-400', icon: Package },
+    SHIPPED: { label: 'Dikirim', color: 'text-indigo-600 bg-indigo-50 border-indigo-200 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400', icon: Truck },
+    RECEIVED: { label: 'Diterima', color: 'text-green-600 bg-green-50 border-green-200 dark:bg-green-500/10 dark:border-green-500/20 dark:text-green-400', icon: CheckCircle2 },
+    CANCELLED: { label: 'Dibatalkan', color: 'text-red-600 bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400', icon: XCircle },
+};
+
+const TRACKING_STEPS: RestockOrderStatus[] = ['PENDING', 'PAID', 'PREPARING', 'SHIPPED', 'RECEIVED'];
+
+type TabId = 'ingredients' | 'tracking' | 'history';
+
+// ── Order Item for creation form ──
+interface OrderItemDraft {
+    ingredientId: number;
+    ingredientName: string;
+    quantity: string;
+    unit: string;
+    unitPrice: string;
+}
+
+// ── Tracking Timeline Component ──
+function TrackingTimeline({ order }: { order: RestockOrder }) {
+    if (order.status === 'CANCELLED') {
+        return (
+            <div className="flex items-center gap-2 text-red-500 text-xs font-bold">
+                <XCircle size={14} /> Pesanan dibatalkan
+                {order.cancelled_at && <span className="font-normal text-gray-500">({formatDate(order.cancelled_at)})</span>}
+            </div>
+        );
+    }
+
+    const currentIdx = TRACKING_STEPS.indexOf(order.status);
+    return (
+        <div className="flex items-center gap-1 flex-wrap">
+            {TRACKING_STEPS.map((step, idx) => {
+                const cfg = STATUS_CONFIG[step];
+                const isDone = idx <= currentIdx;
+                const isCurrent = idx === currentIdx;
+                return (
+                    <div key={step} className="flex items-center gap-1">
+                        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all ${isDone ? cfg.color : 'text-gray-400 bg-gray-50 border-gray-200 dark:bg-white/5 dark:border-white/10 dark:text-gray-600'} ${isCurrent ? 'ring-2 ring-offset-1 ring-primary/30' : ''}`}>
+                            <cfg.icon size={10} />
+                            <span className="hidden sm:inline">{cfg.label}</span>
+                        </div>
+                        {idx < TRACKING_STEPS.length - 1 && (
+                            <div className={`w-3 h-0.5 rounded ${idx < currentIdx ? 'bg-green-400' : 'bg-gray-200 dark:bg-white/10'}`} />
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+// ── Main Page ──
 export default function InventoryPage() {
     const { user } = useAuthStore();
     const { success, error: showError } = useToast();
     const isUnlocked = user?.role === 'superadmin' || user?.is_subscribed;
 
+    // Tab
+    const [activeTab, setActiveTab] = useState<TabId>('ingredients');
+
+    // Ingredients
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -68,46 +133,65 @@ export default function InventoryPage() {
     const [ingredientForm, setIngredientForm] = useState({ name: '', unit: 'gram', low_stock_alert: '0', current_stock: '0' });
     const [isSaving, setIsSaving] = useState(false);
     const [showSaveConfirm, setShowSaveConfirm] = useState(false);
-
-    // Delete
     const [deleteId, setDeleteId] = useState<number | null>(null);
 
-    // Order (Email) Modal
-    const [orderIngredient, setOrderIngredient] = useState<Ingredient | null>(null);
-    const [orderForm, setOrderForm] = useState({ qty: '', address: '', notes: '' });
+    // Restock Orders
+    const [activeOrders, setActiveOrders] = useState<RestockOrder[]>([]);
+    const [historyOrders, setHistoryOrders] = useState<RestockOrder[]>([]);
+    const [ordersLoading, setOrdersLoading] = useState(false);
 
+    // Order creation modal
+    const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+    const [orderItems, setOrderItems] = useState<OrderItemDraft[]>([]);
+    const [orderForm, setOrderForm] = useState({ address: '', notes: '', paymentMethod: 'TRANSFER' as RestockPaymentMethod });
+    const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+    const [showOrderConfirm, setShowOrderConfirm] = useState(false);
+
+    // Confirm received
+    const [confirmReceiveId, setConfirmReceiveId] = useState<number | null>(null);
+
+    // ── Data Fetching ──
     const fetchIngredients = useCallback(async () => {
         if (!isUnlocked) return;
         setIsLoading(true);
         try {
             const response = await api.get<ApiResponse<Ingredient[]>>('/inventory/ingredients/');
-            const data = extractApiArray(response.data);
-            setIngredients(data);
-        } catch (error) {
-            console.error('Failed to fetch ingredients:', error);
+            setIngredients(extractApiArray(response.data));
+        } catch (err) {
+            console.error('Failed to fetch ingredients:', err);
         } finally {
             setIsLoading(false);
         }
     }, [isUnlocked]);
 
+    const fetchOrders = useCallback(async (view: 'active' | 'history') => {
+        if (!isUnlocked) return;
+        setOrdersLoading(true);
+        try {
+            const response = await api.get<ApiResponse<RestockOrder[]>>(`/inventory/restock-orders/?view=${view}`);
+            const data = extractApiArray(response.data);
+            if (view === 'active') setActiveOrders(data);
+            else setHistoryOrders(data);
+        } catch (err) {
+            console.error(`Failed to fetch ${view} orders:`, err);
+        } finally {
+            setOrdersLoading(false);
+        }
+    }, [isUnlocked]);
+
+    useEffect(() => { fetchIngredients(); }, [fetchIngredients]);
     useEffect(() => {
-        fetchIngredients();
-    }, [fetchIngredients]);
+        if (activeTab === 'tracking') fetchOrders('active');
+        else if (activeTab === 'history') fetchOrders('history');
+    }, [activeTab, fetchOrders]);
 
-    const filteredIngredients = ingredients.filter(item =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredIngredients = ingredients.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    // --- Ingredient CRUD ---
+    // ── Ingredient CRUD Handlers ──
     const handleOpenIngredientModal = (ingredient?: Ingredient) => {
         if (ingredient) {
             setEditingIngredient(ingredient);
-            setIngredientForm({
-                name: ingredient.name,
-                unit: ingredient.unit,
-                low_stock_alert: String(ingredient.low_stock_alert),
-                current_stock: String(ingredient.current_stock)
-            });
+            setIngredientForm({ name: ingredient.name, unit: ingredient.unit, low_stock_alert: String(ingredient.low_stock_alert), current_stock: String(ingredient.current_stock) });
         } else {
             setEditingIngredient(null);
             setIngredientForm({ name: '', unit: 'gram', low_stock_alert: '0', current_stock: '0' });
@@ -115,18 +199,11 @@ export default function InventoryPage() {
         setIsIngredientModalOpen(true);
     };
 
-    const handleCloseIngredientModal = () => {
-        setIsIngredientModalOpen(false);
-        setEditingIngredient(null);
-        setIngredientForm({ name: '', unit: 'gram', low_stock_alert: '0', current_stock: '0' });
-    };
+    const handleCloseIngredientModal = () => { setIsIngredientModalOpen(false); setEditingIngredient(null); };
 
     const handleIngredientSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!ingredientForm.name.trim()) {
-            showError('Nama bahan baku wajib diisi');
-            return;
-        }
+        if (!ingredientForm.name.trim()) { showError('Nama bahan baku wajib diisi'); return; }
         setShowSaveConfirm(true);
     };
 
@@ -134,95 +211,114 @@ export default function InventoryPage() {
         setShowSaveConfirm(false);
         setIsSaving(true);
         try {
-            const payload = {
-                name: ingredientForm.name,
-                unit: ingredientForm.unit,
-                low_stock_alert: parseFloat(ingredientForm.low_stock_alert) || 0,
-                current_stock: parseFloat(ingredientForm.current_stock) || 0,
-            };
-            if (editingIngredient) {
-                await api.patch(`/inventory/ingredients/${editingIngredient.id}/`, payload);
-                success('Bahan baku berhasil diperbarui');
-            } else {
-                await api.post('/inventory/ingredients/', payload);
-                success('Bahan baku berhasil ditambahkan');
-            }
+            const payload = { name: ingredientForm.name, unit: ingredientForm.unit, low_stock_alert: parseFloat(ingredientForm.low_stock_alert) || 0, current_stock: parseFloat(ingredientForm.current_stock) || 0 };
+            if (editingIngredient) { await api.patch(`/inventory/ingredients/${editingIngredient.id}/`, payload); success('Bahan baku berhasil diperbarui'); }
+            else { await api.post('/inventory/ingredients/', payload); success('Bahan baku berhasil ditambahkan'); }
             fetchIngredients();
             handleCloseIngredientModal();
-        } catch (error) {
-            console.error('Failed to save ingredient:', error);
-            showError('Gagal menyimpan bahan baku');
-        } finally {
-            setIsSaving(false);
-        }
+        } catch (err) { console.error('Failed to save ingredient:', err); showError('Gagal menyimpan bahan baku'); }
+        finally { setIsSaving(false); }
     };
 
     const handleConfirmDelete = async () => {
         if (!deleteId) return;
-        try {
-            await api.delete(`/inventory/ingredients/${deleteId}/`);
-            success('Bahan baku berhasil dihapus');
-            fetchIngredients();
-        } catch (error) {
-            console.error('Failed to delete ingredient:', error);
-            showError('Gagal menghapus bahan baku');
-        } finally {
-            setDeleteId(null);
-        }
+        try { await api.delete(`/inventory/ingredients/${deleteId}/`); success('Bahan baku berhasil dihapus'); fetchIngredients(); }
+        catch (err) { console.error('Failed to delete:', err); showError('Gagal menghapus bahan baku'); }
+        finally { setDeleteId(null); }
     };
 
-    // --- Order Stock (Email) ---
-    const handleOpenOrderModal = (ingredient: Ingredient) => {
-        setOrderIngredient(ingredient);
+    // ── Order Creation ──
+    const handleOpenOrderModal = (ingredient?: Ingredient) => {
         const mitraLocation = user?.location || user?.profile?.location || '';
-        setOrderForm({ qty: '', address: mitraLocation, notes: '' });
+        const items: OrderItemDraft[] = ingredient
+            ? [{ ingredientId: ingredient.id, ingredientName: ingredient.name, quantity: '', unit: ingredient.unit, unitPrice: '0' }]
+            : [];
+        setOrderItems(items);
+        setOrderForm({ address: mitraLocation, notes: '', paymentMethod: 'TRANSFER' });
+        setIsOrderModalOpen(true);
     };
 
-    const handleCloseOrderModal = () => {
-        setOrderIngredient(null);
-        setOrderForm({ qty: '', address: '', notes: '' });
+    const addOrderItem = () => {
+        setOrderItems(prev => [...prev, { ingredientId: 0, ingredientName: '', quantity: '', unit: 'gram', unitPrice: '0' }]);
     };
 
-    const handleSendOrder = () => {
-        if (!orderIngredient || !orderForm.qty || !orderForm.address) {
-            showError('Jumlah dan alamat pengiriman wajib diisi');
+    const removeOrderItem = (idx: number) => {
+        setOrderItems(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    const updateOrderItem = (idx: number, field: keyof OrderItemDraft, value: string | number) => {
+        setOrderItems(prev => prev.map((item, i) => {
+            if (i !== idx) return item;
+            if (field === 'ingredientId') {
+                const ing = ingredients.find(x => x.id === Number(value));
+                return { ...item, ingredientId: Number(value), ingredientName: ing?.name || '', unit: ing?.unit || 'gram' };
+            }
+            return { ...item, [field]: value };
+        }));
+    };
+
+    const orderSubtotal = orderItems.reduce((sum, it) => sum + (parseFloat(it.quantity) || 0) * (parseFloat(it.unitPrice) || 0), 0);
+    const orderShipping = orderForm.address ? estimateShipping(orderForm.address) : 0;
+    const orderTotal = orderSubtotal + orderShipping;
+
+    const handleOrderSubmit = () => {
+        if (orderItems.length === 0 || orderItems.some(it => !it.ingredientId || !it.quantity)) {
+            showError('Pilih bahan baku dan jumlah untuk setiap item');
             return;
         }
-
-        const qty = orderForm.qty;
-        const unit = orderIngredient.unit;
-        const shippingCost = estimateShipping(orderForm.address);
-
-        const subject = encodeURIComponent(`[OMDEN] Pesanan Stok Bahan Baku - ${orderIngredient.name}`);
-        const body = encodeURIComponent(
-            `Yth. Samden Homemade,\n\n` +
-            `Saya ingin memesan bahan baku berikut:\n\n` +
-            `Bahan: ${orderIngredient.name}\n` +
-            `Jumlah: ${qty} ${unit}\n` +
-            `Alamat Pengiriman: ${orderForm.address}\n` +
-            `Estimasi Ongkos Kirim: ${formatCurrency(shippingCost)}\n` +
-            `${orderForm.notes ? `\nCatatan: ${orderForm.notes}\n` : ''}` +
-            `\nTerima kasih.\n` +
-            `${user?.username || 'Mitra'}`
-        );
-
-        const mailtoUrl = `mailto:samdenihomemade@gmail.com?subject=${subject}&body=${body}`;
-        window.open(mailtoUrl, '_blank');
-
-        success('Email order dibuka. Silakan kirim melalui email client Anda.');
-        handleCloseOrderModal();
+        if (!orderForm.address) { showError('Alamat pengiriman wajib diisi'); return; }
+        setShowOrderConfirm(true);
     };
 
-    const shippingEstimate = orderForm.address ? estimateShipping(orderForm.address) : 0;
+    const handleConfirmOrder = async () => {
+        setShowOrderConfirm(false);
+        setIsSubmittingOrder(true);
+        try {
+            const payload = {
+                payment_method: orderForm.paymentMethod,
+                shipping_address: orderForm.address,
+                shipping_cost: orderShipping,
+                notes: orderForm.notes,
+                items: orderItems.map(it => ({
+                    ingredient: it.ingredientId,
+                    quantity: parseFloat(it.quantity) || 0,
+                    unit: it.unit,
+                    unit_price: parseFloat(it.unitPrice) || 0,
+                })),
+            };
+            await api.post('/inventory/restock-orders/', payload);
+            success('Pesanan restock berhasil dibuat!');
+            setIsOrderModalOpen(false);
+            setActiveTab('tracking');
+            fetchOrders('active');
+        } catch (err) { console.error('Failed to create order:', err); showError('Gagal membuat pesanan'); }
+        finally { setIsSubmittingOrder(false); }
+    };
+
+    // ── Confirm Received ──
+    const handleConfirmReceive = async () => {
+        if (!confirmReceiveId) return;
+        try {
+            await api.post(`/inventory/restock-orders/${confirmReceiveId}/confirm-received/`);
+            success('Pesanan dikonfirmasi diterima. Stok telah diperbarui.');
+            fetchOrders('active');
+            fetchIngredients();
+        } catch (err) { console.error('Failed to confirm:', err); showError('Gagal konfirmasi penerimaan'); }
+        finally { setConfirmReceiveId(null); }
+    };
+
+    // ── Tabs Config ──
+    const tabs: { id: TabId; label: string; icon: typeof Package; count?: number }[] = [
+        { id: 'ingredients', label: 'Bahan Baku', icon: Package, count: ingredients.length },
+        { id: 'tracking', label: 'Pesanan Restock', icon: ClipboardList, count: activeOrders.length },
+        { id: 'history', label: 'Riwayat', icon: History },
+    ];
 
     return (
         <div className="relative min-h-screen space-y-6">
-            <AdminHeader
-                title="Inventori"
-                description="Kelola stok bahan baku dan pesan kebutuhan dari kantor pusat."
-            />
+            <AdminHeader title="Inventori" description="Kelola stok bahan baku, pesan kebutuhan, dan lacak pengiriman." />
 
-            {/* AI Prediction (Always visible if unlocked, blurred if locked) */}
+            {/* AI Prediction */}
             <div className={!isUnlocked ? 'filter blur-md pointer-events-none select-none opacity-50' : ''}>
                 <InventoryPrediction />
             </div>
@@ -230,297 +326,367 @@ export default function InventoryPage() {
             {/* Main Content */}
             <div className={`relative ${!isUnlocked ? 'filter blur-md pointer-events-none select-none opacity-50 h-[500px] overflow-hidden' : ''}`}>
 
-                {/* Actions & Filters */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Cari bahan baku..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-                        />
-                    </div>
-                    <div className="flex items-center gap-2">
+                {/* Tabs */}
+                <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-white/5 rounded-2xl mb-6 overflow-x-auto">
+                    {tabs.map(tab => (
                         <button
-                            onClick={() => handleOpenIngredientModal()}
-                            className="flex items-center gap-2 bg-gradient-to-r from-primary to-red-700 text-white px-5 py-2.5 rounded-xl shadow-lg hover:scale-105 transition-transform font-bold text-sm"
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
                         >
-                            <Plus size={18} />
-                            <span>Tambah Bahan Baku</span>
+                            <tab.icon size={16} />
+                            {tab.label}
+                            {tab.count !== undefined && tab.count > 0 && (
+                                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.id ? 'bg-primary/10 text-primary' : 'bg-gray-200 dark:bg-white/10 text-gray-500'}`}>
+                                    {tab.count}
+                                </span>
+                            )}
                         </button>
-                        <button onClick={fetchIngredients} className="p-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:rotate-180 transition-all duration-500">
-                            <RefreshCw size={18} />
-                        </button>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Table — Desktop */}
-                <div className="hidden md:block bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 font-medium">
-                            <tr>
-                                <th className="px-6 py-4">Nama Bahan</th>
-                                <th className="px-6 py-4">Stok Saat Ini</th>
-                                <th className="px-6 py-4">Min. Alert</th>
-                                <th className="px-6 py-4">Satuan</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                {/* ═══ TAB: Bahan Baku ═══ */}
+                {activeTab === 'ingredients' && (
+                    <>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div className="relative flex-1 max-w-md">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                                <input type="text" placeholder="Cari bahan baku..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm" />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => handleOpenOrderModal()} className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl shadow-lg hover:scale-105 transition-transform font-bold text-sm">
+                                    <ShoppingCart size={18} /> Pesan Restock
+                                </button>
+                                <button onClick={() => handleOpenIngredientModal()} className="flex items-center gap-2 bg-gradient-to-r from-primary to-red-700 text-white px-5 py-2.5 rounded-xl shadow-lg hover:scale-105 transition-transform font-bold text-sm">
+                                    <Plus size={18} /> Tambah Bahan
+                                </button>
+                                <button onClick={fetchIngredients} className="p-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:rotate-180 transition-all duration-500">
+                                    <RefreshCw size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Desktop Table */}
+                        <div className="hidden md:block bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 font-medium">
+                                    <tr>
+                                        <th className="px-6 py-4">Nama Bahan</th>
+                                        <th className="px-6 py-4">Stok Saat Ini</th>
+                                        <th className="px-6 py-4">Min. Alert</th>
+                                        <th className="px-6 py-4">Satuan</th>
+                                        <th className="px-6 py-4">Status</th>
+                                        <th className="px-6 py-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                                    {isLoading ? (
+                                        <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500"><div className="flex items-center justify-center gap-2"><Loader2 size={20} className="animate-spin" /><span>Memuat...</span></div></td></tr>
+                                    ) : filteredIngredients.length === 0 ? (
+                                        <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500">Belum ada bahan baku.</td></tr>
+                                    ) : filteredIngredients.map(item => (
+                                        <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{item.name}</td>
+                                            <td className="px-6 py-4 text-gray-600 dark:text-gray-300 font-mono">{item.current_stock}</td>
+                                            <td className="px-6 py-4 text-gray-500 font-mono">{item.low_stock_alert}</td>
+                                            <td className="px-6 py-4 text-gray-500">{item.unit}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${item.status === 'SAFE' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : item.status === 'LOW' ? 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 dark:text-yellow-400' : 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400'}`}>
+                                                    {item.status === 'SAFE' ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}
+                                                    {item.status === 'SAFE' ? 'Aman' : item.status === 'LOW' ? 'Menipis' : 'Kritis'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <button onClick={() => handleOpenOrderModal(item)} className="p-1.5 rounded-lg hover:bg-green-50 text-green-600 dark:hover:bg-green-500/20 dark:text-green-400 transition-colors" title="Pesan Stok">
+                                                        <ShoppingCart size={14} />
+                                                    </button>
+                                                    <button onClick={() => handleOpenIngredientModal(item)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 dark:hover:bg-blue-500/20 dark:text-blue-400 transition-colors" title="Edit">
+                                                        <Pencil size={14} />
+                                                    </button>
+                                                    <button onClick={() => setDeleteId(item.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-600 dark:hover:bg-red-500/20 dark:text-red-400 transition-colors" title="Hapus">
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile Cards */}
+                        <div className="md:hidden space-y-3">
                             {isLoading ? (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Loader2 size={20} className="animate-spin" />
-                                            <span>Memuat data inventori...</span>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <div className="flex items-center justify-center py-12 text-gray-500 gap-2"><Loader2 size={20} className="animate-spin" /><span>Memuat...</span></div>
                             ) : filteredIngredients.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                                        Belum ada bahan baku. Klik &quot;Tambah Bahan Baku&quot; untuk menambahkan.
-                                    </td>
-                                </tr>
-                            ) : (
-                                filteredIngredients.map((item) => (
-                                    <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{item.name}</td>
-                                        <td className="px-6 py-4 text-gray-600 dark:text-gray-300 font-mono">{item.current_stock}</td>
-                                        <td className="px-6 py-4 text-gray-500 font-mono">{item.low_stock_alert}</td>
-                                        <td className="px-6 py-4 text-gray-500">{item.unit}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${item.status === 'SAFE' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' :
-                                                item.status === 'LOW' ? 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 dark:text-yellow-400' :
-                                                    'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400'
-                                                }`}>
-                                                {item.status === 'SAFE' ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}
+                                <div className="text-center py-12 text-gray-500 text-sm">Belum ada bahan baku.</div>
+                            ) : filteredIngredients.map(item => (
+                                <div key={item.id} className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate">{item.name}</h3>
+                                            <p className="text-xs text-gray-500 mt-1 font-mono">Stok: {item.current_stock} {item.unit} · Min: {item.low_stock_alert}</p>
+                                            <span className={`inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${item.status === 'SAFE' ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400' : item.status === 'LOW' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400' : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'}`}>
+                                                {item.status === 'SAFE' ? <CheckCircle size={10} /> : <AlertTriangle size={10} />}
                                                 {item.status === 'SAFE' ? 'Aman' : item.status === 'LOW' ? 'Menipis' : 'Kritis'}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-1">
-                                                <button
-                                                    onClick={() => handleOpenOrderModal(item)}
-                                                    className="p-1.5 rounded-lg hover:bg-green-50 text-green-600 dark:hover:bg-green-500/20 dark:text-green-400 transition-colors"
-                                                    title="Pesan Stok"
-                                                >
-                                                    <Send size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleOpenIngredientModal(item)}
-                                                    className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 dark:hover:bg-blue-500/20 dark:text-blue-400 transition-colors"
-                                                    title="Edit"
-                                                >
-                                                    <Pencil size={14} />
-                                                </button>
-                                                <button
-                                                    onClick={() => setDeleteId(item.id)}
-                                                    className="p-1.5 rounded-lg hover:bg-red-50 text-red-600 dark:hover:bg-red-500/20 dark:text-red-400 transition-colors"
-                                                    title="Hapus"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Cards — Mobile */}
-                <div className="md:hidden space-y-3">
-                    {isLoading ? (
-                        <div className="flex items-center justify-center py-12 text-gray-500 gap-2">
-                            <Loader2 size={20} className="animate-spin" />
-                            <span>Memuat...</span>
-                        </div>
-                    ) : filteredIngredients.length === 0 ? (
-                        <div className="text-center py-12 text-gray-500 text-sm">
-                            Belum ada bahan baku.
-                        </div>
-                    ) : (
-                        filteredIngredients.map((item) => (
-                            <div key={item.id} className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-sm">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate">{item.name}</h3>
-                                        <p className="text-xs text-gray-500 mt-1 font-mono">
-                                            Stok: {item.current_stock} {item.unit} · Min: {item.low_stock_alert}
-                                        </p>
-                                        <span className={`inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${item.status === 'SAFE' ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400' :
-                                            item.status === 'LOW' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400' :
-                                                'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'
-                                            }`}>
-                                            {item.status === 'SAFE' ? <CheckCircle size={10} /> : <AlertTriangle size={10} />}
-                                            {item.status === 'SAFE' ? 'Aman' : item.status === 'LOW' ? 'Menipis' : 'Kritis'}
-                                        </span>
-                                    </div>
-                                    <div className="flex flex-col gap-1 ml-2">
-                                        <button
-                                            onClick={() => handleOpenOrderModal(item)}
-                                            className="p-2 rounded-lg bg-green-50 text-green-600 dark:bg-green-500/20 dark:text-green-400"
-                                        >
-                                            <Send size={14} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleOpenIngredientModal(item)}
-                                            className="p-2 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"
-                                        >
-                                            <Pencil size={14} />
-                                        </button>
-                                        <button
-                                            onClick={() => setDeleteId(item.id)}
-                                            className="p-2 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/20 dark:text-red-400"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
+                                        </div>
+                                        <div className="flex flex-col gap-1 ml-2">
+                                            <button onClick={() => handleOpenOrderModal(item)} className="p-2 rounded-lg bg-green-50 text-green-600 dark:bg-green-500/20 dark:text-green-400"><ShoppingCart size={14} /></button>
+                                            <button onClick={() => handleOpenIngredientModal(item)} className="p-2 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"><Pencil size={14} /></button>
+                                            <button onClick={() => setDeleteId(item.id)} className="p-2 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/20 dark:text-red-400"><Trash2 size={14} /></button>
+                                        </div>
                                     </div>
                                 </div>
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {/* ═══ TAB: Pesanan Restock (Tracking) ═══ */}
+                {activeTab === 'tracking' && (
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Pesanan aktif yang sedang diproses</p>
+                            <button onClick={() => fetchOrders('active')} className="p-2 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:rotate-180 transition-all duration-500">
+                                <RefreshCw size={16} />
+                            </button>
+                        </div>
+
+                        {ordersLoading ? (
+                            <div className="flex items-center justify-center py-12 text-gray-500 gap-2"><Loader2 size={20} className="animate-spin" /><span>Memuat pesanan...</span></div>
+                        ) : activeOrders.length === 0 ? (
+                            <div className="text-center py-16">
+                                <ClipboardList size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                                <p className="text-gray-500 dark:text-gray-400 text-sm">Tidak ada pesanan aktif</p>
+                                <button onClick={() => { setActiveTab('ingredients'); handleOpenOrderModal(); }} className="mt-4 px-4 py-2 rounded-xl bg-green-500 text-white text-sm font-bold hover:bg-green-600 transition-colors">
+                                    <ShoppingCart size={14} className="inline mr-1" /> Buat Pesanan Baru
+                                </button>
                             </div>
-                        ))
-                    )}
-                </div>
+                        ) : activeOrders.map(order => (
+                            <div key={order.id} className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 dark:text-white text-sm">{order.order_number}</h3>
+                                        <p className="text-[10px] text-gray-500 mt-0.5">{formatDate(order.created_at)}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(order.total_amount)}</p>
+                                        <p className="text-[10px] text-gray-500">{order.payment_method_display}</p>
+                                    </div>
+                                </div>
+
+                                <TrackingTimeline order={order} />
+
+                                {/* Items summary */}
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {order.items.map(it => `${it.ingredient_name} (${it.quantity} ${it.unit})`).join(', ')}
+                                </div>
+
+                                {/* Confirm received button */}
+                                {(order.status === 'SHIPPED' || order.status === 'PREPARING') && (
+                                    <button onClick={() => setConfirmReceiveId(order.id)} className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-colors shadow-lg shadow-green-500/20">
+                                        <CheckCircle2 size={16} /> Konfirmasi Diterima
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* ═══ TAB: Riwayat ═══ */}
+                {activeTab === 'history' && (
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Riwayat pesanan restock</p>
+                            <button onClick={() => fetchOrders('history')} className="p-2 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:rotate-180 transition-all duration-500">
+                                <RefreshCw size={16} />
+                            </button>
+                        </div>
+
+                        {ordersLoading ? (
+                            <div className="flex items-center justify-center py-12 text-gray-500 gap-2"><Loader2 size={20} className="animate-spin" /><span>Memuat riwayat...</span></div>
+                        ) : historyOrders.length === 0 ? (
+                            <div className="text-center py-16">
+                                <History size={48} className="mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                                <p className="text-gray-500 dark:text-gray-400 text-sm">Belum ada riwayat pesanan</p>
+                            </div>
+                        ) : historyOrders.map(order => {
+                            const statusCfg = STATUS_CONFIG[order.status];
+                            return (
+                                <div key={order.id} className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-2xl p-5 shadow-sm">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 dark:text-white text-sm">{order.order_number}</h3>
+                                            <p className="text-[10px] text-gray-500 mt-0.5">{formatDate(order.created_at)}</p>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusCfg.color}`}>
+                                                <statusCfg.icon size={10} /> {statusCfg.label}
+                                            </span>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(order.total_amount)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                        {order.items.map(it => `${it.ingredient_name} (${it.quantity} ${it.unit})`).join(', ')}
+                                    </div>
+                                    {order.received_at && <p className="text-[10px] text-green-600 dark:text-green-400 mt-2">Diterima: {formatDate(order.received_at)}</p>}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
 
-            {/* Lock Overlay (Only if Locked) */}
+            {/* Lock Overlay */}
             {!isUnlocked && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
                     <div className="relative max-w-lg w-full bg-white/80 dark:bg-black/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-3xl p-8 text-center shadow-2xl animation-scale-in">
                         <div className="absolute -top-20 -left-20 w-40 h-40 bg-primary/30 rounded-full blur-3xl" />
                         <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-blue-500/30 rounded-full blur-3xl" />
-
                         <div className="relative z-10 flex flex-col items-center">
-                            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg shadow-primary/30 mb-6">
-                                <Lock className="h-10 w-10 text-white" />
-                            </div>
-
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                                Fitur Premium Terkunci 🔒
-                            </h2>
-
-                            <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                                Maaf, fitur <span className="font-semibold text-red-700 dark:text-red-500">Manajemen Inventori</span> adalah fitur tambahan eksklusif.
-                                Fitur ini memungkinkan Anda melacak stok bahan baku, mengatur peringatan stok menipis, dan memesan bahan baku dari kantor pusat.
-                            </p>
-
+                            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg shadow-primary/30 mb-6"><Lock className="h-10 w-10 text-white" /></div>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Fitur Premium Terkunci 🔒</h2>
+                            <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">Fitur <span className="font-semibold text-red-700 dark:text-red-500">Manajemen Inventori</span> memungkinkan Anda melacak stok, memesan bahan baku, dan melacak pengiriman.</p>
                             <div className="flex flex-col w-full gap-3">
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                                    Tertarik membuka fitur ini? Hubungi Developer:
-                                </p>
-                                <Link
-                                    href="https://wa.me/6285217861296?text=Halo%2C%20saya%20tertarik%20untuk%20membuka%20fitur%20Inventori%20pada%20aplikasi%20POS%20saya."
-                                    target="_blank"
-                                    className="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold transition-all shadow-lg hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98]"
-                                >
-                                    <Phone size={24} />
-                                    <span>Hubungi via WhatsApp</span>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Tertarik membuka fitur ini? Hubungi Developer:</p>
+                                <Link href="https://wa.me/6285217861296?text=Halo%2C%20saya%20tertarik%20untuk%20membuka%20fitur%20Inventori" target="_blank" className="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold transition-all shadow-lg hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98]">
+                                    <Phone size={24} /> Hubungi via WhatsApp
                                 </Link>
-
-                                <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-primary/10">
-                                    <p className="text-xs font-mono text-red-700 dark:text-red-500">
-                                        Developer Contact: 0852-1786-1296
-                                    </p>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ===== INGREDIENT ADD/EDIT MODAL ===== */}
+            {/* ═══ ORDER CREATION MODAL ═══ */}
+            {isOrderModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-lg bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden animation-scale-in flex flex-col max-h-[90vh]">
+                        <div className="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-green-100 dark:bg-green-500/10 flex items-center justify-center"><ShoppingCart className="h-5 w-5 text-green-600 dark:text-green-400" /></div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Pesan Restock</h3>
+                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Buat pesanan ke Kantor Pusat</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setIsOrderModalOpen(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-white transition-colors"><X size={20} /></button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 space-y-5 scrollbar-hide">
+                            {/* Items */}
+                            <div>
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Item Pesanan</label>
+                                    <button onClick={addOrderItem} className="text-xs font-bold text-primary hover:underline flex items-center gap-1"><Plus size={12} /> Tambah Item</button>
+                                </div>
+                                <div className="space-y-3">
+                                    {orderItems.map((item, idx) => (
+                                        <div key={idx} className="p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <select value={item.ingredientId || ''} onChange={e => updateOrderItem(idx, 'ingredientId', e.target.value)} className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                                                    <option value="">Pilih bahan baku...</option>
+                                                    {ingredients.map(ing => <option key={ing.id} value={ing.id}>{ing.name} ({ing.current_stock} {ing.unit})</option>)}
+                                                </select>
+                                                {orderItems.length > 1 && (
+                                                    <button onClick={() => removeOrderItem(idx)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"><X size={14} /></button>
+                                                )}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label className="text-[10px] text-gray-500 ml-0.5">Jumlah ({item.unit})</label>
+                                                    <input type="number" value={item.quantity} onChange={e => updateOrderItem(idx, 'quantity', e.target.value)} placeholder="0" min="1" className="w-full px-3 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] text-gray-500 ml-0.5">Harga/unit (Rp)</label>
+                                                    <input type="number" value={item.unitPrice} onChange={e => updateOrderItem(idx, 'unitPrice', e.target.value)} placeholder="0" min="0" className="w-full px-3 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Payment Method */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Metode Pembayaran</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {PAYMENT_OPTIONS.map(opt => (
+                                        <button key={opt.value} onClick={() => setOrderForm({ ...orderForm, paymentMethod: opt.value })} className={`px-3 py-2.5 rounded-xl text-xs font-bold border transition-all ${orderForm.paymentMethod === opt.value ? 'bg-primary/10 border-primary text-primary ring-2 ring-primary/20' : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-gray-300'}`}>
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Address */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5">Alamat Pengiriman</label>
+                                <input type="text" value={orderForm.address} onChange={e => setOrderForm({ ...orderForm, address: e.target.value })} required className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm" placeholder="Jl. Merdeka No. 1, Jakarta" />
+                            </div>
+
+                            {/* Notes */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5">Catatan (Opsional)</label>
+                                <textarea value={orderForm.notes} onChange={e => setOrderForm({ ...orderForm, notes: e.target.value })} rows={2} className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-none" placeholder="Catatan untuk kantor pusat..." />
+                            </div>
+
+                            {/* Order Summary */}
+                            <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 space-y-2">
+                                <div className="flex items-center gap-2"><Truck size={14} className="text-blue-600 dark:text-blue-400" /><p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase">Ringkasan</p></div>
+                                <div className="flex justify-between text-sm"><span className="text-gray-600 dark:text-gray-400">Subtotal</span><span className="font-mono font-bold text-gray-900 dark:text-white">{formatCurrency(orderSubtotal)}</span></div>
+                                <div className="flex justify-between text-sm"><span className="text-gray-600 dark:text-gray-400">Ongkos Kirim (est.)</span><span className="font-mono font-bold text-gray-900 dark:text-white">{formatCurrency(orderShipping)}</span></div>
+                                <div className="border-t border-blue-200 dark:border-blue-500/30 my-1" />
+                                <div className="flex justify-between text-sm"><span className="font-bold text-blue-800 dark:text-blue-300">Total</span><span className="font-mono font-bold text-lg text-blue-800 dark:text-blue-300">{formatCurrency(orderTotal)}</span></div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-6 py-4 border-t border-gray-200 dark:border-white/10 flex gap-3 shrink-0">
+                            <button onClick={() => setIsOrderModalOpen(false)} className="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-medium text-sm">Batal</button>
+                            <button onClick={handleOrderSubmit} disabled={isSubmittingOrder || orderItems.length === 0} className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20 transition-all font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                {isSubmittingOrder ? <><Loader2 size={16} className="animate-spin" /> Membuat...</> : <><ShoppingCart size={16} /> Buat Pesanan</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ═══ INGREDIENT ADD/EDIT MODAL ═══ */}
             {isIngredientModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="w-full max-w-md bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden animation-scale-in">
                         <div className="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                                {editingIngredient ? 'Edit Bahan Baku' : 'Tambah Bahan Baku'}
-                            </h3>
-                            <button onClick={handleCloseIngredientModal} className="text-gray-500 hover:text-gray-700 dark:hover:text-white transition-colors">
-                                <X size={20} />
-                            </button>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{editingIngredient ? 'Edit Bahan Baku' : 'Tambah Bahan Baku'}</h3>
+                            <button onClick={handleCloseIngredientModal} className="text-gray-500 hover:text-gray-700 dark:hover:text-white transition-colors"><X size={20} /></button>
                         </div>
-
                         <form onSubmit={handleIngredientSubmit} className="p-6 space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Nama Bahan Baku</label>
-                                <input
-                                    type="text"
-                                    value={ingredientForm.name}
-                                    onChange={(e) => setIngredientForm({ ...ingredientForm, name: e.target.value })}
-                                    required
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm font-medium text-gray-900 dark:text-white"
-                                    placeholder="Contoh: Tepung Terigu"
-                                />
+                                <input type="text" value={ingredientForm.name} onChange={e => setIngredientForm({ ...ingredientForm, name: e.target.value })} required className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm font-medium text-gray-900 dark:text-white" placeholder="Contoh: Tepung Terigu" />
                             </div>
-
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Satuan</label>
-                                    <select
-                                        value={ingredientForm.unit}
-                                        onChange={(e) => setIngredientForm({ ...ingredientForm, unit: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm text-gray-900 dark:text-white"
-                                    >
-                                        {UNIT_OPTIONS.map(opt => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                        ))}
+                                    <select value={ingredientForm.unit} onChange={e => setIngredientForm({ ...ingredientForm, unit: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm text-gray-900 dark:text-white">
+                                        {UNIT_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Stok Awal</label>
-                                    <input
-                                        type="number"
-                                        value={ingredientForm.current_stock}
-                                        onChange={(e) => setIngredientForm({ ...ingredientForm, current_stock: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm font-bold text-gray-900 dark:text-white"
-                                        placeholder="0"
-                                        min="0"
-                                    />
+                                    <input type="number" value={ingredientForm.current_stock} onChange={e => setIngredientForm({ ...ingredientForm, current_stock: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm font-bold text-gray-900 dark:text-white" placeholder="0" min="0" />
                                 </div>
                             </div>
-
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Min. Alert (Notifikasi Stok Menipis)</label>
-                                <input
-                                    type="number"
-                                    value={ingredientForm.low_stock_alert}
-                                    onChange={(e) => setIngredientForm({ ...ingredientForm, low_stock_alert: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm font-bold text-gray-900 dark:text-white"
-                                    placeholder="0"
-                                    min="0"
-                                />
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Min. Alert</label>
+                                <input type="number" value={ingredientForm.low_stock_alert} onChange={e => setIngredientForm({ ...ingredientForm, low_stock_alert: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm font-bold text-gray-900 dark:text-white" placeholder="0" min="0" />
                             </div>
-
                             <div className="flex justify-end gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={handleCloseIngredientModal}
-                                    className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-medium text-sm"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isSaving}
-                                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-red-700 text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <Loader2 size={16} className="animate-spin" />
-                                            Menyimpan...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save size={16} />
-                                            Simpan
-                                        </>
-                                    )}
+                                <button type="button" onClick={handleCloseIngredientModal} className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-medium text-sm">Batal</button>
+                                <button type="submit" disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-red-700 text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                                    {isSaving ? <><Loader2 size={16} className="animate-spin" /> Menyimpan...</> : <><Save size={16} /> Simpan</>}
                                 </button>
                             </div>
                         </form>
@@ -528,137 +694,11 @@ export default function InventoryPage() {
                 </div>
             )}
 
-            {/* ===== ORDER STOCK (EMAIL) MODAL ===== */}
-            {orderIngredient && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="w-full max-w-md bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden animation-scale-in">
-                        <div className="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-green-100 dark:bg-green-500/10 flex items-center justify-center">
-                                    <Mail className="h-5 w-5 text-green-600 dark:text-green-400" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Pesan Stok</h3>
-                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">via Email ke Kantor Pusat</p>
-                                </div>
-                            </div>
-                            <button onClick={handleCloseOrderModal} className="text-gray-500 hover:text-gray-700 dark:hover:text-white transition-colors">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="p-6 space-y-4">
-                            {/* Ingredient Info */}
-                            <div className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
-                                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Bahan Baku</p>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white">{orderIngredient.name}</p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Stok saat ini: <span className="font-mono font-bold">{orderIngredient.current_stock} {orderIngredient.unit}</span>
-                                </p>
-                            </div>
-
-                            {/* Quantity */}
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">
-                                    Jumlah Pesanan ({orderIngredient.unit})
-                                </label>
-                                <input
-                                    type="number"
-                                    value={orderForm.qty}
-                                    onChange={(e) => setOrderForm({ ...orderForm, qty: e.target.value })}
-                                    required
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm font-bold text-gray-900 dark:text-white"
-                                    placeholder="0"
-                                    min="1"
-                                />
-                            </div>
-
-                            {/* Address */}
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">
-                                    Alamat Pengiriman
-                                </label>
-                                <input
-                                    type="text"
-                                    value={orderForm.address}
-                                    onChange={(e) => setOrderForm({ ...orderForm, address: e.target.value })}
-                                    required
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm text-gray-900 dark:text-white"
-                                    placeholder="Contoh: Jl. Merdeka No. 1, Jakarta Selatan"
-                                />
-                            </div>
-
-                            {/* Shipping Estimate */}
-                            <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <Truck size={14} className="text-blue-600 dark:text-blue-400" />
-                                    <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase">Estimasi Ongkos Kirim</p>
-                                </div>
-                                <p className="text-xl font-bold text-blue-800 dark:text-blue-300">
-                                    {orderForm.address ? formatCurrency(shippingEstimate) : '—'}
-                                </p>
-                                <p className="text-[10px] text-blue-600/70 dark:text-blue-400/70 mt-1">
-                                    *Estimasi berdasarkan kota tujuan. Biaya final akan dikonfirmasi oleh kantor pusat.
-                                </p>
-                            </div>
-
-                            {/* Notes */}
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">
-                                    Catatan (Opsional)
-                                </label>
-                                <textarea
-                                    value={orderForm.notes}
-                                    onChange={(e) => setOrderForm({ ...orderForm, notes: e.target.value })}
-                                    rows={2}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm text-gray-900 dark:text-white resize-none"
-                                    placeholder="Catatan tambahan untuk order..."
-                                />
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex gap-3 pt-2">
-                                <button
-                                    onClick={handleCloseOrderModal}
-                                    className="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-medium text-sm"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    onClick={handleSendOrder}
-                                    disabled={!orderForm.qty || !orderForm.address}
-                                    className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20 transition-all font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-                                >
-                                    <Mail size={16} />
-                                    Kirim Email Order
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Save Confirmation */}
-            <ConfirmationModal
-                isOpen={showSaveConfirm}
-                onClose={() => setShowSaveConfirm(false)}
-                onConfirm={handleConfirmSave}
-                title="Simpan Bahan Baku?"
-                message={`Apakah Anda yakin ingin menyimpan ${editingIngredient ? 'perubahan pada' : ''} bahan baku "${ingredientForm.name}"?`}
-                variant="primary"
-                confirmLabel="Simpan"
-                icon={Save}
-                isLoading={isSaving}
-            />
-
-            {/* Delete Confirmation */}
-            <DeleteConfirmationModal
-                isOpen={deleteId !== null}
-                onClose={() => setDeleteId(null)}
-                onConfirm={handleConfirmDelete}
-                title="Hapus Bahan Baku?"
-                message="Tindakan ini tidak dapat dibatalkan. Bahan baku akan dihapus secara permanen."
-            />
+            {/* Confirmation Modals */}
+            <ConfirmationModal isOpen={showSaveConfirm} onClose={() => setShowSaveConfirm(false)} onConfirm={handleConfirmSave} title="Simpan Bahan Baku?" message={`Apakah Anda yakin ingin menyimpan ${editingIngredient ? 'perubahan pada' : ''} bahan baku "${ingredientForm.name}"?`} variant="primary" confirmLabel="Simpan" icon={Save} isLoading={isSaving} />
+            <ConfirmationModal isOpen={showOrderConfirm} onClose={() => setShowOrderConfirm(false)} onConfirm={handleConfirmOrder} title="Buat Pesanan Restock?" message={`Pesanan ${orderItems.length} item senilai ${formatCurrency(orderTotal)} akan dibuat. Lanjutkan?`} variant="primary" confirmLabel="Buat Pesanan" icon={ShoppingCart} isLoading={isSubmittingOrder} />
+            <ConfirmationModal isOpen={confirmReceiveId !== null} onClose={() => setConfirmReceiveId(null)} onConfirm={handleConfirmReceive} title="Konfirmasi Penerimaan?" message="Stok bahan baku akan otomatis diperbarui setelah konfirmasi. Pastikan barang sudah diterima." variant="primary" confirmLabel="Ya, Sudah Diterima" icon={CheckCircle2} />
+            <DeleteConfirmationModal isOpen={deleteId !== null} onClose={() => setDeleteId(null)} onConfirm={handleConfirmDelete} title="Hapus Bahan Baku?" message="Tindakan ini tidak dapat dibatalkan. Bahan baku akan dihapus secara permanen." />
         </div>
     );
 }

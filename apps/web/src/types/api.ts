@@ -145,6 +145,54 @@ export interface StockLog {
   created_by?: number;
 }
 
+// Restock Orders
+export type RestockOrderStatus =
+  | "PENDING"
+  | "PAID"
+  | "PREPARING"
+  | "SHIPPED"
+  | "RECEIVED"
+  | "CANCELLED";
+export type RestockPaymentMethod =
+  | "TRANSFER"
+  | "DANA"
+  | "GOPAY"
+  | "SHOPEEPAY"
+  | "OVO";
+
+export interface RestockOrderItem {
+  id: number;
+  ingredient: number;
+  ingredient_name: string;
+  quantity: number;
+  unit: string;
+  unit_price: number;
+  line_total: number;
+}
+
+export interface RestockOrder {
+  id: number;
+  order_number: string;
+  status: RestockOrderStatus;
+  status_display: string;
+  payment_method: RestockPaymentMethod;
+  payment_method_display: string;
+  shipping_address: string;
+  shipping_cost: number;
+  subtotal: number;
+  total_amount: number;
+  notes: string;
+  items: RestockOrderItem[];
+  created_at: string;
+  updated_at: string;
+  paid_at: string | null;
+  preparing_at: string | null;
+  shipped_at: string | null;
+  received_at: string | null;
+  cancelled_at: string | null;
+  external_order_id: string;
+}
+
 // API Response Wrapper
 export interface PaginatedData<T> {
   count: number;
