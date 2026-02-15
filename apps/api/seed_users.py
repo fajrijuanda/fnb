@@ -50,5 +50,20 @@ def create_users():
     else:
         print(f"Cashier {cashier_username} already exists.")
 
+    # 3. Create Mitra (Staff User)
+    mitra_username = 'mitra'
+    mitra_password = 'mitra123'
+    mitra_email = 'mitra@example.com'
+
+    if not User.objects.filter(username=mitra_username).exists():
+        print(f"Creating Mitra: {mitra_username}")
+        user = User.objects.create_user(mitra_username, mitra_email, mitra_password)
+        user.is_staff = True
+        user.is_superuser = False
+        user.save()
+        print("Mitra created successfully.")
+    else:
+        print(f"Mitra {mitra_username} already exists.")
+
 if __name__ == '__main__':
     create_users()

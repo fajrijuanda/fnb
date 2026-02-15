@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Pencil, Trash2, X, Loader2, Save, Users, Shield, UserCircle } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Save, Users, Shield, UserCircle, Store } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import api from '@/lib/api';
@@ -154,12 +154,14 @@ export default function UsersPage() {
         {
             header: "Role",
             accessor: (user) => (
-                <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'admin'
+                <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'superadmin'
                     ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
-                    : 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300'
+                    : user.role === 'mitra'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
+                        : 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300'
                     }`}>
-                    {user.role === 'admin' ? <Shield size={10} /> : <Users size={10} />}
-                    {user.role === 'admin' ? 'Admin' : 'Kasir'}
+                    {user.role === 'superadmin' ? <Shield size={10} /> : user.role === 'mitra' ? <Store size={10} /> : <Users size={10} />}
+                    {user.role === 'superadmin' ? 'Super Admin' : user.role === 'mitra' ? 'Mitra' : 'Kasir'}
                 </span>
             )
         },
@@ -229,7 +231,7 @@ export default function UsersPage() {
                                     <p className="text-[10px] text-gray-500">{user.email || 'Tanpa email'}</p>
                                 </div>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'superadmin' ? 'bg-purple-100 text-purple-800' : user.role === 'mitra' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
                                 {user.role}
                             </span>
                         </div>
@@ -295,11 +297,12 @@ export default function UsersPage() {
                                 </label>
                                 <select
                                     value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'cashier' })}
+                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                     className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
                                 >
                                     <option value="cashier">Kasir</option>
-                                    <option value="admin">Administrator</option>
+                                    <option value="mitra">Mitra</option>
+                                    <option value="superadmin">Super Admin</option>
                                 </select>
                             </div>
 

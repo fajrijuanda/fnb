@@ -104,7 +104,7 @@ export default function CashierPage() {
                             />
 
                             {/* Admin Link (Only for Admin Role) */}
-                            {user?.role === 'admin' && (
+                            {(user?.role === 'superadmin' || user?.role === 'mitra') && (
                                 <button
                                     onClick={() => router.push('/admin')}
                                     title="Admin Panel"

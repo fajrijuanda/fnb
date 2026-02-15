@@ -39,9 +39,9 @@ class CustomLoginView(ObtainAuthToken):
         # Determine Role
         role = 'cashier'
         if user.is_superuser:
-            role = 'admin'
+            role = 'superadmin'
         elif user.is_staff:
-            role = 'manager'  # or admin dependent on logic, treating staff as manager for now
+            role = 'mitra'
             
         return Response({
             'status': 'success',
@@ -62,9 +62,9 @@ class UserProfileView(APIView):
         user = request.user
         role = 'cashier'
         if user.is_superuser:
-            role = 'admin'
+            role = 'superadmin'
         elif user.is_staff:
-            role = 'manager'
+            role = 'mitra'
             
         return Response({
             'status': 'success',

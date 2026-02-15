@@ -16,9 +16,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_role(self, obj):
         if obj.is_superuser:
-            return 'admin'
+            return 'superadmin'
         if obj.is_staff:
-            return 'manager'
+            return 'mitra'
         return 'cashier'
 
     def create(self, validated_data):
@@ -32,10 +32,10 @@ class UserSerializer(serializers.ModelSerializer):
         if password:
             user.set_password(password)
         
-        if role == 'admin':
+        if role == 'superadmin':
             user.is_superuser = True
             user.is_staff = True
-        elif role == 'manager':
+        elif role == 'mitra':
             user.is_staff = True
         
         user.save()
@@ -57,8 +57,11 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
             
         if role:
-            if role == 'admin':
+            if role == 'superadmin':
                 instance.is_superuser = True
+                instance.is_staff = True
+            elif role == 'mitra':
+                instance.is_superuser = False
                 instance.is_staff = True
             elif role == 'cashier':
                 instance.is_superuser = False

@@ -12,7 +12,7 @@ export default function Home() {
   useEffect(() => {
     // Check Authentication
     if (isAuthenticated && user) {
-      if (user.role === 'admin') {
+      if (user.role === 'superadmin' || user.role === 'mitra') {
         router.push('/admin');
       } else {
         router.push('/cashier'); // Default for cashier and others

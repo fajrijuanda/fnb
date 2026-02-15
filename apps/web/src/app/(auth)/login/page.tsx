@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Loader2, ArrowRight, Store, Shield, Eye, EyeOff } from 'lucide-react';
+import { Loader2, ArrowRight, Store, LogIn, Eye, EyeOff } from 'lucide-react';
 import api from '@/lib/api';
 import type { LoginResponse, WrappedResponse } from '@/types/api';
 import axios from 'axios';
@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (isAuthenticated && user) {
-            if (user.role === 'admin') {
+            if (user.role === 'superadmin' || user.role === 'mitra') {
                 router.replace('/admin');
             } else {
                 router.replace('/cashier');
@@ -44,7 +44,7 @@ export default function LoginPage() {
                 const data = response.data.data as LoginResponse;
                 login(data);
 
-                if (data.role === 'admin') {
+                if (data.role === 'superadmin' || data.role === 'mitra') {
                     router.replace('/admin');
                 } else {
                     router.replace('/cashier');
@@ -136,11 +136,11 @@ export default function LoginPage() {
                         >
                             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/0 to-primary/0 opacity-0 transition-opacity group-hover:from-primary/10 group-hover:to-primary/5 group-hover:opacity-100" />
                             <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-white/40 dark:bg-white/10 shadow-lg transition-transform group-hover:scale-110 group-hover:bg-white/60 dark:group-hover:bg-white/20">
-                                <Shield className="h-8 w-8 text-gray-700 dark:text-white group-hover:text-primary dark:group-hover:text-white" />
+                                <LogIn className="h-8 w-8 text-gray-700 dark:text-white group-hover:text-primary dark:group-hover:text-white" />
                             </div>
                             <div className="relative text-center">
-                                <h3 className="text-lg font-bold group-hover:text-primary dark:group-hover:text-red-100 transition-colors" style={{ color: 'var(--login-text)' }}>Admin</h3>
-                                <p className="text-xs" style={{ color: 'var(--login-text-muted)' }}>Masuk dengan password</p>
+                                <h3 className="text-lg font-bold group-hover:text-primary dark:group-hover:text-red-100 transition-colors" style={{ color: 'var(--login-text)' }}>Masuk</h3>
+                                <p className="text-xs" style={{ color: 'var(--login-text-muted)' }}>Login dengan akun Anda</p>
                             </div>
                         </button>
                     </div>
@@ -180,13 +180,13 @@ export default function LoginPage() {
                     <div className="relative mx-auto h-20 w-20 flex items-center justify-center">
                         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-red-600 blur-lg opacity-50" />
                         <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-primary to-red-600 flex items-center justify-center shadow-2xl shadow-primary/30">
-                            <Shield className="h-10 w-10 text-white" />
+                            <LogIn className="h-10 w-10 text-white" />
                         </div>
                     </div>
                     <h2 className="mt-6 text-2xl font-bold tracking-tight" style={{ color: 'var(--login-text)' }}>
-                        Login Admin
+                        Login
                     </h2>
-                    <p className="text-sm mt-1" style={{ color: 'var(--login-text-muted)' }}>Masukkan kredensial keamanan</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--login-text-muted)' }}>Masukkan akun Anda</p>
                 </div>
 
                 <form className="space-y-5" onSubmit={handleAdminSubmit}>

@@ -36,7 +36,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: "admin" | "cashier" | "manager";
+  role: "superadmin" | "mitra" | "cashier";
   avatar?: string | null;
 }
 
@@ -45,7 +45,7 @@ export interface LoginResponse {
   user_id: number;
   username: string;
   email: string;
-  role: "admin" | "cashier" | "manager";
+  role: "superadmin" | "mitra" | "cashier";
 }
 
 // Order & Sales

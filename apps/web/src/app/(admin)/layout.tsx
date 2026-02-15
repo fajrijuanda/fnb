@@ -15,7 +15,8 @@ import {
     Layers,
     Users,
     Receipt,
-    X
+    X,
+    CreditCard
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
@@ -25,13 +26,18 @@ interface AdminLayoutProps {
     children: ReactNode;
 }
 
-const navItems = [
+const superadminNav = [
+    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin/users', label: 'Pengguna', icon: Users },
+    { href: '/admin/subscriptions', label: 'Langganan', icon: CreditCard },
+];
+
+const mitraNav = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
     { href: '/admin/categories', label: 'Kategori', icon: Layers },
     { href: '/admin/inventory', label: 'Inventori', icon: Package },
     { href: '/admin/orders', label: 'Pesanan', icon: Receipt },
-    { href: '/admin/users', label: 'Pengguna', icon: Users },
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
     { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
@@ -42,6 +48,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const { user, isAuthenticated, _hasHydrated } = useAuthStore();
     const [collapsed, setCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const navItems = user?.role === 'superadmin' ? superadminNav : mitraNav;
+    const roleLabel = user?.role === 'superadmin' ? 'SUPER ADMIN' : 'MITRA';
 
     // Route Protection: Redirect Cashier to /cashier
     useEffect(() => {
@@ -101,7 +110,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             </div>
                             <div className="flex flex-col">
                                 <span className="font-bold text-base lg:text-lg text-white leading-none tracking-tightCaps">OMDEN</span>
-                                <span className="text-[9px] lg:text-[10px] text-white/70 font-medium tracking-widest mt-0.5">ADMIN</span>
+                                <span className="text-[9px] lg:text-[10px] text-white/70 font-medium tracking-widest mt-0.5">{roleLabel}</span>
                             </div>
                         </div>
                     )}
