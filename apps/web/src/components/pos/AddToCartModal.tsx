@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { Minus, Plus, ShoppingCart, MessageSquare, X } from 'lucide-react';
 import { Product } from '@/types/api';
 import { formatRupiah } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import { formatRupiah, cn } from '@/lib/utils';
+import { TOPPING_OPTIONS, PRODUCT_VARIANT_MAP } from '@/lib/constants';
 
 interface AddToCartModalProps {
     isOpen: boolean;
@@ -16,13 +17,19 @@ interface AddToCartModalProps {
 export function AddToCartModal({ isOpen, onClose, product, onConfirm }: AddToCartModalProps) {
     const [quantity, setQuantity] = useState(1);
     const [note, setNote] = useState('');
+    const [toppings, setToppings] = useState<Record<string, number>>({});
     const [isAnimating, setIsAnimating] = useState(false);
+
+    // Determine max toppings based on product name
+    const maxToppings = product ? (PRODUCT_VARIANT_MAP[product.name] || 0) : 0;
+    const currentToppingCount = Object.values(toppings).reduce((a, b) => a + b, 0);
 
     useEffect(() => {
         if (isOpen) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setQuantity(1);
             setNote('');
+            setToppings({});
             setIsAnimating(true);
         } else {
             const timer = setTimeout(() => setIsAnimating(false), 200);
@@ -35,8 +42,36 @@ export function AddToCartModal({ isOpen, onClose, product, onConfirm }: AddToCar
     if (!product) return null;
 
     const handleConfirm = () => {
-        onConfirm(product, quantity, note);
+        let finalNote = note;
+
+        // Append toppings to note if any selected
+        if (currentToppingCount > 0) {
+            const toppingSummary = Object.entries(toppings)
+                .filter(([_, count]) => count > 0)
+                .map(([name, count]) => `${count} ${name}`)
+                .join(', ');
+
+            if (toppingSummary) {
+                finalNote = finalNote ? `${finalNote} | Varian: ${toppingSummary}` : `Varian: ${toppingSummary}`;
+            }
+        }
+
+        onConfirm(product, quantity, finalNote);
         onClose();
+    };
+
+    const handleToppingChange = (topping: string, delta: number) => {
+        setToppings(prev => {
+            const current = prev[topping] || 0;
+            const newCount = Math.max(0, current + delta);
+
+            // Check if adding exceeds max limit
+            if (delta > 0 && currentToppingCount >= maxToppings) {
+                return prev;
+            }
+
+            return { ...prev, [topping]: newCount };
+        });
     };
 
     return (
@@ -98,7 +133,7 @@ export function AddToCartModal({ isOpen, onClose, product, onConfirm }: AddToCar
 
                 {/* Quantity */}
                 <div className="mt-6">
-                    <label className="text-sm font-medium text-card-foreground">Jumlah</label>
+                    <label className="text-sm font-medium text-card-foreground">Jumlah Paket</label>
                     <div className="mt-2 flex items-center justify-between rounded-xl border border-border p-2">
                         <button
                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -116,6 +151,56 @@ export function AddToCartModal({ isOpen, onClose, product, onConfirm }: AddToCar
                         </button>
                     </div>
                 </div>
+
+                {/* Topping Mix Selection */}
+                {maxToppings > 0 && (
+                    <div className="mt-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-sm font-medium text-card-foreground">
+                                Pilih Varian Topping
+                            </label>
+                            <span className={cn(
+                                "text-xs font-bold px-2 py-1 rounded-full",
+                                currentToppingCount === maxToppings
+                                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                    : "bg-red-50 text-primary dark:bg-primary/10"
+                            )}>
+                                {currentToppingCount} / {maxToppings} Pcs
+                            </span>
+                        </div>
+
+                        <div className="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted">
+                            {TOPPING_OPTIONS.map((topping) => {
+                                const count = toppings[topping] || 0;
+                                return (
+                                    <div key={topping} className="flex items-center justify-between p-2 rounded-lg border border-border bg-muted/30">
+                                        <span className="text-sm text-card-foreground">{topping}</span>
+                                        <div className="flex items-center gap-3">
+                                            {count > 0 && (
+                                                <button
+                                                    onClick={() => handleToppingChange(topping, -1)}
+                                                    className="h-6 w-6 flex items-center justify-center rounded-full bg-muted hover:bg-muted-foreground/20 text-muted-foreground"
+                                                >
+                                                    <Minus className="h-3 w-3" />
+                                                </button>
+                                            )}
+                                            <span className={cn("text-sm font-bold w-4 text-center", count > 0 ? "text-primary" : "text-muted-foreground")}>
+                                                {count}
+                                            </span>
+                                            <button
+                                                onClick={() => handleToppingChange(topping, 1)}
+                                                disabled={currentToppingCount >= maxToppings}
+                                                className="h-6 w-6 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                                            >
+                                                <Plus className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Notes */}
                 <div className="mt-6">
