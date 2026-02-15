@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'catalog',
     'inventory',
     'sales',
+    'ai_assistant',
 ]
 
 MIDDLEWARE = [
@@ -136,3 +137,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# =============================================================================
+# Google Gemini API Configuration
+# =============================================================================
+GEMINI_API_KEY = "AIzaSyB2lR9hxwyEQj80cq7Rhr_23aBFLpnkHRM"
