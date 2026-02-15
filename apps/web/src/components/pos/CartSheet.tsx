@@ -12,8 +12,8 @@ import { ReceiptPrint } from './ReceiptPrint';
 import { useToast } from '@/components/ToastContext';
 import type { OrderResponse, Product } from '@/types/api';
 
-// Orange color constant (Tailwind orange-500)
-const ORANGE = '#f97316';
+// Primary color constant (Red)
+const PRIMARY = '#C5161D';
 
 interface CartSheetProps {
     onClose?: () => void;
@@ -119,11 +119,11 @@ export function CartSheet({ onClose }: CartSheetProps) {
                 {/* Header - Fixed height to match main navbar (h-14 / 56px) */}
                 <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
                     <div className="flex items-center gap-2">
-                        <ShoppingBag className="h-4 w-4 text-orange-500" />
+                        <ShoppingBag className="h-4 w-4 text-primary" />
                         <h2 className="text-base font-bold text-card-foreground">Keranjang</h2>
                         {items.length > 0 && (
                             <span
-                                className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white bg-orange-500"
+                                className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white bg-primary"
                             >
                                 {items.length}
                             </span>
@@ -143,7 +143,7 @@ export function CartSheet({ onClose }: CartSheetProps) {
                             items.length > 0 && (
                                 <button
                                     onClick={handleClearAll}
-                                    className="rounded-lg p-1.5 text-orange-500 hover:bg-orange-50 dark:hover:bg-white/5 transition-colors"
+                                    className="rounded-lg p-1.5 text-primary hover:bg-red-50 dark:hover:bg-white/5 transition-colors"
                                     title="Kosongkan keranjang"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
@@ -180,8 +180,8 @@ export function CartSheet({ onClose }: CartSheetProps) {
                                         className={cn(
                                             "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all",
                                             selectedItems.has(item.product.id)
-                                                ? "border-orange-500 bg-orange-500 text-white"
-                                                : "border-gray-300 dark:border-white/20 hover:border-orange-400"
+                                                ? "border-primary bg-primary text-white"
+                                                : "border-gray-300 dark:border-white/20 hover:border-red-400"
                                         )}
                                     >
                                         {selectedItems.has(item.product.id) && <Check className="h-3.5 w-3.5" />}
@@ -215,7 +215,7 @@ export function CartSheet({ onClose }: CartSheetProps) {
                                                 Catatan: {item.note}
                                             </p>
                                         )}
-                                        <p className="text-xs font-medium" style={{ color: ORANGE }}>
+                                        <p className="text-xs font-medium" style={{ color: PRIMARY }}>
                                             {formatRupiah(item.product.price)}
                                         </p>
 
@@ -233,7 +233,7 @@ export function CartSheet({ onClose }: CartSheetProps) {
                                                 </span>
                                                 <button
                                                     onClick={() => handleUpdateQuantity(item.product, item.quantity + 1)}
-                                                    className="flex h-7 w-7 items-center justify-center rounded-full text-white transition-colors hover:scale-105 active:scale-95 bg-gradient-to-r from-orange-500 to-orange-600 shadow-md shadow-orange-500/20"
+                                                    className="flex h-7 w-7 items-center justify-center rounded-full text-white transition-colors hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-red-600 shadow-md shadow-primary/20"
                                                 >
                                                     <Plus className="h-3.5 w-3.5" />
                                                 </button>
@@ -260,7 +260,7 @@ export function CartSheet({ onClose }: CartSheetProps) {
                     <button
                         onClick={() => setIsCheckoutOpen(true)}
                         disabled={items.length === 0}
-                        className="w-full rounded-full py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shadow-lg shadow-orange-500/20 bg-gradient-to-r from-orange-500 to-orange-600"
+                        className="w-full rounded-full py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-red-600"
                     >
                         Bayar Sekarang
                     </button>

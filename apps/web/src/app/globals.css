@@ -86,13 +86,13 @@
   --login-text: #ffffff !important;
   --login-text-muted: rgba(255, 255, 255, 0.7) !important;
 
-  --primary: #FF8C00 !important;
-  --primary-hover: #E07B00 !important;
-  --primary-light: #1E1E1E !important;
+  --primary: #C5161D !important;
+  --primary-hover: #A01217 !important;
+  --primary-light: #450a0a !important;
   --primary-foreground: #FFFFFF !important;
 
-  --accent: #f97316 !important;
-  --accent-hover: #E07B00 !important;
+  --accent: #F4B42B !important;
+  --accent-hover: #D99F20 !important;
   --accent-light: #2C2C2C !important;
   --accent-foreground: #FFFFFF !important;
 

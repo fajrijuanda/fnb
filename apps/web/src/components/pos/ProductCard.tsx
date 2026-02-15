@@ -27,8 +27,8 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
                 backdrop-blur-xl
                 border border-black/5 dark:border-white/10
                 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)]
-                hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_40px_rgba(255,140,0,0.15)]
-                hover:border-orange-300 dark:hover:border-orange-500/30
+                hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_40px_rgba(197,22,29,0.15)]
+                hover:border-red-300 dark:hover:border-primary/30
                 ${!isAvailable ? 'cursor-not-allowed opacity-60' : ''}`}
         >
             {/* Content Section - Left (Flex-1) */}
@@ -45,7 +45,7 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
                 </div>
 
                 {/* Price */}
-                <span className="text-sm font-bold tracking-tight text-orange-600 dark:text-orange-400">
+                <span className="text-sm font-bold tracking-tight text-primary dark:text-red-400">
                     {formatRupiah(product.price)}
                 </span>
             </div>
@@ -74,7 +74,7 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
                 {isAvailable ? (
                     <div className="absolute bottom-1 right-1 z-20">
                         <div
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-white shadow-xl transition-all active:scale-95 hover:scale-110 bg-gradient-to-br from-orange-500 to-orange-600 shadow-orange-500/30 hover:shadow-orange-500/50"
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-white shadow-xl transition-all active:scale-95 hover:scale-110 bg-gradient-to-br from-primary to-red-600 shadow-primary/30 hover:shadow-primary/50"
                         >
                             <Plus className="h-4 w-4" strokeWidth={3} />
                         </div>

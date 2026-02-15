@@ -185,19 +185,19 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                 key={method.id}
                                 onClick={() => setPaymentMethod(method.id)}
                                 className={`flex flex-col items-center gap-2 rounded-xl p-4 border-2 transition-all ${paymentMethod === method.id
-                                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-500/10 text-orange-600'
-                                    : 'border-border hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-500/5'
+                                    ? 'border-primary bg-red-50 dark:bg-primary/10 text-primary'
+                                    : 'border-border hover:border-primary/50 hover:bg-red-50/50 dark:hover:bg-primary/5'
                                     }`}
                             >
                                 <method.icon
                                     className={`h-6 w-6 ${paymentMethod === method.id
-                                        ? 'text-orange-600'
+                                        ? 'text-primary'
                                         : 'text-muted-foreground'
                                         }`}
                                 />
                                 <span
                                     className={`text-sm font-medium ${paymentMethod === method.id
-                                        ? 'text-orange-600'
+                                        ? 'text-primary'
                                         : 'text-card-foreground'
                                         }`}
                                 >
@@ -226,7 +226,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                     <button
                         onClick={handleCheckout}
                         disabled={isLoading || items.length === 0}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-orange-500 to-orange-600"
+                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-red-600"
                     >
                         {isLoading ? (
                             <>
@@ -305,7 +305,7 @@ export function CheckoutSuccessModal({ isOpen, order, onClose, onPrint }: Succes
 
                 <div className="bg-muted/50 rounded-2xl p-6 mb-8 border border-border/50">
                     <p className="text-sm text-muted-foreground mb-1 uppercase tracking-wider font-medium">Total Pembayaran</p>
-                    <p className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">
+                    <p className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-red-600">
                         {formatRupiah(order.total_amount)}
                     </p>
                 </div>
@@ -314,14 +314,14 @@ export function CheckoutSuccessModal({ isOpen, order, onClose, onPrint }: Succes
                 <div className="flex gap-3">
                     <button
                         onClick={onPrint}
-                        className="flex-1 flex items-center justify-center gap-2 rounded-xl border-2 border-orange-500/20 py-3 font-bold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors"
+                        className="flex-1 flex items-center justify-center gap-2 rounded-xl border-2 border-primary/20 py-3 font-bold text-primary dark:text-red-400 hover:bg-red-50 dark:hover:bg-primary/10 transition-colors"
                     >
                         <Printer className="h-5 w-5" />
                         Cetak
                     </button>
                     <button
                         onClick={onClose}
-                        className="flex-1 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-orange-500 to-orange-600"
+                        className="flex-1 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-primary to-red-600"
                     >
                         Selesai
                     </button>

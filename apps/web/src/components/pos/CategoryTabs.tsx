@@ -29,7 +29,7 @@ export function CategoryTabs({ categories, selected, onSelect }: CategoryTabsPro
                         {category.name}
                         {/* Bottom Highlight Line */}
                         {selected === category.slug && (
-                            <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
+                            <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary shadow-[0_0_10px_rgba(197,22,29,0.5)]" />
                         )}
                     </button>
                 ))}

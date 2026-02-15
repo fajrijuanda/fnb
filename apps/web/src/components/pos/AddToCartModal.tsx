@@ -67,7 +67,7 @@ export function AddToCartModal({ isOpen, product, onClose, onConfirm }: AddToCar
                     </div>
                     <div>
                         <h3 className="font-semibold text-card-foreground">{product.name}</h3>
-                        <p className="font-bold text-lg text-orange-600">
+                        <p className="font-bold text-lg text-primary">
                             {formatRupiah(product.price)}
                         </p>
                         {product.description && (
@@ -92,7 +92,7 @@ export function AddToCartModal({ isOpen, product, onClose, onConfirm }: AddToCar
                         <span className="text-lg font-bold text-card-foreground">{quantity}</span>
                         <button
                             onClick={() => setQuantity(quantity + 1)}
-                            className="flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors bg-gradient-to-r from-orange-500 to-orange-600 shadow-md shadow-orange-500/20 hover:scale-105 active:scale-95"
+                            className="flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors bg-gradient-to-r from-primary to-red-600 shadow-md shadow-primary/20 hover:scale-105 active:scale-95"
                         >
                             <Plus className="h-4 w-4" />
                         </button>
@@ -125,7 +125,7 @@ export function AddToCartModal({ isOpen, product, onClose, onConfirm }: AddToCar
 
                     <button
                         onClick={handleConfirm}
-                        className="flex items-center gap-2 rounded-full px-6 py-3 font-semibold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-500/20 bg-gradient-to-r from-orange-500 to-orange-600"
+                        className="flex items-center gap-2 rounded-full px-6 py-3 font-semibold text-white transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-red-600"
                     >
                         <ShoppingCart className="h-5 w-5" />
                         Tambah Pesanan
