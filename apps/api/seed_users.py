@@ -160,8 +160,16 @@ def _create_mitra(data):
                 # OPTIONAL: Reset end_date if needed, but usually we just ensure it exists.
                 # Only update plan name for clarity
                 sub.plan_name = plan_name
-                # Ensure active
-                sub.status = 'active'
+                # Ensure correct status based on data
+                if data.get('expired', False):
+                    sub.status = 'expired'
+                    sub.end_date = timezone.now().date() - timedelta(days=1)
+                else:
+                    sub.status = 'active'
+                    # Optionally extend end_date if active, or leave as is
+                    if sub.end_date < timezone.now().date():
+                         sub.end_date = timezone.now().date() + timedelta(days=duration_days)
+                
                 sub.save()
         
 def _create_cashier(data):
