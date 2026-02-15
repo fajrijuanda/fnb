@@ -12,7 +12,6 @@ import {
     ChevronLeft,
     ChevronRight,
     ShoppingBag,
-    Layers,
     Users,
     Receipt,
     X,
@@ -35,7 +34,7 @@ const superadminNav = [
 const mitraNav = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
-    { href: '/admin/categories', label: 'Kategori', icon: Layers },
+    // Categories managed by Admin only
     { href: '/admin/inventory', label: 'Inventori', icon: Package },
     { href: '/admin/orders', label: 'Pesanan', icon: Receipt },
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },

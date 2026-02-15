@@ -16,6 +16,7 @@ import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const IconComponent = ({ name, size = 16, className = "", style = {} }: { name: string, size?: number, className?: string, style?: CSSProperties }) => {
     // Convert kebab-case to PascalCase (e.g., 'chef-hat' -> 'ChefHat', 'utensils' -> 'Utensils')
@@ -165,6 +166,7 @@ const MobileCategoryBadge = ({ name, icon, color }: { name: string, icon: string
 
 export default function ProductsPage() {
     const { success, error: showError } = useToast();
+    const { user } = useAuthStore();
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -438,10 +440,10 @@ export default function ProductsPage() {
                 );
             }
         },
-        {
+        ...(user?.role === 'superadmin' ? [{
             header: "Aksi",
             className: "text-right",
-            accessor: (product) => (
+            accessor: (product: Product) => (
                 <div className="flex items-center justify-end gap-1">
                     <button
                         onClick={() => handleOpenModal(product)}
@@ -457,7 +459,7 @@ export default function ProductsPage() {
                     </button>
                 </div>
             )
-        }
+        } as Column<Product>] : [])
     ];
 
     return (
@@ -471,8 +473,8 @@ export default function ProductsPage() {
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 searchPlaceholder="Cari produk..."
-                addButtonLabel="Produk"
-                onAddClick={() => handleOpenModal()}
+                addButtonLabel={user?.role === 'superadmin' ? "Produk" : undefined}
+                onAddClick={user?.role === 'superadmin' ? () => handleOpenModal() : undefined}
                 extraActions={
                     <div className="flex items-center gap-2">
                         <AdminSelect
