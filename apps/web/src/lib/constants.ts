@@ -6,7 +6,7 @@ export const TOPPING_OPTIONS = [
   "Jamur",
 ];
 
-export const MAX_TOPPINGS = 7;
+export const MAX_TOPPINGS = 3;
 
 export const PRODUCT_VARIANT_MAP: Record<string, number> = {
   // Dimsum
