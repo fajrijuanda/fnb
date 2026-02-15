@@ -28,6 +28,7 @@ export const useAuthStore = create<AuthState>()(
             username: data.username,
             email: data.email,
             role: data.role,
+            is_subscribed: data.is_subscribed,
           },
           isAuthenticated: true,
         }),

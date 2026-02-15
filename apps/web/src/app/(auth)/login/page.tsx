@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Loader2, ArrowRight, Store, LogIn, Eye, EyeOff } from 'lucide-react';
+import { Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import api from '@/lib/api';
 import type { LoginResponse, WrappedResponse } from '@/types/api';
 import axios from 'axios';
@@ -13,7 +13,6 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 export default function LoginPage() {
     const router = useRouter();
     const { login, isAuthenticated, user } = useAuthStore();
-    const [view, setView] = useState<'SELECTION' | 'ADMIN_LOGIN'>('SELECTION');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -30,14 +29,15 @@ export default function LoginPage() {
         }
     }, [isAuthenticated, user, router]);
 
-    const performLogin = async (user: string, pass: string) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setIsLoading(true);
         setError(null);
 
         try {
             const response = await api.post<WrappedResponse<LoginResponse>>('/users/login/', {
-                username: user,
-                password: pass
+                username,
+                password
             });
 
             if (response.data.status === 'success') {
@@ -69,89 +69,10 @@ export default function LoginPage() {
         }
     };
 
-    const handleCashierLogin = () => {
-        performLogin('kasir', 'kasir123');
-    };
-
-    const handleAdminSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        performLogin(username, password);
-    };
-
-    const handleRoleSelect = (role: 'cashier' | 'admin') => {
-        if (role === 'cashier') {
-            handleCashierLogin();
-        } else {
-            setView('ADMIN_LOGIN');
-        }
-    };
-
     if (isLoading) {
         return <LoadingScreen />;
     }
 
-    if (view === 'SELECTION') {
-        return (
-            <div className="flex min-h-screen items-center justify-center p-4 bg-futuristic-theme relative overflow-hidden transition-colors duration-500">
-                {/* Theme Toggle */}
-                <div className="absolute top-6 right-6 z-50">
-                    <ThemeToggle dropdownSide="right" />
-                </div>
-
-                {/* Ambient Background Glows */}
-                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-primary/20 rounded-full blur-[100px] animate-pulse" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[80px]" />
-
-                {/* Main Card */}
-                <div className="w-full max-w-lg p-8 relative z-10 rounded-2xl border border-primary/20 shadow-2xl shadow-primary/10 backdrop-blur-3xl bg-white/40 dark:bg-black/40 transition-all duration-300">
-                    <div className="mb-10 text-center">
-                        <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-red-600 shadow-2xl shadow-primary/40 p-4">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src="/logo.png" alt="OMDEN Logo" className="w-full h-full object-contain filter drop-shadow-md" />
-                        </div>
-                        <h1 className="mb-2 text-4xl font-bold tracking-tight drop-shadow-md transition-colors" style={{ color: 'var(--login-text)' }}>
-                            OMDEN
-                        </h1>
-                        <p className="font-medium tracking-wide transition-colors" style={{ color: 'var(--login-text-muted)' }}>Sistem Point of Sale Modern</p>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <button
-                            onClick={() => handleRoleSelect('cashier')}
-                            className="group relative flex flex-col items-center justify-center gap-4 rounded-2xl p-6 transition-all hover:-translate-y-1 bg-white/50 dark:bg-white/5 border border-white/20 dark:border-white/5 hover:border-primary/30 hover:shadow-lg"
-                        >
-                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/0 to-primary/0 opacity-0 transition-opacity group-hover:from-primary/10 group-hover:to-primary/5 group-hover:opacity-100" />
-                            <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-red-600 shadow-lg shadow-primary/30 transition-transform group-hover:scale-110 group-hover:shadow-primary/50">
-                                <Store className="h-8 w-8 text-white" />
-                            </div>
-                            <div className="relative text-center">
-                                <h3 className="text-lg font-bold group-hover:text-primary dark:group-hover:text-red-100 transition-colors" style={{ color: 'var(--login-text)' }}>Kasir</h3>
-                                <p className="text-xs" style={{ color: 'var(--login-text-muted)' }}>Masuk otomatis ke POS</p>
-                            </div>
-                        </button>
-
-                        <button
-                            onClick={() => handleRoleSelect('admin')}
-                            className="group relative flex flex-col items-center justify-center gap-4 rounded-2xl p-6 transition-all hover:-translate-y-1 bg-white/50 dark:bg-white/5 border border-white/20 dark:border-white/5 hover:border-primary/30 hover:shadow-lg"
-                        >
-                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/0 to-primary/0 opacity-0 transition-opacity group-hover:from-primary/10 group-hover:to-primary/5 group-hover:opacity-100" />
-                            <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-white/40 dark:bg-white/10 shadow-lg transition-transform group-hover:scale-110 group-hover:bg-white/60 dark:group-hover:bg-white/20">
-                                <LogIn className="h-8 w-8 text-gray-700 dark:text-white group-hover:text-primary dark:group-hover:text-white" />
-                            </div>
-                            <div className="relative text-center">
-                                <h3 className="text-lg font-bold group-hover:text-primary dark:group-hover:text-red-100 transition-colors" style={{ color: 'var(--login-text)' }}>Masuk</h3>
-                                <p className="text-xs" style={{ color: 'var(--login-text-muted)' }}>Login dengan akun Anda</p>
-                            </div>
-                        </button>
-                    </div>
-
-                    <p className="text-sm mt-8 text-center" style={{ color: 'var(--login-text-muted)' }}>© 2026 OMDEN. All rights reserved.</p>
-                </div>
-            </div>
-        );
-    }
-
-    // ADMIN LOGIN FORM
     return (
         <div className="flex min-h-screen items-center justify-center p-4 bg-futuristic-theme relative overflow-hidden transition-colors duration-500">
             <div className="absolute top-6 right-6 z-50">
@@ -161,35 +82,23 @@ export default function LoginPage() {
                 />
             </div>
 
+            {/* Ambient Background Glows */}
             <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-primary/20 rounded-full blur-[100px] animate-pulse" />
             <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[80px]" />
 
             <div className="w-full max-w-md p-8 relative z-10 rounded-2xl border border-primary/20 shadow-2xl shadow-primary/10 backdrop-blur-3xl bg-white/40 dark:bg-black/40 transition-all duration-300">
-                <button
-                    onClick={() => setView('SELECTION')}
-                    className="group flex items-center gap-2 text-sm hover:text-gray-900 dark:hover:text-white transition-colors mb-6"
-                    style={{ color: 'var(--login-text-muted)' }}
-                >
-                    <div className="rounded-full bg-white/20 p-1 group-hover:bg-primary group-hover:text-white transition-colors">
-                        <ArrowRight className="h-4 w-4 rotate-180" />
-                    </div>
-                    Kembali
-                </button>
-
                 <div className="text-center mb-8">
-                    <div className="relative mx-auto h-20 w-20 flex items-center justify-center">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-red-600 blur-lg opacity-50" />
-                        <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-primary to-red-600 flex items-center justify-center shadow-2xl shadow-primary/30">
-                            <LogIn className="h-10 w-10 text-white" />
-                        </div>
+                    <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-red-600 shadow-2xl shadow-primary/40 p-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo.png" alt="OMDEN Logo" className="w-full h-full object-contain filter drop-shadow-md" />
                     </div>
-                    <h2 className="mt-6 text-2xl font-bold tracking-tight" style={{ color: 'var(--login-text)' }}>
-                        Login
-                    </h2>
-                    <p className="text-sm mt-1" style={{ color: 'var(--login-text-muted)' }}>Masukkan akun Anda</p>
+                    <h1 className="text-3xl font-bold tracking-tight drop-shadow-md transition-colors" style={{ color: 'var(--login-text)' }}>
+                        OMDEN
+                    </h1>
+                    <p className="text-sm mt-1" style={{ color: 'var(--login-text-muted)' }}>Masukkan akun Anda untuk melanjutkan</p>
                 </div>
 
-                <form className="space-y-5" onSubmit={handleAdminSubmit}>
+                <form className="space-y-5" onSubmit={handleSubmit}>
                     <div className="space-y-4">
                         <div className="group">
                             <label htmlFor="username" className="block text-xs font-medium mb-2 uppercase tracking-wider group-focus-within:text-primary transition-colors" style={{ color: 'var(--login-text-muted)' }}>
@@ -254,12 +163,14 @@ export default function LoginPage() {
                             </>
                         ) : (
                             <>
-                                Masuk Dashboard
+                                Masuk
                                 <ArrowRight className="h-5 w-5" />
                             </>
                         )}
                     </button>
                 </form>
+
+                <p className="text-xs mt-6 text-center" style={{ color: 'var(--login-text-muted)' }}>© 2026 OMDEN. All rights reserved.</p>
             </div>
         </div>
     );

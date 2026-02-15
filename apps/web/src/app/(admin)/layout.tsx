@@ -186,7 +186,26 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <div className="absolute inset-0 overflow-auto flex flex-col">
                     <AdminNavbar onMenuClick={() => setMobileMenuOpen(true)} />
                     <main className="flex-1 p-4 lg:p-6">
-                        {children}
+                        {user?.role !== 'superadmin' && !user?.is_subscribed ? (
+                            <div className="flex flex-col items-center justify-center h-full py-20">
+                                <div className="relative mb-6">
+                                    <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl animate-pulse" />
+                                    <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-red-700 flex items-center justify-center shadow-2xl shadow-primary/30">
+                                        <CreditCard className="h-10 w-10 text-white" />
+                                    </div>
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Langganan Diperlukan</h2>
+                                <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
+                                    Akun Anda belum memiliki langganan aktif. Hubungi Super Admin untuk mengaktifkan akses ke fitur admin.
+                                </p>
+                                <button
+                                    onClick={() => { useAuthStore.getState().logout(); router.replace('/login'); }}
+                                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-red-600 text-white font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+                                >
+                                    Kembali ke Login
+                                </button>
+                            </div>
+                        ) : children}
                     </main>
                 </div>
 

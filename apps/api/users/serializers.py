@@ -6,10 +6,11 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True, required=False)
     avatar = serializers.ImageField(source='profile.avatar', required=False, allow_null=True)
+    is_subscribed = serializers.BooleanField(source='profile.is_subscribed', read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'role', 'avatar']
+        fields = ['id', 'username', 'email', 'password', 'role', 'avatar', 'is_subscribed']
         extra_kwargs = {
             'email': {'required': False},
         }

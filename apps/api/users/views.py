@@ -6,6 +6,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from .serializers import UserSerializer
+from .models import UserProfile
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -43,6 +44,10 @@ class CustomLoginView(ObtainAuthToken):
         elif user.is_staff:
             role = 'mitra'
             
+        # Get subscription status
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        is_subscribed = profile.is_subscribed or user.is_superuser
+
         return Response({
             'status': 'success',
             'data': {
@@ -50,7 +55,8 @@ class CustomLoginView(ObtainAuthToken):
                 'user_id': user.pk,
                 'username': user.username,
                 'email': user.email,
-                'role': role
+                'role': role,
+                'is_subscribed': is_subscribed
             },
             'message': 'Login successful'
         })
@@ -66,12 +72,17 @@ class UserProfileView(APIView):
         elif user.is_staff:
             role = 'mitra'
             
+        # Get subscription status
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        is_subscribed = profile.is_subscribed or user.is_superuser
+
         return Response({
             'status': 'success',
             'data': {
                 'id': user.pk,
                 'username': user.username,
                 'email': user.email,
-                'role': role
+                'role': role,
+                'is_subscribed': is_subscribed
             }
         })

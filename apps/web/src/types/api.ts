@@ -38,6 +38,7 @@ export interface User {
   email: string;
   role: "superadmin" | "mitra" | "cashier";
   avatar?: string | null;
+  is_subscribed?: boolean;
 }
 
 export interface LoginResponse {
@@ -46,6 +47,7 @@ export interface LoginResponse {
   username: string;
   email: string;
   role: "superadmin" | "mitra" | "cashier";
+  is_subscribed: boolean;
 }
 
 // Order & Sales
