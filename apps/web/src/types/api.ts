@@ -191,6 +191,33 @@ export interface RestockOrder {
   received_at: string | null;
   cancelled_at: string | null;
   external_order_id: string;
+  payment: Payment | null;
+}
+
+// Payment Gateway
+export type PaymentVerificationStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "VERIFIED"
+  | "REJECTED"
+  | "MANUAL_REVIEW"
+  | "EXPIRED";
+
+export interface Payment {
+  id: number;
+  payment_code: string;
+  payment_proof: string | null;
+  payment_proof_uploaded_at: string | null;
+  expires_at: string;
+  verification_status: PaymentVerificationStatus;
+  verification_status_display: string;
+  verification_result: Record<string, unknown>;
+  verification_confidence: number;
+  rejection_reason: string;
+  verified_at: string | null;
+  is_expired: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // API Response Wrapper

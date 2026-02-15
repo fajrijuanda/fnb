@@ -124,7 +124,7 @@ class RestockOrderViewSet(viewsets.ModelViewSet):
     CRUD API for Restock Orders.
     Mitra creates orders, status is updated by HQ or external system.
     """
-    queryset = RestockOrder.objects.prefetch_related('items__ingredient').all()
+    queryset = RestockOrder.objects.prefetch_related('items__ingredient').select_related('payment').all()
     serializer_class = RestockOrderSerializer
 
     def list(self, request, *args, **kwargs):
@@ -153,6 +153,117 @@ class RestockOrderViewSet(viewsets.ModelViewSet):
             {'status': 'success', 'data': serializer.data},
             status=status.HTTP_201_CREATED
         )
+
+    @action(detail=True, methods=['post'], url_path='upload-proof')
+    def upload_proof(self, request, pk=None):
+        """
+        Upload payment proof and trigger AI verification.
+        POST /api/v1/inventory/restock-orders/{id}/upload-proof/
+        Body: multipart form with 'payment_proof' image file
+        """
+        order = self.get_object()
+
+        if order.status != 'PENDING':
+            return Response(
+                {'status': 'error', 'message': 'Pesanan sudah dibayar atau dibatalkan.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get or check payment exists
+        try:
+            payment = order.payment
+        except Exception:
+            return Response(
+                {'status': 'error', 'message': 'Data pembayaran tidak ditemukan.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check expiry
+        if payment.is_expired:
+            payment.verification_status = 'EXPIRED'
+            payment.save()
+            order.status = 'CANCELLED'
+            order.cancelled_at = timezone.now()
+            order.save()
+            return Response(
+                {'status': 'error', 'message': 'Waktu pembayaran telah habis. Pesanan dibatalkan.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get the uploaded file
+        proof_file = request.FILES.get('payment_proof')
+        if not proof_file:
+            return Response(
+                {'status': 'error', 'message': 'File bukti pembayaran wajib dikirim.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Save proof and trigger AI verification
+        payment.payment_proof = proof_file
+        payment.payment_proof_uploaded_at = timezone.now()
+        payment.verification_status = 'PROCESSING'
+        payment.save()
+
+        # Run AI verification
+        from .services import PaymentVerificationService
+        svc = PaymentVerificationService()
+        result = svc.verify_payment_proof(payment)
+
+        # Refresh order
+        order.refresh_from_db()
+        serializer = self.get_serializer(order)
+
+        return Response({
+            'status': 'success',
+            'message': (
+                'Pembayaran terverifikasi! ✅' if result['verified']
+                else f'Verifikasi gagal: {result["reason"]}'
+            ),
+            'verification': result,
+            'data': serializer.data,
+        })
+
+    @action(detail=True, methods=['get'], url_path='payment-info')
+    def payment_info(self, request, pk=None):
+        """
+        Get payment instructions for an order.
+        GET /api/v1/inventory/restock-orders/{id}/payment-info/
+        Returns HQ bank details + payment code + expiry.
+        """
+        from core.models import StoreSettings
+        order = self.get_object()
+
+        store = StoreSettings.objects.first()
+        bank_info = {
+            'bank_name': store.bank_name if store else '',
+            'bank_account': store.bank_account if store else '',
+            'bank_holder': store.bank_holder if store else '',
+            'dana_number': store.dana_number if store else '',
+            'gopay_number': store.gopay_number if store else '',
+            'shopeepay_number': store.shopeepay_number if store else '',
+            'ovo_number': store.ovo_number if store else '',
+            'qris_image': store.qris_image.url if store and store.qris_image else None,
+        }
+
+        payment_data = None
+        try:
+            payment = order.payment
+            from .serializers import PaymentSerializer
+            payment_data = PaymentSerializer(payment).data
+        except Exception:
+            pass
+
+        return Response({
+            'status': 'success',
+            'data': {
+                'order_number': order.order_number,
+                'total_amount': str(order.total_amount),
+                'payment_method': order.payment_method,
+                'payment_method_display': order.get_payment_method_display(),
+                'bank_info': bank_info,
+                'payment': payment_data,
+            }
+        })
 
     @action(detail=True, methods=['post'], url_path='update-status')
     def update_status(self, request, pk=None):
@@ -227,4 +338,3 @@ class RestockOrderViewSet(viewsets.ModelViewSet):
             'message': 'Pesanan dikonfirmasi diterima. Stok telah diperbarui.',
             'data': serializer.data
         })
-

@@ -196,3 +196,68 @@ class RestockOrderItem(models.Model):
     def __str__(self):
         return f"{self.quantity} {self.unit} of {self.ingredient.name}"
 
+
+class Payment(models.Model):
+    """
+    Payment record for a RestockOrder.
+    Uses AI (Gemini Vision) to automatically verify payment proof images.
+    """
+    VERIFICATION_STATUS_CHOICES = [
+        ('PENDING', 'Menunggu Bukti'),
+        ('PROCESSING', 'Memverifikasi'),
+        ('VERIFIED', 'Terverifikasi'),
+        ('REJECTED', 'Ditolak'),
+        ('MANUAL_REVIEW', 'Perlu Review Manual'),
+        ('EXPIRED', 'Kedaluwarsa'),
+    ]
+
+    order = models.OneToOneField(RestockOrder, on_delete=models.CASCADE, related_name='payment')
+    payment_code = models.CharField(max_length=30, unique=True, editable=False)
+
+    # Payment proof
+    payment_proof = models.ImageField(upload_to='payment_proofs/', blank=True, null=True)
+    payment_proof_uploaded_at = models.DateTimeField(null=True, blank=True)
+
+    # Expiry
+    expires_at = models.DateTimeField(help_text="Payment must be made before this time")
+
+    # AI Verification
+    verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='PENDING')
+    verification_result = models.JSONField(default=dict, blank=True, help_text="AI analysis result")
+    verification_confidence = models.IntegerField(default=0, help_text="AI confidence 0-100%")
+    rejection_reason = models.TextField(blank=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.payment_code:
+            self.payment_code = self._generate_payment_code()
+        # Compress proof image
+        if self.payment_proof and hasattr(self.payment_proof, 'file'):
+            from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+            if isinstance(self.payment_proof.file, (InMemoryUploadedFile, TemporaryUploadedFile)):
+                from core.utils import compress_image
+                self.payment_proof = compress_image(self.payment_proof)
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def _generate_payment_code():
+        from django.utils import timezone
+        import random
+        today = timezone.now().strftime('%Y%m%d')
+        rand = random.randint(1000, 9999)
+        return f"PAY-{today}-{rand}"
+
+    @property
+    def is_expired(self):
+        from django.utils import timezone
+        return timezone.now() > self.expires_at and self.verification_status not in ('VERIFIED',)
+
+    def __str__(self):
+        return f"{self.payment_code} ({self.get_verification_status_display()})"

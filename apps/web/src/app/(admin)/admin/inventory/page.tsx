@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { InventoryPrediction } from '@/components/admin/ai/InventoryPrediction';
 import {
     Lock, Phone, Plus, Search, AlertTriangle, CheckCircle, RefreshCw,
     X, Pencil, Trash2, Loader2, Save, ShoppingCart,
-    Package, ClipboardList, History, Truck, Clock, CheckCircle2, XCircle, CreditCard
+    Package, ClipboardList, History, Truck, Clock, CheckCircle2, XCircle, CreditCard,
+    Upload, Eye, Copy, Timer, ShieldCheck, ShieldAlert, ShieldX
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -109,6 +110,195 @@ function TrackingTimeline({ order }: { order: RestockOrder }) {
                     </div>
                 );
             })}
+        </div>
+    );
+}
+
+// ── Countdown Hook ──
+function useCountdown(expiresAt: string | undefined) {
+    const [timeLeft, setTimeLeft] = useState('');
+    const [isExpired, setIsExpired] = useState(false);
+
+    useEffect(() => {
+        if (!expiresAt) return;
+        const update = () => {
+            const diff = new Date(expiresAt).getTime() - Date.now();
+            if (diff <= 0) { setTimeLeft('00:00:00'); setIsExpired(true); return; }
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            setTimeLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
+            setIsExpired(false);
+        };
+        update();
+        const id = setInterval(update, 1000);
+        return () => clearInterval(id);
+    }, [expiresAt]);
+
+    return { timeLeft, isExpired };
+}
+
+// ── Payment Panel Component ──
+function PaymentPanel({ order, onUploadSuccess }: { order: RestockOrder; onUploadSuccess: () => void }) {
+    const { success, error: showError } = useToast();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [bankInfo, setBankInfo] = useState<Record<string, string | null>>({});
+    const [copied, setCopied] = useState(false);
+    const payment = order.payment;
+    const { timeLeft, isExpired } = useCountdown(payment?.expires_at);
+
+    useEffect(() => {
+        api.get(`/inventory/restock-orders/${order.id}/payment-info/`)
+            .then((res) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const d = (res.data as any)?.data || res.data;
+                setBankInfo(d.bank_info || {});
+            })
+            .catch(() => { });
+    }, [order.id]);
+
+    const handleUpload = async (file: File) => {
+        setIsUploading(true);
+        try {
+            const fd = new FormData();
+            fd.append('payment_proof', file);
+            const res = await api.post(`/inventory/restock-orders/${order.id}/upload-proof/`, fd, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const data = res.data as any;
+            if (data.verification?.verified) {
+                success('Pembayaran terverifikasi oleh AI! ✅');
+            } else {
+                showError(data.message || 'Verifikasi gagal');
+            }
+            onUploadSuccess();
+        } catch (err) {
+            console.error('Upload failed:', err);
+            showError('Gagal mengunggah bukti pembayaran');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    if (!payment) return null;
+
+    const verificationStatus = payment.verification_status;
+    const showUpload = verificationStatus === 'PENDING' || verificationStatus === 'REJECTED';
+
+    return (
+        <div className="mt-3 p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/5 dark:to-orange-500/5 border border-amber-200 dark:border-amber-500/20 space-y-3">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-xs">
+                    <CreditCard size={14} />
+                    <span>Instruksi Pembayaran</span>
+                </div>
+                {!isExpired && (
+                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-bold font-mono">
+                        <Timer size={10} />
+                        {timeLeft}
+                    </div>
+                )}
+                {isExpired && (
+                    <span className="px-2 py-1 rounded-lg bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] font-bold">
+                        Kedaluwarsa
+                    </span>
+                )}
+            </div>
+
+            {/* Amount */}
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10">
+                <div>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Total Bayar</p>
+                    <p className="text-lg font-black text-gray-900 dark:text-white">{formatCurrency(order.total_amount)}</p>
+                </div>
+                <button onClick={() => handleCopy(String(order.total_amount))} className="p-2 rounded-lg bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors" title="Salin nominal">
+                    {copied ? <CheckCircle size={16} className="text-green-500" /> : <Copy size={16} className="text-gray-500" />}
+                </button>
+            </div>
+
+            {/* Bank Info */}
+            {order.payment_method === 'TRANSFER' && bankInfo.bank_name && (
+                <div className="p-3 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 space-y-1">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Transfer ke</p>
+                    <p className="font-bold text-sm text-gray-900 dark:text-white">{bankInfo.bank_name} — {bankInfo.bank_account}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">a/n {bankInfo.bank_holder}</p>
+                </div>
+            )}
+
+            {/* Payment code */}
+            <div className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-white/5 text-xs">
+                <span className="text-gray-500">Kode: <span className="font-mono font-bold text-gray-900 dark:text-white">{payment.payment_code}</span></span>
+                <button onClick={() => handleCopy(payment.payment_code)} className="text-primary hover:text-red-700 text-[10px] font-bold">Salin</button>
+            </div>
+
+            {/* Verification Status */}
+            {verificationStatus === 'PROCESSING' && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 text-xs font-bold">
+                    <Loader2 size={14} className="animate-spin" />
+                    AI sedang memverifikasi bukti pembayaran...
+                </div>
+            )}
+            {verificationStatus === 'VERIFIED' && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-green-700 dark:text-green-400 text-xs font-bold">
+                    <ShieldCheck size={14} />
+                    Pembayaran terverifikasi (Confidence: {payment.verification_confidence}%)
+                </div>
+            )}
+            {verificationStatus === 'REJECTED' && (
+                <div className="space-y-2">
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 text-xs">
+                        <ShieldX size={14} className="mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p className="font-bold">Verifikasi Ditolak</p>
+                            <p className="mt-0.5 font-normal">{payment.rejection_reason}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {verificationStatus === 'MANUAL_REVIEW' && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/20 text-yellow-700 dark:text-yellow-400 text-xs font-bold">
+                    <ShieldAlert size={14} />
+                    Menunggu review manual oleh admin
+                </div>
+            )}
+
+            {/* Upload area */}
+            {showUpload && !isExpired && (
+                <div className="space-y-2">
+                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" capture="environment"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }} />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-500/30 bg-white dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold text-sm transition-colors disabled:opacity-50"
+                    >
+                        {isUploading ? (
+                            <><Loader2 size={16} className="animate-spin" /> Memverifikasi dengan AI...</>
+                        ) : (
+                            <><Upload size={16} /> {verificationStatus === 'REJECTED' ? 'Upload Ulang Bukti' : 'Upload Bukti Pembayaran'}</>
+                        )}
+                    </button>
+                    <p className="text-[10px] text-gray-500 text-center">Screenshot/foto bukti transfer akan diverifikasi otomatis oleh AI</p>
+                </div>
+            )}
+
+            {/* Preview uploaded proof */}
+            {payment.payment_proof && (
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-white/5 text-xs text-gray-600 dark:text-gray-400">
+                    <Eye size={12} />
+                    <span>Bukti pembayaran telah diunggah</span>
+                    {payment.payment_proof_uploaded_at && <span className="text-gray-400">({formatDate(payment.payment_proof_uploaded_at)})</span>}
+                </div>
+            )}
         </div>
     );
 }
@@ -483,6 +673,11 @@ export default function InventoryPage() {
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
                                     {order.items.map(it => `${it.ingredient_name} (${it.quantity} ${it.unit})`).join(', ')}
                                 </div>
+
+                                {/* Payment panel for PENDING orders */}
+                                {order.status === 'PENDING' && (
+                                    <PaymentPanel order={order} onUploadSuccess={() => fetchOrders('active')} />
+                                )}
 
                                 {/* Confirm received button */}
                                 {(order.status === 'SHIPPED' || order.status === 'PREPARING') && (

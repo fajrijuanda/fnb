@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Ingredient, Recipe, RecipeItem, StockLog, RestockOrder, RestockOrderItem
+from .models import Ingredient, Recipe, RecipeItem, StockLog, RestockOrder, RestockOrderItem, Payment
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -69,11 +69,32 @@ class RestockOrderItemSerializer(serializers.ModelSerializer):
         ]
 
 
+class PaymentSerializer(serializers.ModelSerializer):
+    """Read-only serializer for Payment details."""
+    verification_status_display = serializers.CharField(source='get_verification_status_display', read_only=True)
+    is_expired = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Payment
+        fields = [
+            'id', 'payment_code',
+            'payment_proof', 'payment_proof_uploaded_at',
+            'expires_at',
+            'verification_status', 'verification_status_display',
+            'verification_result', 'verification_confidence',
+            'rejection_reason', 'verified_at',
+            'is_expired',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = fields
+
+
 class RestockOrderSerializer(serializers.ModelSerializer):
-    """Serializer for restock orders with nested items."""
+    """Serializer for restock orders with nested items and payment."""
     items = RestockOrderItemSerializer(many=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     payment_method_display = serializers.CharField(source='get_payment_method_display', read_only=True)
+    payment = PaymentSerializer(read_only=True)
 
     class Meta:
         model = RestockOrder
@@ -81,7 +102,7 @@ class RestockOrderSerializer(serializers.ModelSerializer):
             'id', 'order_number', 'status', 'status_display',
             'payment_method', 'payment_method_display',
             'shipping_address', 'shipping_cost', 'subtotal', 'total_amount',
-            'notes', 'items',
+            'notes', 'items', 'payment',
             'created_at', 'updated_at', 'paid_at', 'preparing_at',
             'shipped_at', 'received_at', 'cancelled_at',
             'external_order_id',
@@ -106,4 +127,10 @@ class RestockOrderSerializer(serializers.ModelSerializer):
         for item_data in items_data:
             RestockOrderItem.objects.create(order=order, **item_data)
 
+        # Auto-create Payment with 24h expiry
+        from .services import PaymentVerificationService
+        svc = PaymentVerificationService()
+        svc.create_payment(order)
+
         return order
+
