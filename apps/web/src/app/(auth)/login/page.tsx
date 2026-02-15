@@ -90,7 +90,7 @@ export default function LoginPage() {
             <div className="flex min-h-screen items-center justify-center p-4 bg-futuristic-theme relative overflow-hidden transition-colors duration-500">
                 {/* Theme Toggle */}
                 <div className="absolute top-6 right-6 z-50">
-                    <ThemeToggle />
+                    <ThemeToggle dropdownSide="right" />
                 </div>
 
                 {/* Ambient Background Glows */}
