@@ -32,7 +32,7 @@ export function AIInsightsCard() {
     }, []);
 
     return (
-        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+        <div className="bg-gradient-to-br from-[#C5161D] to-[#7f1d1d] rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-10">
                 <Sparkles size={100} />
             </div>
@@ -41,7 +41,7 @@ export function AIInsightsCard() {
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                            <Sparkles size={20} className="text-yellow-300" />
+                            <Sparkles size={20} className="text-red-200" />
                         </div>
                         <h3 className="font-bold text-lg">AI Sales Insight</h3>
                     </div>
@@ -69,7 +69,7 @@ export function AIInsightsCard() {
                     )}
                 </div>
 
-                <p className="text-xs text-indigo-200 mt-3 flex items-center gap-1">
+                <p className="text-xs text-red-200 mt-3 flex items-center gap-1">
                     Powered by Google Gemini 2.0 Flash
                 </p>
             </div>

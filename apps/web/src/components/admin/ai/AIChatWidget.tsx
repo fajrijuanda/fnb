@@ -66,7 +66,7 @@ export function AIChatWidget() {
             {isOpen && (
                 <div className="mb-4 w-80 md:w-96 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col animation-scale-in origin-bottom-right h-[500px]">
                     {/* Header */}
-                    <div className="p-4 bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-between shrink-0">
+                    <div className="p-4 bg-gradient-to-r from-[#C5161D] to-[#7f1d1d] flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-white/20 rounded-lg">
                                 <Bot size={20} className="text-white" />
@@ -98,14 +98,14 @@ export function AIChatWidget() {
                                     w-8 h-8 rounded-full flex items-center justify-center shrink-0
                                     ${msg.sender === 'user'
                                         ? 'bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-300'
-                                        : 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-purple-500/20'}
+                                        : 'bg-gradient-to-br from-[#C5161D] to-[#7f1d1d] text-white shadow-lg shadow-red-500/20'}
                                 `}>
                                     {msg.sender === 'user' ? <User size={14} /> : <Sparkles size={14} />}
                                 </div>
                                 <div className={`
                                     max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed
                                     ${msg.sender === 'user'
-                                        ? 'bg-indigo-600 text-white rounded-tr-none'
+                                        ? 'bg-[#C5161D] text-white rounded-tr-none'
                                         : 'bg-white dark:bg-[#252525] text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-white/5 rounded-tl-none shadow-sm'}
                                 `}>
                                     {msg.text}
@@ -114,7 +114,7 @@ export function AIChatWidget() {
                         ))}
                         {isTyping && (
                             <div className="flex items-start gap-2">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C5161D] to-[#7f1d1d] flex items-center justify-center shrink-0">
                                     <Sparkles size={14} className="text-white" />
                                 </div>
                                 <div className="bg-white dark:bg-[#252525] px-4 py-3 rounded-2xl rounded-tl-none border border-gray-100 dark:border-white/5 shadow-sm">
@@ -140,12 +140,12 @@ export function AIChatWidget() {
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
                                 placeholder="Tanya sesuatu..."
-                                className="flex-1 bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all dark:text-white"
+                                className="flex-1 bg-gray-100 dark:bg-white/5 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-500/50 outline-none transition-all dark:text-white"
                             />
                             <button
                                 type="submit"
                                 disabled={!inputText.trim() || isTyping}
-                                className="p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 dark:disabled:bg-white/10 text-white rounded-xl transition-all shadow-lg hover:shadow-indigo-500/30 disabled:shadow-none"
+                                className="p-2.5 bg-[#C5161D] hover:bg-[#A01217] disabled:bg-gray-300 dark:disabled:bg-white/10 text-white rounded-xl transition-all shadow-lg hover:shadow-red-500/30 disabled:shadow-none"
                             >
                                 <Send size={18} />
                             </button>
@@ -159,7 +159,7 @@ export function AIChatWidget() {
                 onClick={() => setIsOpen(!isOpen)}
                 className={`
                     group relative flex items-center justify-center w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 z-50
-                    ${isOpen ? 'bg-gray-800 text-white rotate-90' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'}
+                    ${isOpen ? 'bg-gray-800 text-white rotate-90' : 'bg-gradient-to-r from-[#C5161D] to-[#7f1d1d] text-white'}
                 `}
             >
                 {isOpen ? <X size={24} /> : <MessageSquare size={26} fill="currentColor" className="opacity-90" />}
