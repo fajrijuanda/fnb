@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { CreditCard, Users, MoreHorizontal, CheckCircle, X as XIcon } from 'lucide-react';
+import { CreditCard, Users, MoreHorizontal, CheckCircle, X as XIcon, Activity, TrendingUp } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
@@ -48,9 +48,8 @@ export default function SubscriptionsPage() {
                     description="Pantau dan kelola langganan mitra"
                 />
 
-                {/* Stats Cards - Simplified for now */}
+                {/* Stats Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {/* ... (Keep existing stats or make dynamic later) ... */}
                     <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
                         <div className="flex items-center gap-4">
                             <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
@@ -58,7 +57,50 @@ export default function SubscriptionsPage() {
                             </div>
                             <div>
                                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Mitra Aktif</h3>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{subscriptions.filter(s => s.status === 'active').length}</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    {isLoading ? '...' : subscriptions.filter(s => s.status === 'active').length}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-xl bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400">
+                                <Activity size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Langganan Baru</h3>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    {isLoading ? '...' : subscriptions.filter(s => {
+                                        const date = new Date(s.start_date);
+                                        const now = new Date();
+                                        const diffTime = Math.abs(now.getTime() - date.getTime());
+                                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                        return diffDays <= 30;
+                                    }).length}
+                                </p>
+                                <span className="text-xs text-green-500">+ Bulan ini</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+                                <TrendingUp size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Estimasi Pendapatan</h3>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    {isLoading ? '...' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
+                                        subscriptions.reduce((acc, curr) => {
+                                            // Simple estimation based on plan names
+                                            const price = curr.plan_name === 'Eksklusif' ? 299000 : (curr.plan_name === 'Eksekutif' ? 199000 : 0);
+                                            return acc + price;
+                                        }, 0)
+                                    )}
+                                </p>
                             </div>
                         </div>
                     </div>
