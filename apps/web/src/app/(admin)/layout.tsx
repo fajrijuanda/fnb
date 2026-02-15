@@ -40,6 +40,7 @@ const mitraNav = [
     { href: '/admin/orders', label: 'Pesanan', icon: Receipt },
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
     { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
+    { href: '/admin/cashiers', label: 'Kasir', icon: Users },
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {

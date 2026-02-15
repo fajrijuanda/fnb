@@ -50,9 +50,14 @@ export interface User {
   username: string;
   email: string;
   role: "superadmin" | "mitra" | "cashier";
+  is_subscribed: boolean;
   avatar?: string | null;
   location?: string | null;
-  is_subscribed?: boolean;
+  profile?: {
+    location?: string;
+    avatar?: string;
+    owner?: number;
+  };
 }
 
 export interface LoginResponse {

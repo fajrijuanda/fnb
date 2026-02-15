@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Pencil, Trash2, X, Loader2, Save, Users, Shield, UserCircle, Store } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Save, UserCircle } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -31,9 +31,7 @@ export default function UsersPage() {
         username: '',
         password: '',
         email: '',
-        role: 'cashier',
-        location: '',
-        plan_name: 'Eksekutif'
+        role: 'cashier'
     });
     const [isSaving, setIsSaving] = useState(false);
     const [showSaveConfirm, setShowSaveConfirm] = useState(false);
@@ -46,7 +44,7 @@ export default function UsersPage() {
             setUsers(extractApiArray(response.data));
         } catch (error) {
             console.error('Failed to fetch users:', error);
-            showError('Gagal memuat data pengguna');
+            showError('Gagal memuat data kasir');
         } finally {
             setIsLoading(false);
         }
@@ -63,9 +61,7 @@ export default function UsersPage() {
                 username: user.username,
                 password: '', // Don't show password
                 email: user.email || '',
-                role: user.role,
-                location: user.profile?.location || '',
-                plan_name: 'Eksekutif' // Default or fetch from sub?
+                role: 'cashier'
             });
         } else {
             setEditingUser(null);
@@ -73,9 +69,7 @@ export default function UsersPage() {
                 username: '',
                 password: '',
                 email: '',
-                role: 'cashier',
-                location: '',
-                plan_name: 'Eksekutif'
+                role: 'cashier'
             });
         }
         setIsModalOpen(true);
@@ -84,54 +78,29 @@ export default function UsersPage() {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingUser(null);
-        setFormData({ username: '', password: '', email: '', role: 'cashier', location: '', plan_name: 'Eksekutif' });
+        setFormData({ username: '', password: '', email: '', role: 'cashier' });
     };
 
     const handleConfirmSave = async () => {
         setShowSaveConfirm(false);
         setIsSaving(true);
         try {
+            const dataToSend = { ...formData, role: 'cashier' };
+
             if (editingUser) {
-                const updateData: Partial<typeof formData> & { profile?: { location?: string } } = {
-                    username: formData.username,
-                    email: formData.email,
-                    role: formData.role,
-                };
-                if (formData.password) {
-                    updateData.password = formData.password;
-                }
-                if (formData.role === 'mitra') {
-                    updateData.profile = {
-                        location: formData.location
-                    };
-                }
-
+                const updateData: Partial<typeof formData> = { ...dataToSend };
+                if (!updateData.password) delete updateData.password;
                 await api.patch(`/users/${editingUser.id}/`, updateData);
-                success('Pengguna berhasil diperbarui');
+                success('Kasir berhasil diperbarui');
             } else {
-                const createData: typeof formData & { profile?: { location?: string; plan_name?: string } } = {
-                    username: formData.username,
-                    password: formData.password,
-                    email: formData.email,
-                    role: formData.role,
-                    location: formData.location, // Initial state
-                    plan_name: formData.plan_name
-                };
-
-                if (formData.role === 'mitra') {
-                    createData.profile = {
-                        location: formData.location,
-                        plan_name: formData.plan_name
-                    };
-                }
-                await api.post('/users/', createData);
-                success('Pengguna berhasil ditambahkan');
+                await api.post('/users/', dataToSend);
+                success('Kasir berhasil ditambahkan');
             }
             fetchUsers();
             handleCloseModal();
         } catch (error) {
             console.error('Failed to save user:', error);
-            showError('Gagal menyimpan pengguna');
+            showError('Gagal menyimpan kasir');
         } finally {
             setIsSaving(false);
         }
@@ -141,11 +110,11 @@ export default function UsersPage() {
         if (!deleteId) return;
         try {
             await api.delete(`/users/${deleteId}/`);
-            success('Pengguna berhasil dihapus');
+            success('Kasir berhasil dihapus');
             fetchUsers();
         } catch (error) {
             console.error('Failed to delete user:', error);
-            showError('Gagal menghapus pengguna');
+            showError('Gagal menghapus kasir');
         } finally {
             setDeleteId(null);
         }
@@ -172,7 +141,7 @@ export default function UsersPage() {
 
     const columns: Column<User>[] = [
         {
-            header: "User",
+            header: "Username",
             accessor: (user) => (
                 <div className="flex items-center gap-2 lg:gap-3">
                     <div className="h-7 w-7 lg:h-8 lg:w-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/10 dark:to-white/5 flex items-center justify-center text-gray-500 dark:text-white/70">
@@ -182,20 +151,6 @@ export default function UsersPage() {
                         <div className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px] lg:max-w-none">{user.username}</div>
                     </div>
                 </div>
-            )
-        },
-        {
-            header: "Role",
-            accessor: (user) => (
-                <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'superadmin'
-                    ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
-                    : user.role === 'mitra'
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
-                        : 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300'
-                    }`}>
-                    {user.role === 'superadmin' ? <Shield size={10} /> : user.role === 'mitra' ? <Store size={10} /> : <Users size={10} />}
-                    {user.role === 'superadmin' ? 'Super Admin' : user.role === 'mitra' ? 'Mitra' : 'Kasir'}
-                </span>
             )
         },
         {
@@ -227,15 +182,15 @@ export default function UsersPage() {
     return (
         <div className="space-y-4 lg:space-y-6">
             <AdminHeader
-                title="Pengguna"
-                description="Kelola akses staff dan admin"
+                title="Manajemen Kasir"
+                description="Kelola akun kasir untuk outlet Anda"
             />
 
             <AdminSearchHeader
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
-                searchPlaceholder="Cari pengguna..."
-                addButtonLabel="Tambah"
+                searchPlaceholder="Cari kasir..."
+                addButtonLabel="Tambah Kasir"
                 onAddClick={() => handleOpenModal()}
                 extraActions={
                     <div className="flex items-center gap-2">
@@ -264,9 +219,6 @@ export default function UsersPage() {
                                     <p className="text-[10px] text-gray-500">{user.email || 'Tanpa email'}</p>
                                 </div>
                             </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'superadmin' ? 'bg-purple-100 text-purple-800' : user.role === 'mitra' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-                                {user.role}
-                            </span>
                         </div>
                         <div className="flex justify-end gap-2 border-t border-gray-100 dark:border-white/5 pt-2">
                             <button onClick={() => handleOpenModal(user)} className="p-2 text-blue-600"><Pencil size={16} /></button>
@@ -289,7 +241,7 @@ export default function UsersPage() {
                     <div className="w-full max-w-md bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden animation-scale-in">
                         <div className="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                                {editingUser ? 'Edit Pengguna' : 'Tambah Pengguna'}
+                                {editingUser ? 'Edit Kasir' : 'Tambah Kasir'}
                             </h3>
                             <button onClick={handleCloseModal} className="text-gray-500 hover:text-gray-700 dark:hover:text-white transition-colors">
                                 <X size={20} />
@@ -307,7 +259,7 @@ export default function UsersPage() {
                                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                     required
                                     className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
-                                    placeholder="Username login"
+                                    placeholder="Username kasir"
                                 />
                             </div>
 
@@ -322,21 +274,6 @@ export default function UsersPage() {
                                     className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
                                     placeholder="email@example.com"
                                 />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Role
-                                </label>
-                                <select
-                                    value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
-                                >
-                                    <option value="cashier">Kasir</option>
-                                    <option value="mitra">Mitra</option>
-                                    <option value="superadmin">Super Admin</option>
-                                </select>
                             </div>
 
                             <div>
@@ -390,7 +327,7 @@ export default function UsersPage() {
                 onClose={() => setShowSaveConfirm(false)}
                 onConfirm={handleConfirmSave}
                 title="Simpan Perubahan?"
-                message={`Apakah Anda yakin ingin menyimpan perubahan pada pengguna "${formData.username}"?`}
+                message={`Apakah Anda yakin ingin menyimpan perubahan pada kasir "${formData.username}"?`}
                 variant="primary"
                 confirmLabel="Simpan"
                 icon={Save}
@@ -401,8 +338,8 @@ export default function UsersPage() {
                 isOpen={deleteId !== null}
                 onClose={() => setDeleteId(null)}
                 onConfirm={confirmDelete}
-                title="Hapus Pengguna?"
-                message="Tindakan ini tidak dapat dibatalkan. Pengguna akan dihapus secara permanen dari sistem."
+                title="Hapus Kasir?"
+                message="Tindakan ini tidak dapat dibatalkan. Kasir akan dihapus secara permanen."
             />
         </div>
     );
