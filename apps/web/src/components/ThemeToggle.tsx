@@ -40,7 +40,7 @@ export function ThemeToggle({ className, dropdownAlign = 'bottom', dropdownSide 
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
                     "rounded-xl p-2 transition-all",
-                    className || "text-gray-900 dark:text-white hover:bg-red-50 dark:hover:bg-white/10 hover:text-[#C5161D] dark:hover:text-[#F4B42B]"
+                    className || "text-gray-900 dark:text-white hover:bg-red-50 dark:hover:bg-white/10 hover:text-[#C5161D] dark:hover:text-[#C5161D]"
                 )}
                 title="Ganti Tema"
             >
@@ -64,7 +64,7 @@ export function ThemeToggle({ className, dropdownAlign = 'bottom', dropdownSide 
                             <button
                                 onClick={() => handleSelect('light')}
                                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${theme === 'light'
-                                    ? 'bg-red-50 text-[#C5161D] dark:bg-red-500/20 dark:text-[#F4B42B]'
+                                    ? 'bg-red-50 text-[#C5161D] dark:bg-red-500/20 dark:text-[#C5161D]'
                                     : 'text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10'
                                     }`}
                             >
@@ -75,7 +75,7 @@ export function ThemeToggle({ className, dropdownAlign = 'bottom', dropdownSide 
                             <button
                                 onClick={() => handleSelect('dark')}
                                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${theme === 'dark'
-                                    ? 'bg-red-50 text-[#C5161D] dark:bg-red-500/20 dark:text-[#F4B42B]'
+                                    ? 'bg-red-50 text-[#C5161D] dark:bg-red-500/20 dark:text-[#C5161D]'
                                     : 'text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10'
                                     }`}
                             >
@@ -86,7 +86,7 @@ export function ThemeToggle({ className, dropdownAlign = 'bottom', dropdownSide 
                             <button
                                 onClick={() => handleSelect('system')}
                                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${theme === 'system'
-                                    ? 'bg-red-50 text-[#C5161D] dark:bg-red-500/20 dark:text-[#F4B42B]'
+                                    ? 'bg-red-50 text-[#C5161D] dark:bg-red-500/20 dark:text-[#C5161D]'
                                     : 'text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10'
                                     }`}
                             >
