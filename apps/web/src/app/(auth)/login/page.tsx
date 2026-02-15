@@ -8,6 +8,7 @@ import { Loader2, ArrowRight, Store, Shield, Eye, EyeOff } from 'lucide-react';
 import api from '@/lib/api';
 import type { LoginResponse, WrappedResponse } from '@/types/api';
 import axios from 'axios';
+import { LoadingScreen } from '@/components/LoadingScreen';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -84,6 +85,10 @@ export default function LoginPage() {
             setView('ADMIN_LOGIN');
         }
     };
+
+    if (isLoading) {
+        return <LoadingScreen />;
+    }
 
     if (view === 'SELECTION') {
         return (
