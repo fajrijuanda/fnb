@@ -22,7 +22,8 @@ export default function AdminDashboard() {
         totalRevenue: 0,
         totalOrders: 0,
         totalProducts: 0,
-        todayRevenue: 0
+        todayRevenue: 0,
+        revenueTrend: ''
     });
     const [recentOrders, setRecentOrders] = useState<OrderResponse[]>([]);
     const [salesData, setSalesData] = useState<{ date: string; revenue: number }[]>([]);
@@ -64,11 +65,37 @@ export default function AdminDashboard() {
                 };
             });
 
+            // Calculate week-over-week trend
+            const now = new Date();
+            const thisWeekStart = new Date(now);
+            thisWeekStart.setDate(now.getDate() - 7);
+            const lastWeekStart = new Date(now);
+            lastWeekStart.setDate(now.getDate() - 14);
+
+            const thisWeekRevenue = orders
+                .filter(o => new Date(o.created_at) >= thisWeekStart)
+                .reduce((sum: number, o: OrderResponse) => sum + o.total_amount, 0);
+            const lastWeekRevenue = orders
+                .filter(o => {
+                    const d = new Date(o.created_at);
+                    return d >= lastWeekStart && d < thisWeekStart;
+                })
+                .reduce((sum: number, o: OrderResponse) => sum + o.total_amount, 0);
+
+            let revenueTrend = '';
+            if (lastWeekRevenue > 0) {
+                const pctChange = ((thisWeekRevenue - lastWeekRevenue) / lastWeekRevenue * 100).toFixed(0);
+                revenueTrend = Number(pctChange) >= 0 ? `+${pctChange}%` : `${pctChange}%`;
+            } else if (thisWeekRevenue > 0) {
+                revenueTrend = 'Baru';
+            }
+
             setStats({
                 totalRevenue,
                 totalOrders: orders.length,
                 totalProducts: products.length,
-                todayRevenue
+                todayRevenue,
+                revenueTrend
             });
             setRecentOrders(orders.slice(0, 5)); // Take latest 5
             setSalesData(chartData);
@@ -103,7 +130,7 @@ export default function AdminDashboard() {
                     value={formatCurrency(stats.totalRevenue)}
                     icon={TrendingUp}
                     color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white"
-                    trend="+12%"
+                    trend={stats.revenueTrend || undefined}
                 />
                 <StatCard
                     title="Pendapatan Hari Ini"
