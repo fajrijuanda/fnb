@@ -17,8 +17,7 @@ import {
     Sparkles,
     Crown
 } from 'lucide-react';
-// import { Button } from '@/components/ui/button'; // Commented out unused
-// import { cn } from '@/lib/utils'; // Commented out unused
+
 
 export default function SettingsPage() {
     const { user, updateProfile } = useAuthStore();

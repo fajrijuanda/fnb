@@ -1,163 +1,139 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Package, AlertTriangle, Plus, RefreshCw } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { AlertTriangle, Plus, RefreshCw, CheckCircle } from 'lucide-react';
 import api from '@/lib/api';
-
-interface Ingredient {
-    id: number;
-    name: string;
-    unit: string;
-    current_stock: number;
-    min_stock_alert: number;
-    status: 'SAFE' | 'LOW' | 'CRITICAL';
-}
+import type { Ingredient, ApiResponse } from '@/types/api';
+import { extractApiArray } from '@/lib/api-utils';
 
 export default function InventoryPage() {
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [lowStockCount, setLowStockCount] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [restockModal, setRestockModal] = useState<Ingredient | null>(null);
-    const [restockQty, setRestockQty] = useState('');
-    const [restockNotes, setRestockNotes] = useState('');
 
-    useEffect(() => {
-        fetchIngredients();
-        fetchLowStock();
-    }, []);
-
-    const fetchIngredients = async () => {
+    const fetchIngredients = useCallback(async () => {
         try {
-            const res = await api.get('/inventory/ingredients/');
-            setIngredients(res.data.data);
+            const res = await api.get<ApiResponse<Ingredient[]>>('/inventory/ingredients/');
+            const data = extractApiArray(res.data);
+            setIngredients(data);
         } catch (error) {
             console.error('Failed to fetch ingredients:', error);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const fetchLowStock = async () => {
+    const fetchLowStock = useCallback(async () => {
         try {
             const res = await api.get('/inventory/ingredients/low-stock/');
             setLowStockCount(res.data.count);
         } catch (error) {
             console.error('Failed to fetch low stock:', error);
         }
-    };
+    }, []);
 
-    const handleRestock = async () => {
-        if (!restockModal || !restockQty) return;
-
-        try {
-            await api.post(`/inventory/ingredients/${restockModal.id}/restock/`, {
-                quantity: parseFloat(restockQty),
-                notes: restockNotes
-            });
-            setRestockModal(null);
-            setRestockQty('');
-            setRestockNotes('');
-            fetchIngredients();
-            fetchLowStock();
-        } catch (error) {
-            console.error('Failed to restock:', error);
-        }
-    };
+    useEffect(() => {
+        fetchIngredients();
+        fetchLowStock();
+    }, [fetchIngredients, fetchLowStock]);
 
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'CRITICAL':
-                return <span className="px-2 py-1 text-xs font-medium rounded-full bg-danger-light text-danger">Habis</span>;
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-full bg-red-50 text-red-700 border border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400">
+                        <AlertTriangle size={12} /> Habis
+                    </span>
+                );
             case 'LOW':
-                return <span className="px-2 py-1 text-xs font-medium rounded-full bg-warning-light text-warning">Menipis</span>;
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-full bg-yellow-50 text-yellow-700 border border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 dark:text-yellow-400">
+                        <AlertTriangle size={12} /> Menipis
+                    </span>
+                );
             default:
-                return <span className="px-2 py-1 text-xs font-medium rounded-full bg-success-light text-success">Aman</span>;
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-full bg-green-50 text-green-700 border border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400">
+                        <CheckCircle size={12} /> Aman
+                    </span>
+                );
         }
     };
 
     return (
-        <div className="p-6">
+        <div className="p-6 space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Manajemen Inventori</h1>
-                    <p className="text-muted-foreground">Kelola stok bahan baku</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Manajemen Inventori</h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Kelola stok bahan baku</p>
                 </div>
                 <button
-                    onClick={() => fetchIngredients()}
-                    className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors"
+                    onClick={fetchIngredients}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-colors text-sm font-medium"
                 >
-                    <RefreshCw size={18} />
+                    <RefreshCw size={16} />
                     Refresh
                 </button>
             </div>
 
             {/* Alert Banner */}
             {lowStockCount > 0 && (
-                <div className="bg-warning-light border border-warning rounded-xl p-4 mb-6 flex items-center gap-3">
-                    <AlertTriangle className="text-warning" size={24} />
+                <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-500/20 rounded-xl p-4 flex items-center gap-3">
+                    <AlertTriangle className="text-yellow-600 dark:text-yellow-400 shrink-0" size={20} />
                     <div>
-                        <p className="font-semibold text-warning">Perhatian!</p>
-                        <p className="text-sm text-warning">{lowStockCount} bahan baku dengan stok menipis atau habis</p>
+                        <p className="font-bold text-yellow-700 dark:text-yellow-400 text-sm">Perhatian!</p>
+                        <p className="text-xs text-yellow-600 dark:text-yellow-500">{lowStockCount} bahan baku dengan stok menipis atau habis</p>
                     </div>
                 </div>
             )}
 
             {/* Ingredients Table */}
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-muted">
+            <div className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
+                <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-white/5">
                         <tr>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Bahan Baku</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Stok Saat Ini</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Minimum</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Status</th>
-                            <th className="text-right px-6 py-4 text-sm font-medium text-muted-foreground">Aksi</th>
+                            <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Bahan Baku</th>
+                            <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Stok Saat Ini</th>
+                            <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Status</th>
+                            <th className="text-right px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                         {loading ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                                    <div className="flex items-center justify-center">
-                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                                <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
+                                        <span>Memuat data...</span>
                                     </div>
                                 </td>
                             </tr>
                         ) : ingredients.length > 0 ? (
                             ingredients.map((ingredient) => (
-                                <tr key={ingredient.id} className="hover:bg-muted/50 transition-colors">
+                                <tr key={ingredient.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-accent/10 rounded-lg">
-                                                <Package className="text-accent" size={20} />
+                                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                <Plus className="text-primary" size={14} />
                                             </div>
-                                            <span className="font-medium text-foreground">{ingredient.name}</span>
+                                            <span className="font-semibold text-gray-900 dark:text-white">{ingredient.name}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-foreground">
+                                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300 font-mono">
                                         {ingredient.current_stock} {ingredient.unit}
-                                    </td>
-                                    <td className="px-6 py-4 text-muted-foreground">
-                                        {ingredient.min_stock_alert} {ingredient.unit}
                                     </td>
                                     <td className="px-6 py-4">
                                         {getStatusBadge(ingredient.status)}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => setRestockModal(ingredient)}
-                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors"
-                                        >
-                                            <Plus size={16} />
-                                            Restock
-                                        </button>
+                                        <span className="text-xs text-gray-400">Kelola di Menu Inventori</span>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                                <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
                                     Belum ada data bahan baku
                                 </td>
                             </tr>
@@ -165,58 +141,6 @@ export default function InventoryPage() {
                     </tbody>
                 </table>
             </div>
-
-            {/* Restock Modal */}
-            {restockModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-card rounded-xl p-6 w-full max-w-md mx-4">
-                        <h3 className="text-lg font-bold text-foreground mb-4">
-                            Tambah Stok: {restockModal.name}
-                        </h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm text-muted-foreground mb-1">
-                                    Jumlah ({restockModal.unit})
-                                </label>
-                                <input
-                                    type="number"
-                                    value={restockQty}
-                                    onChange={(e) => setRestockQty(e.target.value)}
-                                    className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
-                                    placeholder="Masukkan jumlah"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm text-muted-foreground mb-1">
-                                    Catatan (opsional)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={restockNotes}
-                                    onChange={(e) => setRestockNotes(e.target.value)}
-                                    className="w-full px-4 py-2 border border-border rounded-lg bg-background text-foreground"
-                                    placeholder="Contoh: Beli dari supplier X"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex gap-3 mt-6">
-                            <button
-                                onClick={() => setRestockModal(null)}
-                                className="flex-1 px-4 py-2 border border-border rounded-lg text-foreground hover:bg-muted transition-colors"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                onClick={handleRestock}
-                                disabled={!restockQty}
-                                className="flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50"
-                            >
-                                Tambah Stok
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

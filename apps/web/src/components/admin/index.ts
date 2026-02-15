@@ -1,9 +1,17 @@
 /**
  * Admin Components Barrel Export
- * Components for dashboard/owner view
+ * Re-export admin components for cleaner imports.
  */
 
-// TODO: Add admin components as they are developed
-// export { DashboardStats } from './DashboardStats';
-// export { InventoryTable } from './InventoryTable';
-// export { SalesReport } from './SalesReport';
+export { AdminHeader } from "./AdminHeader";
+export { AdminDataTable } from "./AdminDataTable";
+export type { Column } from "./AdminDataTable";
+export { AdminPagination } from "./AdminPagination";
+export { AdminSearchHeader } from "./AdminSearchHeader";
+export { AdminSelect } from "./AdminSelect";
+export { StatCard } from "./StatCard";
+export { DashboardChart } from "./DashboardChart";
+export { RecentTransactionsList } from "./RecentTransactionsList";
+export { NotificationDropdown } from "./NotificationDropdown";
+export { NotificationListModal } from "./NotificationListModal";
+export { default as ProductForm } from "./ProductForm";

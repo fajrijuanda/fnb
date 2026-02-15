@@ -8,9 +8,9 @@ import {
     Lock,
     Phone,
     Receipt,
-    LucideIcon,
     Package
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
