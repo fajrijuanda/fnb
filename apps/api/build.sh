@@ -2,6 +2,6 @@
 # exit on error
 set -o errexit
 
-pip install -r requirements.txt
+# Dependencies are installed by buildpack, skipping pip install
 python manage.py collectstatic --no-input
 python manage.py migrate
