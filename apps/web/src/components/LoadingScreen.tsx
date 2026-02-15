@@ -27,8 +27,9 @@ export function LoadingScreen() {
                 <div className="absolute inset-0 rounded-full bg-[#C5161D]/20 blur-2xl animate-pulse" />
 
                 {/* Logo Circle */}
-                <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-[#C5161D] to-[#A01217] flex items-center justify-center shadow-2xl shadow-red-900/30 animate-bounce">
-                    <span className="text-4xl font-black text-white italic">O</span>
+                <div className="relative h-24 w-24 rounded-2xl bg-gradient-to-br from-[#C5161D] to-[#A01217] flex items-center justify-center shadow-2xl shadow-red-900/30 animate-bounce p-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo.png" alt="OMDEN" className="w-full h-full object-contain drop-shadow-md" />
                 </div>
 
                 {/* Spinning Ring */}
