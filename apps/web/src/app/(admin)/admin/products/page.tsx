@@ -10,6 +10,8 @@ import type { Product, Category, ApiResponse } from '@/types/api';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { Save } from 'lucide-react';
 import { extractApiArray } from '@/lib/api-utils';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
@@ -722,13 +724,15 @@ export default function ProductsPage() {
             )}
 
             {/* Save Confirmation Modal */}
-            <DeleteConfirmationModal
+            <ConfirmationModal
                 isOpen={showSaveConfirm}
                 onClose={() => setShowSaveConfirm(false)}
                 onConfirm={handleConfirmSave}
                 title="Simpan Perubahan?"
                 message={`Apakah Anda yakin ingin menyimpan perubahan pada produk "${formData.name}"?`}
-                isBulk={false}
+                variant="primary"
+                confirmLabel="Simpan"
+                icon={Save}
             />
 
             {/* Delete Confirmation Modal */}

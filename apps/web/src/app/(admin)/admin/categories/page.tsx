@@ -7,6 +7,7 @@ import type { Category, ApiResponse } from '@/types/api';
 import * as LucideIcons from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { extractApiArray } from '@/lib/api-utils';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
@@ -465,13 +466,15 @@ export default function CategoriesPage() {
             )}
 
             {/* Save Confirmation */}
-            <DeleteConfirmationModal
+            <ConfirmationModal
                 isOpen={showSaveConfirm}
                 onClose={() => setShowSaveConfirm(false)}
                 onConfirm={handleConfirmSave}
                 title="Simpan Perubahan?"
                 message={`Apakah Anda yakin ingin menyimpan perubahan pada kategori "${formData.name}"?`}
-                isBulk={false}
+                variant="primary"
+                confirmLabel="Simpan"
+                icon={Save}
             />
 
             {/* Delete Confirmation */}
