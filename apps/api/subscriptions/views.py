@@ -10,6 +10,8 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser:
+            # Show all subscriptions except those potentially linked to cashiers (though unlikely)
+            # and order by creation date desc
             return Subscription.objects.all().order_by('-created_at')
         if hasattr(user, 'mitra_profile'):
             return Subscription.objects.filter(user=user)

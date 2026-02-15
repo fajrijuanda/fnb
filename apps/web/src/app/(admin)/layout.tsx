@@ -33,8 +33,6 @@ const superadminNav = [
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
     { href: '/admin/categories', label: 'Kategori', icon: Tags },
     { href: '/admin/inventory', label: 'Inventori', icon: Package },
-    { href: '/admin/orders', label: 'Pesanan', icon: Receipt },
-    { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
     { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 
