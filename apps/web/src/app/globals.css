@@ -30,11 +30,11 @@
   --primary-light: #FEE2E2;
   --primary-foreground: #FFFFFF;
 
-  --accent: #F4B42B;
-  /* Kuning Brand */
-  --accent-hover: #D99F20;
-  --accent-light: #FFFBEB;
-  --accent-foreground: #121212;
+  --accent: #C5161D;
+  /* Accent = Primary Red */
+  --accent-hover: #A01217;
+  --accent-light: #FEE2E2;
+  --accent-foreground: #FFFFFF;
 
   /* === Surface Colors === */
   --card: #FFFFFF;
@@ -91,9 +91,9 @@
   --primary-light: #450a0a !important;
   --primary-foreground: #FFFFFF !important;
 
-  --accent: #F4B42B !important;
-  --accent-hover: #D99F20 !important;
-  --accent-light: #2C2C2C !important;
+  --accent: #C5161D !important;
+  --accent-hover: #A01217 !important;
+  --accent-light: #450a0a !important;
   --accent-foreground: #FFFFFF !important;
 
   --card: #1E1E1E !important;
