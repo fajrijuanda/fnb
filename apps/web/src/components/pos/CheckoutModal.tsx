@@ -164,7 +164,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                         placeholder="Masukkan nama pelanggan..."
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                 </div>
 

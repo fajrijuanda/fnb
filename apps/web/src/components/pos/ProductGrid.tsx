@@ -214,7 +214,7 @@ export function ProductGrid({ searchQuery = '' }: ProductGridProps) {
                                 ref={(el) => { sectionRefs.current[category.slug] = el; }}
                             >
                                 <h2 className="mb-4 text-lg font-bold text-card-foreground uppercase tracking-wider flex items-center gap-2">
-                                    <span className="h-6 w-1 bg-accent rounded-full block"></span>
+                                    <span className="h-6 w-1 bg-primary rounded-full block"></span>
                                     {category.name}
                                 </h2>
                                 <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
