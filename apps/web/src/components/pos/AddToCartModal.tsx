@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Minus, Plus, ShoppingCart, MessageSquare, X } from 'lucide-react';
 import { Product } from '@/types/api';
-import { formatRupiah } from '@/lib/utils';
 import { formatRupiah, cn } from '@/lib/utils';
 import { TOPPING_OPTIONS, PRODUCT_VARIANT_MAP } from '@/lib/constants';
 
@@ -47,7 +46,7 @@ export function AddToCartModal({ isOpen, onClose, product, onConfirm }: AddToCar
         // Append toppings to note if any selected
         if (currentToppingCount > 0) {
             const toppingSummary = Object.entries(toppings)
-                .filter(([_, count]) => count > 0)
+                .filter(([, count]) => count > 0)
                 .map(([name, count]) => `${count} ${name}`)
                 .join(', ');
 
