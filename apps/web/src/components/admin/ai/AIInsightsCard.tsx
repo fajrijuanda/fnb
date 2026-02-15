@@ -13,9 +13,15 @@ export function AIInsightsCard() {
         try {
             const res = await api.get<{ insight: string }>('/ai/sales-insight/');
             setInsight(res.data.insight);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to fetch AI insight:', error);
-            setInsight('Gagal memuat insight.');
+            // Check for rate limit or quota errors
+            const err = error as { response?: { status?: number; data?: { error?: string } } };
+            if (err.response?.status === 429 || err.response?.data?.error?.includes('429') || err.response?.data?.error?.includes('quota')) {
+                setInsight('⏳ Batas penggunaan AI tercapai. Silakan coba lagi dalam beberapa menit.');
+            } else {
+                setInsight('Gagal memuat insight. Silakan coba lagi nanti.');
+            }
         } finally {
             setLoading(false);
         }

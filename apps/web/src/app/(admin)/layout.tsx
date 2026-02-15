@@ -83,8 +83,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 w-[280px]
                 z-50 flex flex-col transition-[width,transform] duration-300 ease-in-out transform-gpu
                 bg-gradient-to-b from-[#dc2626] via-[#7f1d1d] to-[#2b0808]
-                backdrop-blur-xl border-r border-white/10
-                rounded-e-2xl lg:rounded-e-3xl shadow-2xl
+                backdrop-blur-xl border border-white/10
+                rounded-2xl lg:rounded-3xl shadow-2xl
             `}>
                 {/* Logo */}
                 <div className="h-16 lg:h-20 flex items-center justify-between px-4 shrink-0">

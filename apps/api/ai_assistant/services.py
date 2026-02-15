@@ -17,7 +17,10 @@ class GeminiService:
             response = self.model.generate_content(prompt)
             return response.text
         except Exception as e:
-            return f"Error generating content: {str(e)}"
+            error_str = str(e)
+            if '429' in error_str or 'quota' in error_str.lower() or 'rate' in error_str.lower():
+                return "⏳ Batas penggunaan AI tercapai. Silakan coba lagi dalam beberapa menit."
+            return "Gagal memuat data AI. Silakan coba lagi nanti."
 
 class AdditionalServices:
     def __init__(self):
