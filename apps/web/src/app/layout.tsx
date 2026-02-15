@@ -14,7 +14,9 @@ export const metadata: Metadata = {
   title: "OMDEN - Sistem Kasir Modern",
   description: "Sistem kasir berbasis web untuk bisnis F&B",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
 };
 

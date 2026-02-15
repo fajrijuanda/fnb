@@ -91,11 +91,11 @@ export default function LoginPage() {
                 <div className="w-full max-w-lg p-8 relative z-10 rounded-2xl border border-primary/20 shadow-2xl shadow-primary/10 backdrop-blur-3xl bg-white/40 dark:bg-black/40 transition-all duration-300">
                     {/* Header */}
                     <div className="mb-10 text-center">
-                        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-red-600 shadow-2xl shadow-primary/40">
-                            <span className="text-4xl animate-bounce">🍚</span>
+                        <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-red-600 shadow-2xl shadow-primary/40 p-4">
+                            <img src="/logo.png" alt="OMDEN Logo" className="w-full h-full object-contain filter drop-shadow-md" />
                         </div>
                         <h1 className="mb-2 text-4xl font-bold tracking-tight drop-shadow-md transition-colors" style={{ color: 'var(--login-text)' }}>
-                            CloudPOS
+                            OMDEN
                         </h1>
                         <p className="font-medium tracking-wide transition-colors" style={{ color: 'var(--login-text-muted)' }}>Sistem Point of Sale Modern</p>
                     </div>
@@ -134,7 +134,7 @@ export default function LoginPage() {
                         </button>
                     </div>
 
-                    <p className="text-sm mt-8 text-center" style={{ color: 'var(--login-text-muted)' }}>© 2026 CloudPOS. All rights reserved.</p>
+                    <p className="text-sm mt-8 text-center" style={{ color: 'var(--login-text-muted)' }}>© 2026 OMDEN. All rights reserved.</p>
                 </div>
             </div>
         );
