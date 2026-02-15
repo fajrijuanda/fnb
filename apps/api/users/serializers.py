@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
     avatar = serializers.ImageField(source='profile.avatar', required=False, allow_null=True)
     location = serializers.CharField(source='profile.location', read_only=True)
-    is_subscribed = serializers.BooleanField(source='profile.is_subscribed', read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -15,6 +15,15 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'email': {'required': False},
         }
+
+    def get_is_subscribed(self, obj):
+        # Check own profile
+        if hasattr(obj, 'profile') and obj.profile.is_subscribed:
+            return True
+        # Check owner's profile (for employees)
+        if hasattr(obj, 'profile') and obj.profile.owner and obj.profile.owner.profile.is_subscribed:
+            return True
+        return False
 
     def get_role(self, obj):
         if obj.is_superuser:

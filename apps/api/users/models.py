@@ -7,6 +7,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     location = models.CharField(max_length=255, null=True, blank=True)
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='employees')
     is_subscribed = models.BooleanField(default=False)
     
     def __str__(self):

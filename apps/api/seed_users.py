@@ -39,21 +39,26 @@ def create_users():
     else:
         print(f"Admin {admin_username} already exists.")
 
-    # 2. Mitra 1 (Subscribed - full access)
-    _create_user('mitra1', 'mitra123', 'mitra1@example.com', is_staff=True, is_subscribed=True, location='Jakarta Selatan')
+    # 2. Mitra 1 (Eksekutif - Subscribed)
+    _create_user('mitra1', 'mitra123', 'mitra1@example.com', is_staff=True, is_subscribed=True, location='Jakarta Selatan', plan_name='Eksekutif')
 
-    # 3. Mitra 2 (Not subscribed - blocked)
-    _create_user('mitra2', 'mitra123', 'mitra2@example.com', is_staff=True, is_subscribed=False, location='Bandung')
+    # 3. Mitra 2 (Eksklusif - Subscribed)
+    _create_user('mitra2', 'mitra123', 'mitra2@example.com', is_staff=True, is_subscribed=True, location='Bandung', plan_name='Eksklusif')
 
-    # 4. Kasir 1 (Subscribed - full POS access)
-    # Kasir inherits location from Mitra usually, but for seed we set it.
-    _create_user('kasir1', 'kasir123', 'kasir1@example.com', is_staff=False, is_subscribed=True, location='Jakarta Selatan')
+    # 4. Kasir 1 (Linked to Mitra 1)
+    _create_user('kasir1', 'kasir123', 'kasir1@example.com', is_staff=False, is_subscribed=True, location='Jakarta Selatan', owner_username='mitra1')
 
-    # 5. Kasir 2 (Not subscribed - blocked)
-    _create_user('kasir2', 'kasir123', 'kasir2@example.com', is_staff=False, is_subscribed=False, location='Bandung')
+    # 5. Kasir 2 (Linked to Mitra 2)
+    _create_user('kasir2', 'kasir123', 'kasir2@example.com', is_staff=False, is_subscribed=True, location='Bandung', owner_username='mitra2')
+
+    # 6. Mitra Eksekutif (Unsubscribed)
+    _create_user('mitra_eksekutif', 'mitra123', 'eksekutif@example.com', is_staff=True, is_subscribed=False, location='Surabaya', plan_name='Eksekutif')
+
+    # 7. Mitra Eksklusif (Unsubscribed)
+    _create_user('mitra_eksklusif', 'mitra123', 'eksklusif@example.com', is_staff=True, is_subscribed=False, location='Medan', plan_name='Eksklusif')
 
 
-def _create_user(username, password, email, is_staff=False, is_subscribed=False, location=None):
+def _create_user(username, password, email, is_staff=False, is_subscribed=False, location=None, plan_name='Business', owner_username=None):
     from users.models import UserProfile
     from subscriptions.models import Subscription
     from django.utils import timezone
@@ -69,13 +74,21 @@ def _create_user(username, password, email, is_staff=False, is_subscribed=False,
         profile, _ = UserProfile.objects.get_or_create(user=user)
         profile.is_subscribed = is_subscribed
         profile.location = location
+        
+        if owner_username:
+            try:
+                owner = User.objects.get(username=owner_username)
+                profile.owner = owner
+            except User.DoesNotExist:
+                print(f"  Warning: Owner {owner_username} not found for {username}")
+        
         profile.save()
 
         # Create Subscription record if subscribed
         if is_subscribed:
             Subscription.objects.create(
                 user=user,
-                plan_name='Business', # Default plan for seeded users
+                plan_name=plan_name,
                 status='active',
                 start_date=timezone.now().date(),
                 end_date=timezone.now().date() + timedelta(days=30)
@@ -83,9 +96,9 @@ def _create_user(username, password, email, is_staff=False, is_subscribed=False,
 
         role = 'mitra' if is_staff else 'cashier'
         sub = 'subscribed' if is_subscribed else 'not subscribed'
-        print(f"  -> {username} ({role}, {sub}, {location}) created successfully.")
+        print(f"  -> {username} ({role}, {sub}, {location}, Plan: {plan_name}) created successfully.")
     else:
-        # Update existing user if needed (e.g. location or subscription)
+        # Update existing user
         user = User.objects.get(username=username)
         profile, _ = UserProfile.objects.get_or_create(user=user)
         
@@ -94,6 +107,17 @@ def _create_user(username, password, email, is_staff=False, is_subscribed=False,
             profile.location = location
             updated = True
         
+        # Link owner if needed
+        if owner_username:
+             try:
+                owner = User.objects.get(username=owner_username)
+                if profile.owner != owner:
+                    profile.owner = owner
+                    updated = True
+             except User.DoesNotExist:
+                pass
+        
+        # Force subscription status update if changed in seeder
         if is_subscribed != profile.is_subscribed:
             profile.is_subscribed = is_subscribed
             updated = True
@@ -102,16 +126,23 @@ def _create_user(username, password, email, is_staff=False, is_subscribed=False,
             profile.save()
             print(f"  -> Updated {username} profile.")
         
-        # Check/Create subscription if missing
-        if is_subscribed and not Subscription.objects.filter(user=user, status='active').exists():
-            Subscription.objects.create(
-                user=user,
-                plan_name='Business',
-                status='active',
-                start_date=timezone.now().date(),
-                end_date=timezone.now().date() + timedelta(days=30)
-            )
-            print(f"  -> Created missing subscription for {username}.")
+        # Check/Create subscription if missing (and subscribed)
+        # Also update plan name if exists
+        sub_exists = Subscription.objects.filter(user=user, status='active').first()
+        if is_subscribed:
+            if not sub_exists:
+                Subscription.objects.create(
+                    user=user,
+                    plan_name=plan_name,
+                    status='active',
+                    start_date=timezone.now().date(),
+                    end_date=timezone.now().date() + timedelta(days=30)
+                )
+                print(f"  -> Created missing subscription for {username}.")
+            elif sub_exists.plan_name != plan_name:
+                sub_exists.plan_name = plan_name
+                sub_exists.save()
+                print(f"  -> Updated subscription plan for {username} to {plan_name}.")
 
 
 if __name__ == '__main__':

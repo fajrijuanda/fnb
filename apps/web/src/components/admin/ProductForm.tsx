@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, Save, Upload } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AIGenerateButton } from '@/components/admin/ai/AIGenerateButton';
+import { AdminSelect } from '@/components/admin/AdminSelect';
 import api from '@/lib/api';
 import type { Product, Category, WrappedResponse } from '@/types/api';
 
@@ -185,19 +186,18 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Kategori
                         </label>
-                        <select
+                        <AdminSelect
                             value={categoryId}
-                            onChange={(e) => setCategoryId(e.target.value)}
-                            required
-                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
-                        >
-                            <option value="">Pilih Kategori</option>
-                            {categories.map((cat) => (
-                                <option key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={(val) => setCategoryId(val.toString())}
+                            options={[
+                                { value: '', label: 'Pilih Kategori' },
+                                ...categories.map((cat) => ({
+                                    value: cat.id,
+                                    label: cat.name,
+                                })),
+                            ]}
+                            className="w-full"
+                        />
                     </div>
 
                     <div>
