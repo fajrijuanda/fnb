@@ -4,10 +4,10 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ProductCard } from '@/components/pos/ProductCard';
 import { CategoryTabs } from '@/components/pos/CategoryTabs';
-import { AddToCartModal } from './AddToCartModal';
+import { ProductVariantModal } from './ProductVariantModal';
 import { useCartStore } from '@/store';
 import api from '@/lib/api';
-import type { Product, Category } from '@/types/api';
+import type { Product, Category, ProductVariant, ModifierOption } from '@/types/api';
 
 interface ProductGridProps {
     searchQuery?: string;
@@ -34,8 +34,14 @@ export function ProductGrid({ searchQuery = '' }: ProductGridProps) {
         setIsModalOpen(true);
     };
 
-    const handleConfirmAdd = (product: Product, quantity: number, note: string) => {
-        addItem(product, quantity, note);
+    const handleConfirmAdd = (
+        product: Product,
+        quantity: number,
+        variant?: ProductVariant,
+        modifiers?: ModifierOption[],
+        note?: string
+    ) => {
+        addItem(product, quantity, variant, modifiers, note);
     };
 
     const handleCategoryClick = (slug: string | null) => {
@@ -232,13 +238,15 @@ export function ProductGrid({ searchQuery = '' }: ProductGridProps) {
                 </div>
             </div>
 
-            {/* Add To Cart Modal */}
-            <AddToCartModal
-                isOpen={isModalOpen}
-                product={selectedProduct}
-                onClose={() => setIsModalOpen(false)}
-                onConfirm={handleConfirmAdd}
-            />
+            {/* Add To Cart / Variant Modal */}
+            {selectedProduct && (
+                <ProductVariantModal
+                    isOpen={isModalOpen}
+                    product={selectedProduct}
+                    onClose={() => setIsModalOpen(false)}
+                    onAddToOrder={handleConfirmAdd}
+                />
+            )}
         </div>
     );
 }

@@ -1,5 +1,15 @@
 from django.contrib import admin
-from .models import Category, Product
+from .models import Category, Product, ProductVariant, ModifierGroup, ModifierOption
+
+
+class ProductVariantInline(admin.TabularInline):
+    model = ProductVariant
+    extra = 1
+
+
+class ModifierOptionInline(admin.TabularInline):
+    model = ModifierOption
+    extra = 1
 
 
 @admin.register(Category)
@@ -17,3 +27,11 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['price', 'is_available', 'current_stock']
     search_fields = ['name']
     autocomplete_fields = ['category']
+    inlines = [ProductVariantInline]
+
+
+@admin.register(ModifierGroup)
+class ModifierGroupAdmin(admin.ModelAdmin):
+    list_display = ['name', 'min_selection', 'max_selection']
+    inlines = [ModifierOptionInline]
+    search_fields = ['name']

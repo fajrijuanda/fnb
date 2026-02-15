@@ -76,7 +76,19 @@ class OrderViewSet(viewsets.ModelViewSet):
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        order = serializer.save(cashier=request.user)
+        
+        # Check active shift for cashier
+        from .models import Shift
+        active_shift = Shift.objects.filter(cashier=request.user, status=Shift.Status.OPEN).first()
+        
+        if not active_shift:
+            # Forcing shift usage? Yes, as per requirements.
+            return Response({
+                'status': 'error',
+                'message': 'No active shift found. Please open a register first.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        order = serializer.save(cashier=request.user, shift=active_shift)
         
         # Deduct stock from inventory (products and/or ingredients)
         deduct_stock_for_order(order)
@@ -300,4 +312,115 @@ class OrderViewSet(viewsets.ModelViewSet):
         response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+
+class ShiftViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Shift Management.
+    """
+    from .models import Shift
+    from .serializers import ShiftSerializer
+    
+    queryset = Shift.objects.all()
+    serializer_class = ShiftSerializer
+    
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return self.queryset
+        # Mitra sees shifts from their cashiers
+        if hasattr(user, 'mitra_profile'):
+             return self.queryset.filter(cashier__cashier_profile__mitra__user=user)
+        # Cashier sees their own shifts
+        return self.queryset.filter(cashier=user)
+
+    @action(detail=False, methods=['post'], url_path='start')
+    def start_shift(self, request):
+        """Start a new shift for the current user."""
+        user = request.user
+        from .models import Shift
+        
+        # Check if open shift exists
+        if Shift.objects.filter(cashier=user, status=Shift.Status.OPEN).exists():
+            return Response({
+                'status': 'error',
+                'message': 'You already have an open shift.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        initial_cash = request.data.get('initial_cash', 0)
+        
+        shift = Shift.objects.create(
+            cashier=user,
+            initial_cash=initial_cash,
+            status=Shift.Status.OPEN
+        )
+        
+        return Response({
+            'status': 'success',
+            'data': self.get_serializer(shift).data
+        })
+
+    @action(detail=False, methods=['post'], url_path='end')
+    def end_shift(self, request):
+        """End current shift."""
+        user = request.user
+        from .models import Shift
+        from django.utils import timezone
+        from django.db.models import Sum
+        
+        try:
+            shift = Shift.objects.filter(cashier=user, status=Shift.Status.OPEN).latest('start_time')
+        except Shift.DoesNotExist:
+             return Response({
+                'status': 'error',
+                'message': 'No open shift found.'
+            }, status=status.HTTP_404_NOT_FOUND)
+            
+        final_cash_actual = request.data.get('final_cash_actual')
+        if final_cash_actual is None:
+             return Response({
+                'status': 'error',
+                'message': 'final_cash_actual is required.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Calculate system cash
+        # Initial Cash + Total Cash Sales (Not including Transfer/QRIS potentially, depending on policy)
+        # Usually Shift Cash reconciliation is about PHYSICAL CASH.
+        # So we should filter orders by PaymentMethod.CASH
+        
+        total_cash_sales = shift.orders.filter(payment_method='CASH', status='PAID').aggregate(
+            total=Sum('total_amount')
+        )['total'] or 0
+        
+        shift.final_cash_system = shift.initial_cash + total_cash_sales
+        shift.final_cash_actual = final_cash_actual
+        shift.end_time = timezone.now()
+        shift.status = Shift.Status.CLOSED
+        shift.notes = request.data.get('notes', '')
+        shift.save()
+        
+        return Response({
+            'status': 'success',
+            'data': self.get_serializer(shift).data
+        })
+
+    @action(detail=False, methods=['get'], url_path='current')
+    def current_shift(self, request):
+        """Get current open shift."""
+        user = request.user
+        from .models import Shift
+        
+        shift = Shift.objects.filter(cashier=user, status=Shift.Status.OPEN).first()
+        
+        if not shift:
+             return Response({
+                'status': 'error',
+                'message': 'No active shift.'
+            }, status=status.HTTP_404_NOT_FOUND)
+            
+        return Response({
+            'status': 'success',
+            'data': self.get_serializer(shift).data
+        })
+
 

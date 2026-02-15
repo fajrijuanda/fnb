@@ -40,6 +40,13 @@ class Order(models.Model):
         blank=True,
         related_name='processed_orders'
     )
+    shift = models.ForeignKey(
+        'Shift',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders'
+    )
     notes = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -96,6 +103,8 @@ class OrderItem(models.Model):
     )
     quantity = models.PositiveIntegerField(default=1)
     price_at_sale = models.PositiveIntegerField()  # Harga saat dijual (snapshot)
+    variant_snapshot = models.JSONField(blank=True, null=True, help_text="Snapshot of selected variant")
+    modifiers_snapshot = models.JSONField(blank=True, null=True, help_text="Snapshot of selected modifiers")
     note = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
@@ -107,10 +116,62 @@ class OrderItem(models.Model):
 
     @property
     def subtotal(self):
-        return self.price_at_sale * self.quantity
+        unit_price = self.price_at_sale
+        
+        # Add variant price
+        if self.variant_snapshot and 'price_adjustment' in self.variant_snapshot:
+             unit_price += int(self.variant_snapshot['price_adjustment'])
+             
+        # Add modifiers price
+        if self.modifiers_snapshot:
+             for mod in self.modifiers_snapshot:
+                 if 'price_adjustment' in mod:
+                     unit_price += int(mod['price_adjustment'])
+                     
+        return unit_price * self.quantity
 
     def save(self, *args, **kwargs):
         # Snapshot harga produk jika belum diset
         if not self.price_at_sale:
             self.price_at_sale = self.product.price
         super().save(*args, **kwargs)
+
+
+class Shift(models.Model):
+    """
+    Model untuk manajemen shift kasir (Open/Close Register).
+    """
+    class Status(models.TextChoices):
+        OPEN = 'OPEN', 'Open'
+        CLOSED = 'CLOSED', 'Closed'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    cashier = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='shifts'
+    )
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    
+    initial_cash = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    final_cash_system = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Calculated from system")
+    final_cash_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Input by cashier")
+    
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.OPEN
+    )
+    
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-start_time']
+
+    def __str__(self):
+        return f"Shift {self.cashier.username} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
+
+    @property
+    def difference(self):
+        return self.final_cash_actual - self.final_cash_system

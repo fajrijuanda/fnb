@@ -8,6 +8,8 @@ export const metadata: Metadata = {
     description: 'Point of Sale System',
 };
 
+import { ShiftManager } from '@/components/pos/ShiftManager';
+
 export default function POSLayout({
     children,
 }: {
@@ -15,6 +17,7 @@ export default function POSLayout({
 }) {
     return (
         <div className="min-h-screen bg-background">
+            <ShiftManager />
             {children}
         </div>
     );

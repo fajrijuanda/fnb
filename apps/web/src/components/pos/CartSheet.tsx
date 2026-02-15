@@ -4,13 +4,13 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Minus, Plus, Trash2, X, ShoppingBag, Check } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
-import { useCartStore } from '@/store';
+import { useCartStore, type CartItem } from '@/store';
 import { formatRupiah, cn } from '@/lib/utils';
 import { CheckoutModal, CheckoutSuccessModal } from './CheckoutModal';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ReceiptPrint } from './ReceiptPrint';
 import { useToast } from '@/components/ToastContext';
-import type { OrderResponse, Product } from '@/types/api';
+import type { OrderResponse } from '@/types/api';
 
 // Primary color constant (Red)
 const PRIMARY = '#C5161D';
@@ -29,8 +29,8 @@ export function CartSheet({ onClose }: CartSheetProps) {
     const [completedOrder, setCompletedOrder] = useState<OrderResponse | null>(null);
 
     // Selection & Deletion State
-    const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
-    const [itemToDelete, setItemToDelete] = useState<{ id: number; name: string } | null>(null);
+    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+    const [itemToDelete, setItemToDelete] = useState<{ id: number; name: string; cartId: string } | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isBulkDelete, setIsBulkDelete] = useState(false);
     const [isClearAll, setIsClearAll] = useState(false);
@@ -43,23 +43,23 @@ export function CartSheet({ onClose }: CartSheetProps) {
     });
 
     // Handle Quantity Update with Safety Check
-    const handleUpdateQuantity = (product: Product, newQuantity: number) => {
+    const handleUpdateQuantity = (cartId: string, item: CartItem, newQuantity: number) => {
         if (newQuantity === 0) {
-            setItemToDelete({ id: product.id, name: product.name });
+            setItemToDelete({ id: item.product.id, name: item.product.name, cartId: cartId });
             setIsBulkDelete(false);
             setIsDeleteModalOpen(true);
         } else {
-            updateQuantity(product.id, newQuantity);
+            updateQuantity(cartId, newQuantity);
         }
     };
 
     // Handle Checkbox Selection
-    const toggleSelection = (productId: number) => {
+    const toggleSelection = (cartId: string) => {
         const newSelection = new Set(selectedItems);
-        if (newSelection.has(productId)) {
-            newSelection.delete(productId);
+        if (newSelection.has(cartId)) {
+            newSelection.delete(cartId);
         } else {
-            newSelection.add(productId);
+            newSelection.add(cartId);
         }
         setSelectedItems(newSelection);
     };
@@ -88,15 +88,15 @@ export function CartSheet({ onClose }: CartSheetProps) {
         } else if (isBulkDelete) {
             // Delete all selected
             items.forEach(item => {
-                if (selectedItems.has(item.product.id)) {
-                    removeItem(item.product.id);
+                if (selectedItems.has(item.cartId)) {
+                    removeItem(item.cartId);
                 }
             });
             success(`Berhasil menghapus ${selectedItems.size} item`);
             setSelectedItems(new Set());
         } else if (itemToDelete) {
             // Delete single item
-            removeItem(itemToDelete.id);
+            removeItem(itemToDelete.cartId);
             warning(`Item "${itemToDelete.name}" dihapus`);
         }
         setItemToDelete(null);
@@ -176,15 +176,15 @@ export function CartSheet({ onClose }: CartSheetProps) {
                                 <div key={item.product.id} className="flex items-center gap-3 group">
                                     {/* Rounded Checkbox */}
                                     <button
-                                        onClick={() => toggleSelection(item.product.id)}
+                                        onClick={() => toggleSelection(item.cartId)}
                                         className={cn(
                                             "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all",
-                                            selectedItems.has(item.product.id)
+                                            selectedItems.has(item.cartId)
                                                 ? "border-primary bg-primary text-white"
                                                 : "border-gray-300 dark:border-white/20 hover:border-red-400"
                                         )}
                                     >
-                                        {selectedItems.has(item.product.id) && <Check className="h-3.5 w-3.5" />}
+                                        {selectedItems.has(item.cartId) && <Check className="h-3.5 w-3.5" />}
                                     </button>
 
                                     {/* Product Image */}
@@ -210,20 +210,32 @@ export function CartSheet({ onClose }: CartSheetProps) {
                                         <h3 className="line-clamp-1 text-sm font-bold text-gray-900 dark:text-white">
                                             {item.product.name}
                                         </h3>
-                                        {item.note && (
-                                            <p className="text-[10px] italic text-muted-foreground line-clamp-1">
-                                                Catatan: {item.note}
-                                            </p>
-                                        )}
-                                        <p className="text-xs font-medium" style={{ color: PRIMARY }}>
-                                            {formatRupiah(item.product.price)}
+                                        <div className="text-[10px] text-muted-foreground space-y-0.5">
+                                            {item.variant && (
+                                                <p className="font-medium text-primary dark:text-red-400">
+                                                    {item.variant.name} ({formatRupiah(item.variant.price_adjustment)})
+                                                </p>
+                                            )}
+                                            {item.modifiers && item.modifiers.length > 0 && (
+                                                <p className="italic">
+                                                    {item.modifiers.map(m => m.name).join(', ')}
+                                                </p>
+                                            )}
+                                            {item.note && (
+                                                <p className="italic text-gray-400">
+                                                    &quot;{item.note}&quot;
+                                                </p>
+                                            )}
+                                        </div>
+                                        <p className="text-xs font-medium mt-1" style={{ color: PRIMARY }}>
+                                            {formatRupiah(item.totalPrice)}
                                         </p>
 
                                         {/* Quantity Controls */}
                                         <div className="mt-auto flex items-center justify-between pt-2">
                                             <div className="flex items-center gap-2">
                                                 <button
-                                                    onClick={() => handleUpdateQuantity(item.product, item.quantity - 1)}
+                                                    onClick={() => handleUpdateQuantity(item.cartId, item, item.quantity - 1)}
                                                     className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 dark:border-white/20 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-700 dark:text-white"
                                                 >
                                                     <Minus className="h-3.5 w-3.5" />
@@ -232,7 +244,7 @@ export function CartSheet({ onClose }: CartSheetProps) {
                                                     {item.quantity}
                                                 </span>
                                                 <button
-                                                    onClick={() => handleUpdateQuantity(item.product, item.quantity + 1)}
+                                                    onClick={() => updateQuantity(item.cartId, item.quantity + 1)}
                                                     className="flex h-7 w-7 items-center justify-center rounded-full text-white transition-colors hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-red-600 shadow-md shadow-primary/20"
                                                 >
                                                     <Plus className="h-3.5 w-3.5" />

@@ -100,3 +100,42 @@ class Product(models.Model):
                 'is_tracked': False,
                 'available': self.is_available
             }
+
+
+class ProductVariant(models.Model):
+    """
+    Varian produk, contoh: Size (Regular, Large).
+    """
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
+    name = models.CharField(max_length=100)
+    price_adjustment = models.IntegerField(default=0, help_text="Tambahan harga dalam Rupiah")
+    sku = models.CharField(max_length=50, blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.product.name} - {self.name}"
+
+
+class ModifierGroup(models.Model):
+    """
+    Grup modifier, contoh: Topping, Level Pedas.
+    """
+    name = models.CharField(max_length=100)
+    products = models.ManyToManyField(Product, related_name='modifier_groups', blank=True)
+    min_selection = models.PositiveIntegerField(default=0)
+    max_selection = models.PositiveIntegerField(default=1)
+    
+    def __str__(self):
+        return self.name
+
+
+class ModifierOption(models.Model):
+    """
+    Opsi modifier, contoh: Keju, Pedas Level 1.
+    """
+    group = models.ForeignKey(ModifierGroup, on_delete=models.CASCADE, related_name='options')
+    name = models.CharField(max_length=100)
+    price_adjustment = models.IntegerField(default=0)
+    
+    def __str__(self):
+        return self.name
+

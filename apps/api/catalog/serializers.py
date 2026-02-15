@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Product
+from .models import Category, Product, ProductVariant, ModifierGroup, ModifierOption
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -8,6 +8,26 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'slug', 'icon', 'color', 'order', 'is_active']
+
+
+class ProductVariantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductVariant
+        fields = ['id', 'name', 'price_adjustment', 'sku']
+
+
+class ModifierOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModifierOption
+        fields = ['id', 'name', 'price_adjustment']
+
+
+class ModifierGroupSerializer(serializers.ModelSerializer):
+    options = ModifierOptionSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = ModifierGroup
+        fields = ['id', 'name', 'min_selection', 'max_selection', 'options']
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -24,6 +44,9 @@ class ProductSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     stock = serializers.IntegerField(source='current_stock', required=False)
     
+    variants = ProductVariantSerializer(many=True, read_only=True)
+    modifier_groups = ModifierGroupSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Product
         fields = [
@@ -39,6 +62,8 @@ class ProductSerializer(serializers.ModelSerializer):
             'is_available',
             'stock',
             'track_inventory',
+            'variants',
+            'modifier_groups',
             'created_at',
             'updated_at'
         ]

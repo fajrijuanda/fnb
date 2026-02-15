@@ -21,6 +21,8 @@ export interface Product {
   is_available: boolean;
   stock?: number;
   stock_status?: StockStatus;
+  variants?: ProductVariant[];
+  modifier_groups?: ModifierGroup[];
 }
 
 export interface Category {
@@ -29,6 +31,27 @@ export interface Category {
   slug: string;
   icon?: string;
   color?: string;
+}
+
+export interface ProductVariant {
+  id: number;
+  name: string;
+  price_adjustment: number;
+  sku?: string;
+}
+
+export interface ModifierOption {
+  id: number;
+  name: string;
+  price_adjustment: number;
+}
+
+export interface ModifierGroup {
+  id: number;
+  name: string;
+  min_selection: number;
+  max_selection: number;
+  options: ModifierOption[];
 }
 
 export interface StoreSettings {
@@ -249,4 +272,20 @@ export interface Notification {
   is_read: boolean;
   related_link?: string | null;
   created_at: string;
+}
+
+// Shift Management
+export interface Shift {
+  id: string;
+  cashier: number;
+  cashier_name: string;
+  start_time: string;
+  end_time: string | null;
+  initial_cash: number;
+  final_cash_system: number;
+  final_cash_actual: number;
+  difference: number;
+  status: "OPEN" | "CLOSED";
+  status_display: string;
+  notes: string | null;
 }
