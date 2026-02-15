@@ -4,7 +4,7 @@ set -o errexit
 
 # Fix for potential python path issues in some environments
 unset PYTHONHOME
-unset PYTHONPATH
+# unset PYTHONPATH
 
 # Dependencies are installed by buildpack, skip pip install
 # collectstatic is handled by buildpack
