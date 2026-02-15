@@ -9,6 +9,7 @@ import {
     Upload, Eye, Copy, Timer, ShieldCheck, ShieldAlert, ShieldX
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import { extractApiArray } from '@/lib/api-utils';
@@ -52,6 +53,8 @@ const UNIT_OPTIONS = [
 
 const PAYMENT_OPTIONS: { value: RestockPaymentMethod; label: string }[] = [
     { value: 'TRANSFER', label: 'Transfer Bank' },
+    { value: 'QRIS', label: 'QRIS' },
+    { value: 'VA', label: 'Virtual Account' },
     { value: 'DANA', label: 'DANA' },
     { value: 'GOPAY', label: 'GoPay' },
     { value: 'SHOPEEPAY', label: 'ShopeePay' },
@@ -226,11 +229,28 @@ function PaymentPanel({ order, onUploadSuccess }: { order: RestockOrder; onUploa
             </div>
 
             {/* Bank Info */}
-            {order.payment_method === 'TRANSFER' && bankInfo.bank_name && (
+            {(order.payment_method === 'TRANSFER' || order.payment_method === 'VA') && bankInfo.bank_name && (
                 <div className="p-3 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 space-y-1">
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Transfer ke</p>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+                        {order.payment_method === 'VA' ? 'Virtual Account' : 'Transfer ke'}
+                    </p>
                     <p className="font-bold text-sm text-gray-900 dark:text-white">{bankInfo.bank_name} — {bankInfo.bank_account}</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">a/n {bankInfo.bank_holder}</p>
+                </div>
+            )}
+
+            {/* QRIS Display */}
+            {order.payment_method === 'QRIS' && (
+                <div className="p-3 rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex flex-col items-center text-center space-y-2">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wider">Scan QRIS untuk membayar</p>
+                    {bankInfo.qris_image ? (
+                        <Image src={bankInfo.qris_image as string} alt="QRIS" width={160} height={160} className="object-contain rounded-lg" unoptimized />
+                    ) : (
+                        <div className="w-40 h-40 bg-gray-100 dark:bg-white/5 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">QRIS belum diatur</span>
+                        </div>
+                    )}
+                    <p className="text-[10px] text-gray-400">Dana / GoPay / OVO / ShopeePay</p>
                 </div>
             )}
 

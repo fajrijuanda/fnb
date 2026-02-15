@@ -41,6 +41,7 @@ export interface StoreSettings {
   shopeepay_number: string;
   ovo_number: string;
   qris_image: string | null;
+  qris_data: string;
   updated_at: string;
 }
 
@@ -155,6 +156,8 @@ export type RestockOrderStatus =
   | "CANCELLED";
 export type RestockPaymentMethod =
   | "TRANSFER"
+  | "QRIS"
+  | "VA"
   | "DANA"
   | "GOPAY"
   | "SHOPEEPAY"

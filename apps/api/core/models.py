@@ -17,6 +17,11 @@ class StoreSettings(models.Model):
     
     # QRIS
     qris_image = models.ImageField(upload_to='settings/', blank=True, null=True)
+    qris_data = models.TextField(
+        blank=True,
+        help_text="Raw QRIS EMVCo data string for dynamic QR generation. "
+                  "Get this by scanning your static QRIS with any QR reader."
+    )
     
     updated_at = models.DateTimeField(auto_now=True)
     

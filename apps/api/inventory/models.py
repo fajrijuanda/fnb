@@ -128,6 +128,8 @@ class RestockOrder(models.Model):
     ]
     PAYMENT_CHOICES = [
         ('TRANSFER', 'Transfer Bank'),
+        ('QRIS', 'QRIS'),
+        ('VA', 'Virtual Account'),
         ('DANA', 'DANA'),
         ('GOPAY', 'GoPay'),
         ('SHOPEEPAY', 'ShopeePay'),

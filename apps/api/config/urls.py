@@ -7,7 +7,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from core.views import StoreSettingsView
+from core.views import StoreSettingsView, DynamicQRISView
 
 
 @api_view(['GET'])
@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/v1/notifications/', include('notifications.urls')),
     path('api/v1/subscriptions/', include('subscriptions.urls')),
     path('api/v1/settings/store/', StoreSettingsView.as_view(), name='store-settings'),
+    path('api/v1/settings/qris-dynamic/', DynamicQRISView.as_view(), name='qris-dynamic'),
 ]
 
 # Serve media files in development

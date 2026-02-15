@@ -34,6 +34,8 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
     }, []);
 
     const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
+    const [dynamicQris, setDynamicQris] = useState<string | null>(null);
+    const [qrisLoading, setQrisLoading] = useState(false);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -65,6 +67,32 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
         }, 1000);
         return () => clearInterval(timer);
     }, []);
+
+    // Fetch dynamic QRIS when payment method is QRIS
+    useEffect(() => {
+        const fetchDynamicQris = async () => {
+            if (paymentMethod !== 'QRIS' || total <= 0) {
+                setDynamicQris(null);
+                return;
+            }
+            setQrisLoading(true);
+            try {
+                const response = await api.get<{ status: string; data: { qris_base64: string } }>(
+                    `/settings/qris-dynamic/?amount=${Math.round(total)}`
+                );
+                if (response.data.status === 'success') {
+                    setDynamicQris(response.data.data.qris_base64);
+                } else {
+                    setDynamicQris(null);
+                }
+            } catch {
+                setDynamicQris(null);
+            } finally {
+                setQrisLoading(false);
+            }
+        };
+        fetchDynamicQris();
+    }, [paymentMethod, total]);
 
     const paymentMethods = [
         { id: 'CASH' as PaymentMethod, label: 'Tunai', icon: Banknote },
@@ -223,23 +251,48 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                 {/* Payment Method Details */}
                 {storeSettings && paymentMethod === 'QRIS' && (
                     <div className="mb-6 p-4 bg-white dark:bg-black/20 rounded-xl border border-gray-200 dark:border-white/10 flex flex-col items-center text-center">
-                        {storeSettings.qris_image ? (
-                            <div className="relative w-48 h-48 mb-3">
-                                <Image
-                                    src={storeSettings.qris_image}
-                                    alt="QRIS Code"
-                                    fill
-                                    className="object-contain"
-                                    unoptimized
-                                />
+                        {qrisLoading ? (
+                            <div className="w-48 h-48 mb-3 flex items-center justify-center">
+                                <Loader2 className="animate-spin text-primary" size={32} />
                             </div>
+                        ) : dynamicQris ? (
+                            <>
+                                <div className="relative w-48 h-48 mb-3">
+                                    <Image
+                                        src={dynamicQris}
+                                        alt="QRIS Dynamic"
+                                        fill
+                                        className="object-contain"
+                                        unoptimized
+                                    />
+                                </div>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">Scan QRIS untuk membayar</p>
+                                <p className="text-lg font-bold text-primary mt-1">{formatRupiah(total)}</p>
+                                <p className="text-xs text-gray-500">Dana / GoPay / OVO / ShopeePay</p>
+                            </>
+                        ) : storeSettings.qris_image ? (
+                            <>
+                                <div className="relative w-48 h-48 mb-3">
+                                    <Image
+                                        src={storeSettings.qris_image}
+                                        alt="QRIS Code"
+                                        fill
+                                        className="object-contain"
+                                        unoptimized
+                                    />
+                                </div>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">Scan QRIS untuk membayar</p>
+                                <p className="text-lg font-bold text-primary mt-1">{formatRupiah(total)}</p>
+                                <p className="text-xs text-gray-500">Dana / GoPay / OVO / ShopeePay</p>
+                            </>
                         ) : (
-                            <div className="w-48 h-48 mb-3 bg-gray-100 dark:bg-white/5 rounded-lg flex items-center justify-center">
-                                <QrCode className="text-gray-400" size={48} />
-                            </div>
+                            <>
+                                <div className="w-48 h-48 mb-3 bg-gray-100 dark:bg-white/5 rounded-lg flex items-center justify-center">
+                                    <QrCode className="text-gray-400" size={48} />
+                                </div>
+                                <p className="text-sm text-gray-500">QRIS belum dikonfigurasi</p>
+                            </>
                         )}
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">Scan QRIS untuk membayar</p>
-                        <p className="text-xs text-gray-500">Dana / GoPay / OVO / ShopeePay</p>
                     </div>
                 )}
 

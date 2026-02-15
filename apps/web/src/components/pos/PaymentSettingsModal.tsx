@@ -272,6 +272,21 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* QRIS Data String */}
+                                <div className="mt-4">
+                                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">QRIS Data String (Dynamic)</label>
+                                    <textarea
+                                        value={formData.qris_data || ''}
+                                        onChange={e => setFormData({ ...formData, qris_data: e.target.value })}
+                                        placeholder="000201010211..."
+                                        rows={3}
+                                        className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-xs font-mono resize-none"
+                                    />
+                                    <p className="text-[10px] text-gray-400 mt-1">
+                                        Paste data string dari QRIS statis toko (scan QR dengan QR reader biasa untuk mendapat string ini). Diperlukan agar sistem kasir bisa menampilkan QRIS dengan nominal otomatis.
+                                    </p>
+                                </div>
                             </section>
                         </form>
                     )}
