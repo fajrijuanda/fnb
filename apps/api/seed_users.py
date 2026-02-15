@@ -6,7 +6,9 @@ from django.contrib.auth import get_user_model
 import sys
 
 # Add project root to sys.path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps', 'api'))
+sys.path.insert(0, BASE_DIR)
 
 # Setup Django Environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')

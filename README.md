@@ -1,4 +1,4 @@
-# CloudPOS - FnB Management System
+# OMDEN - FnB Management System
 
 Sistem kasir berbasis web (PWA) yang dirancang untuk bisnis F&B (Warung Makan/Restoran). Menyatukan operasional kasir (POS) dan manajemen gudang (Inventory) dalam satu platform responsif.
 

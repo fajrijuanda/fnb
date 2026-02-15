@@ -5,14 +5,16 @@ import django
 
 import sys
 
-# Add project root to sys.path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Add project root and apps/api to sys.path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps', 'api'))
+sys.path.insert(0, BASE_DIR)
 
 # Setup Django Environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from apps.api.catalog.models import Category, Product  # noqa: E402
+from catalog.models import Category, Product  # noqa: E402
 
 def seed_products():
     from django.conf import settings
