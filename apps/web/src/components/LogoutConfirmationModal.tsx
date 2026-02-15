@@ -14,6 +14,7 @@ export function LogoutConfirmationModal({ isOpen, onClose, onConfirm }: LogoutCo
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
         // Prevent body scroll when modal is open
         if (isOpen) {

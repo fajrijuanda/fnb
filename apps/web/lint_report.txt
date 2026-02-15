@@ -1,0 +1,48 @@
+
+> web@0.1.0 lint
+> eslint
+
+
+D:\Project\fnb\apps\web\src\app\(admin)\admin\orders\page.tsx
+  55:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Project\fnb\apps\web\src\app\(admin)\admin\products\page.tsx
+  39:84  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  98:90  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Project\fnb\apps\web\src\app\(admin)\reports\page.tsx
+   4:10  warning  'BarChart3' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  32:8   warning  React Hook useEffect has a missing dependency: 'fetchReport'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\Project\fnb\apps\web\src\app\(auth)\login\page.tsx
+  95:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\Project\fnb\apps\web\src\app\(pos)\cashier\page.tsx
+  75:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\Project\fnb\apps\web\src\components\LogoutConfirmationModal.tsx
+  17:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Project\fnb\apps\web\src\components\LogoutConfirmationModal.tsx:17:9
+  15 |
+  16 |     useEffect(() => {
+> 17 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  18 |         // Prevent body scroll when modal is open
+  19 |         if (isOpen) {
+  20 |             document.body.style.overflow = 'hidden';  react-hooks/set-state-in-effect
+
+D:\Project\fnb\apps\web\src\components\admin\ai\InventoryPrediction.tsx
+  4:25  warning  'TrendingDown' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Project\fnb\apps\web\src\components\pos\AddToCartModal.tsx
+  57:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 10 problems (4 errors, 6 warnings)
+

@@ -92,6 +92,7 @@ export default function LoginPage() {
                     {/* Header */}
                     <div className="mb-10 text-center">
                         <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-red-600 shadow-2xl shadow-primary/40 p-4">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src="/logo.png" alt="OMDEN Logo" className="w-full h-full object-contain filter drop-shadow-md" />
                         </div>
                         <h1 className="mb-2 text-4xl font-bold tracking-tight drop-shadow-md transition-colors" style={{ color: 'var(--login-text)' }}>

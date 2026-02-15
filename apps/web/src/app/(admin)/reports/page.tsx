@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { BarChart3, DollarSign, ShoppingCart, TrendingUp } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { DollarSign, ShoppingCart, TrendingUp } from 'lucide-react';
 import api from '@/lib/api';
 
 interface DailySummary {
@@ -27,11 +27,7 @@ export default function ReportsPage() {
     const [summary, setSummary] = useState<DailySummary | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchReport();
-    }, [selectedDate]);
-
-    const fetchReport = async () => {
+    const fetchReport = useCallback(async () => {
         setLoading(true);
         try {
             const res = await api.get(`/sales/orders/daily-report/?date=${selectedDate}`);
@@ -41,7 +37,11 @@ export default function ReportsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [selectedDate]);
+
+    useEffect(() => {
+        fetchReport();
+    }, [fetchReport]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('id-ID', {

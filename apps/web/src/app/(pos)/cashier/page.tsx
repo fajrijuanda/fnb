@@ -72,6 +72,7 @@ export default function CashierPage() {
                         <div className="flex items-center gap-3 shrink-0">
                             <div className="flex items-center gap-2">
                                 <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-red-600 flex items-center justify-center shadow-lg shadow-primary/20 p-2">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img src="/logo.png" alt="OMDEN" className="w-full h-full object-contain filter drop-shadow-sm" />
                                 </div>
                                 <div className="hidden sm:block">

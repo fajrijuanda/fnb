@@ -1,13 +1,13 @@
 
 import os
 import django
-from django.core.files.base import ContentFile
+
 
 # Setup Django Environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from apps.api.catalog.models import Category, Product
+from apps.api.catalog.models import Category, Product  # noqa: E402
 
 def seed_products():
     print("Seeding Categories and Products...")

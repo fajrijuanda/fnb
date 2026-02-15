@@ -1,0 +1,10 @@
+
+> web@0.1.0 lint
+> eslint
+
+
+D:\Project\fnb\apps\web\src\components\pos\AddToCartModal.tsx
+  59:32  error  Parsing error: ')' expected
+
+✖ 1 problem (1 error, 0 warnings)
+

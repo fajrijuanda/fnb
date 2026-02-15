@@ -52,17 +52,17 @@ export default function OrdersPage() {
     const handleViewDetail = async (id: string) => {
         try {
             const response = await api.get<ApiResponse<OrderResponse>>(`/sales/orders/${id}/`);
-            const resData = response.data as unknown as any;
+            const resData = response.data as unknown as { status?: string; data?: OrderResponse; id?: string; invoice_number?: string };
             let orderDetail: OrderResponse | null = null;
 
             if (resData.status === 'success' && resData.data) {
-                orderDetail = resData.data;
+                orderDetail = resData.data as OrderResponse;
             } else if (resData.id && resData.invoice_number) {
                 // Direct response
-                orderDetail = resData;
+                orderDetail = resData as unknown as OrderResponse;
             } else if (resData.data && !resData.status) {
                 // Only data wrapper
-                orderDetail = resData.data;
+                orderDetail = resData.data as OrderResponse;
             }
 
             if (orderDetail) {

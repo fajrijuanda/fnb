@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AlertTriangle, TrendingDown } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import api from '@/lib/api';
 
 export function InventoryPrediction() {

@@ -36,7 +36,17 @@ const CATEGORY_COLORS: Record<string, { bg: string, text: string, icon: string, 
     'Default': { bg: 'bg-gray-100 dark:bg-white/10', text: 'text-gray-700 dark:text-white', icon: 'text-gray-500' }
 };
 
-const CategoryBadge = ({ name, icon, color }: { name: string, icon: string, color: any }) => {
+interface ColorConfig {
+    bg: string;
+    text: string;
+    icon: string;
+    style?: {
+        container?: CSSProperties;
+        icon?: CSSProperties;
+    };
+}
+
+const CategoryBadge = ({ name, icon, color }: { name: string, icon: string, color: ColorConfig }) => {
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLDivElement>(null);
     const [stats, setStats] = useState({ top: 0, left: 0 });
@@ -95,7 +105,7 @@ const CategoryBadge = ({ name, icon, color }: { name: string, icon: string, colo
     );
 };
 
-const MobileCategoryBadge = ({ name, icon, color }: { name: string, icon: string, color: any }) => {
+const MobileCategoryBadge = ({ name, icon, color }: { name: string, icon: string, color: ColorConfig }) => {
     const [isOpen, setIsOpen] = useState(false);
     const triggerRef = useRef<HTMLDivElement>(null);
     const [stats, setStats] = useState({ top: 0, left: 0 });

@@ -1,31 +1,41 @@
 'use client';
 
-import { useState } from 'react';
-import { Minus, Plus, X, MessageSquare, ShoppingCart } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Minus, Plus, ShoppingCart, MessageSquare, X } from 'lucide-react';
+import { Product } from '@/types/api';
 import { formatRupiah } from '@/lib/utils';
-import type { Product } from '@/types/api';
+import { cn } from '@/lib/utils';
 
 interface AddToCartModalProps {
     isOpen: boolean;
-    product: Product | null;
     onClose: () => void;
+    product: Product | null;
     onConfirm: (product: Product, quantity: number, note: string) => void;
 }
 
-export function AddToCartModal({ isOpen, product, onClose, onConfirm }: AddToCartModalProps) {
+export function AddToCartModal({ isOpen, onClose, product, onConfirm }: AddToCartModalProps) {
     const [quantity, setQuantity] = useState(1);
     const [note, setNote] = useState('');
+    const [isAnimating, setIsAnimating] = useState(false);
 
-    if (!isOpen || !product) return null;
+    useEffect(() => {
+        if (isOpen) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setQuantity(1);
+            setNote('');
+            setIsAnimating(true);
+        } else {
+            const timer = setTimeout(() => setIsAnimating(false), 200);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
 
-    // Reset state when opening (this might need useEffect if component persists)
-    // But since we render conditionally or key it, simplified here.
-    // Better to use key={product.id} in parent.
+    if (!isOpen && !isAnimating) return null;
+
+    if (!product) return null;
 
     const handleConfirm = () => {
         onConfirm(product, quantity, note);
-        setQuantity(1); // Reset for next use
-        setNote('');
         onClose();
     };
 
@@ -33,20 +43,27 @@ export function AddToCartModal({ isOpen, product, onClose, onConfirm }: AddToCar
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                className={cn(
+                    "absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200",
+                    isOpen ? "opacity-100" : "opacity-0"
+                )}
                 onClick={onClose}
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-md scale-100 transform overflow-hidden rounded-2xl bg-card p-6 opacity-100 shadow-xl transition-all">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                    <h2 className="text-lg font-bold text-card-foreground">Tambah Pesanan</h2>
+            <div
+                className={cn(
+                    "relative w-full max-w-sm rounded-[2rem] bg-card p-6 shadow-2xl transition-all duration-300 transform",
+                    isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
+                )}
+            >
+                {/* Close Button */}
+                <div className="absolute right-4 top-4 z-10">
                     <button
                         onClick={onClose}
-                        className="rounded-full p-1 hover:bg-muted transition-colors"
+                        className="rounded-full bg-black/5 p-2 text-foreground/50 transition-colors hover:bg-black/10 hover:text-foreground dark:bg-white/5 dark:hover:bg-white/10"
                     >
-                        <X className="h-5 w-5 text-muted-foreground" />
+                        <X className="h-5 w-5" />
                     </button>
                 </div>
 
@@ -54,6 +71,7 @@ export function AddToCartModal({ isOpen, product, onClose, onConfirm }: AddToCar
                 <div className="mt-4 flex gap-4">
                     <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-muted">
                         {product.image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={product.image_url}
                                 alt={product.name}

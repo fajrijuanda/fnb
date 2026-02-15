@@ -1,0 +1,23 @@
+
+> web@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 5.4s
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/pos/ProductGrid.tsx:240:17
+Type error: Type '(product: Product, quantity: number, note: string) => void' is not assignable to type '(quantity: number, note: string) => void'.
+  Target signature provides too few arguments. Expected 3 or more, but got 2.
+
+[0m [90m 238 |[39m                 product[33m=[39m{selectedProduct}
+ [90m 239 |[39m                 onClose[33m=[39m{() [33m=>[39m setIsModalOpen([36mfalse[39m)}
+[31m[1m>[22m[39m[90m 240 |[39m                 onConfirm[33m=[39m{handleConfirmAdd}
+ [90m     |[39m                 [31m[1m^[22m[39m
+ [90m 241 |[39m             [33m/[39m[33m>[39m
+ [90m 242 |[39m         [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 243 |[39m     )[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null
