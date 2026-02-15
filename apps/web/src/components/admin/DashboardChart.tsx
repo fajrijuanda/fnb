@@ -14,7 +14,7 @@ import { formatCurrency } from '@/lib/utils';
 import { useMemo } from 'react';
 
 interface DashboardChartProps {
-    data: Record<string, any>[];
+    data: Record<string, number | string>[];
     title: string;
     dataKey?: string;
     tooltipLabel?: string;

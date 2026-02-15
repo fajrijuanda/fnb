@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, Save, CreditCard, Wallet, Smartphone, QrCode, Upload } from 'lucide-react';
+import { X, Loader2, Save, CreditCard, Smartphone, QrCode, Upload } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import api from '@/lib/api';
-import type { StoreSettings, WrappedResponse } from '@/types/api';
+import type { StoreSettings } from '@/types/api';
 import Image from 'next/image';
 
 interface PaymentSettingsModalProps {
@@ -12,11 +12,15 @@ interface PaymentSettingsModalProps {
     onClose: () => void;
 }
 
+interface PaymentFormData extends Partial<StoreSettings> {
+    qris_image_file?: File;
+}
+
 export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalProps) {
     const { success, error: showError } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [formData, setFormData] = useState<Partial<StoreSettings>>({});
+    const [formData, setFormData] = useState<PaymentFormData>({});
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,6 +29,22 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        const fetchSettings = async () => {
+            setIsLoading(true);
+            try {
+                const response = await api.get<StoreSettings>('/settings/store/');
+                setFormData(response.data);
+                if (response.data.qris_image) {
+                    setPreviewImage(response.data.qris_image);
+                }
+            } catch (error) {
+                console.error('Failed to fetch settings:', error);
+                showError('Gagal memuat pengaturan pembayaran');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
         if (isOpen) {
             setMounted(true);
             setTimeout(() => setIsVisible(true), 10);
@@ -34,23 +54,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
             const timer = setTimeout(() => setMounted(false), 300);
             return () => clearTimeout(timer);
         }
-    }, [isOpen]);
-
-    const fetchSettings = async () => {
-        setIsLoading(true);
-        try {
-            const response = await api.get<StoreSettings>('/settings/store/');
-            setFormData(response.data);
-            if (response.data.qris_image) {
-                setPreviewImage(response.data.qris_image);
-            }
-        } catch (error) {
-            console.error('Failed to fetch settings:', error);
-            showError('Gagal memuat pengaturan pembayaran');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    }, [isOpen, showError]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -59,8 +63,8 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
             const url = URL.createObjectURL(file);
             setPreviewImage(url);
 
-            // Store file in formData (we'll need to handle multipart/form-data on submit)
-            setFormData(prev => ({ ...prev, qris_image_file: file } as any));
+            // Store file in formData
+            setFormData(prev => ({ ...prev, qris_image_file: file }));
         }
     };
 
@@ -73,7 +77,9 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
             const data = new FormData();
             Object.entries(formData).forEach(([key, value]) => {
                 if (key === 'qris_image_file') {
-                    data.append('qris_image', value as File);
+                    if (value instanceof File) {
+                        data.append('qris_image', value);
+                    }
                 } else if (key !== 'qris_image' && value !== null && value !== undefined) {
                     data.append(key, value.toString());
                 }
