@@ -1,3 +1,5 @@
+'use client';
+
 import { CreditCard, Sparkles, Users, Activity, TrendingUp, Search, Filter, MoreHorizontal, CheckCircle, Clock } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -98,8 +100,8 @@ export default function SubscriptionsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${item.plan === 'Enterprise' ? 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-900/20 dark:border-purple-900/30' :
-                                                    item.plan === 'Business' ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:border-blue-900/30' :
-                                                        'bg-gray-50 text-gray-600 border-gray-100 dark:bg-white/5 dark:border-white/10'
+                                                item.plan === 'Business' ? 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:border-blue-900/30' :
+                                                    'bg-gray-50 text-gray-600 border-gray-100 dark:bg-white/5 dark:border-white/10'
                                                 }`}>
                                                 {item.plan}
                                             </span>
