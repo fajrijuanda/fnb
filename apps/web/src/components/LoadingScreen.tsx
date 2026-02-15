@@ -39,7 +39,7 @@ export function LoadingScreen() {
                             cy="50"
                             r="45"
                             fill="none"
-                            stroke="rgba(255, 140, 0, 0.2)"
+                            stroke="rgba(197, 22, 29, 0.2)"
                             strokeWidth="2"
                         />
                         <circle
@@ -55,7 +55,7 @@ export function LoadingScreen() {
                         <defs>
                             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="#C5161D" />
-                                <stop offset="100%" stopColor="#F4B42B" />
+                                <stop offset="100%" stopColor="#A01217" />
                             </linearGradient>
                         </defs>
                     </svg>
@@ -71,7 +71,7 @@ export function LoadingScreen() {
             {/* Progress Bar */}
             <div className="w-64 h-1.5 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
                 <div
-                    className="h-full bg-gradient-to-r from-[#C5161D] to-[#F4B42B] rounded-full transition-all duration-300 ease-out"
+                    className="h-full bg-gradient-to-r from-[#C5161D] to-[#A01217] rounded-full transition-all duration-300 ease-out"
                     style={{ width: `${Math.min(progress, 100)}%` }}
                 />
             </div>
@@ -81,7 +81,7 @@ export function LoadingScreen() {
                 {[0, 1, 2].map((i) => (
                     <div
                         key={i}
-                        className="h-2 w-2 rounded-full bg-[#F4B42B] animate-pulse"
+                        className="h-2 w-2 rounded-full bg-[#C5161D] animate-pulse"
                         style={{ animationDelay: `${i * 0.2}s` }}
                     />
                 ))}
