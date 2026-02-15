@@ -27,21 +27,21 @@ export function InventoryPrediction() {
     if (!prediction || prediction.includes("Stok aman")) return null;
 
     return (
-        <div className="mb-6 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-500/30 rounded-xl p-4 flex items-start gap-4 shadow-sm">
-            <div className="p-2 bg-orange-100 dark:bg-orange-500/20 rounded-lg text-orange-600 dark:text-orange-400 shrink-0">
+        <div className="mb-6 bg-red-50 dark:bg-red-950/20 border border-red-300 dark:border-primary/30 rounded-xl p-4 flex items-start gap-4 shadow-sm">
+            <div className="p-2 bg-red-100 dark:bg-primary/20 rounded-lg text-red-700 dark:text-red-500 shrink-0">
                 <AlertTriangle size={24} />
             </div>
             <div className="flex-1">
-                <h4 className="font-bold text-orange-800 dark:text-orange-200 text-sm mb-1 flex items-center gap-2">
+                <h4 className="font-bold text-red-900 dark:text-red-300 text-sm mb-1 flex items-center gap-2">
                     Prediksi AI: Peringatan Stok
-                    <span className="px-1.5 py-0.5 bg-orange-200 dark:bg-orange-500/40 rounded text-[10px] uppercase">
+                    <span className="px-1.5 py-0.5 bg-red-300 dark:bg-primary/40 rounded text-[10px] uppercase">
                         Action Required
                     </span>
                 </h4>
                 {loading ? (
-                    <div className="h-4 w-3/4 bg-orange-200 dark:bg-orange-500/30 rounded animate-pulse" />
+                    <div className="h-4 w-3/4 bg-red-300 dark:bg-primary/30 rounded animate-pulse" />
                 ) : (
-                    <p className="text-sm text-orange-700 dark:text-orange-300 leading-relaxed">
+                    <p className="text-sm text-red-800 dark:text-red-400 leading-relaxed">
                         {prediction}
                     </p>
                 )}

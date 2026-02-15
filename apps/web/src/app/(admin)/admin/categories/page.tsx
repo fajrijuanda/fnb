@@ -44,7 +44,7 @@ const COMMON_ICONS = [
 
 // Helper to determine if color is hex or legacy preset
 const getCategoryStyles = (colorName: string | null | undefined) => {
-    const color = colorName || '#F97316'; // Default orange hex
+    const color = colorName || '#C5161D'; // Default orange hex
 
     // Check if it's a hex code
     if (color.startsWith('#')) {
@@ -60,7 +60,7 @@ const getCategoryStyles = (colorName: string | null | undefined) => {
 
     // Legacy fallback
     const mapping: Record<string, string> = {
-        orange: 'bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-200/50 dark:border-orange-500/30',
+        orange: 'bg-red-100 dark:bg-primary/20 text-red-700 dark:text-red-500 border-red-300/50 dark:border-primary/30',
         blue: 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/30',
         purple: 'bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-200/50 dark:border-purple-500/30',
         green: 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 border-green-200/50 dark:border-green-500/30',
@@ -97,7 +97,7 @@ export default function CategoriesPage() {
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-    const [formData, setFormData] = useState({ name: '', slug: '', icon: 'Utensils', color: '#F97316' });
+    const [formData, setFormData] = useState({ name: '', slug: '', icon: 'Utensils', color: '#C5161D' });
     const [isSaving, setIsSaving] = useState(false);
     const [iconSearch, setIconSearch] = useState('');
     const [showSaveConfirm, setShowSaveConfirm] = useState(false);
@@ -126,11 +126,11 @@ export default function CategoriesPage() {
                 name: category.name,
                 slug: category.slug,
                 icon: category.icon || 'Utensils',
-                color: category.color || '#F97316'
+                color: category.color || '#C5161D'
             });
         } else {
             setEditingCategory(null);
-            setFormData({ name: '', slug: '', icon: 'Utensils', color: '#F97316' });
+            setFormData({ name: '', slug: '', icon: 'Utensils', color: '#C5161D' });
         }
         setIsModalOpen(true);
     };
@@ -138,7 +138,7 @@ export default function CategoriesPage() {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingCategory(null);
-        setFormData({ name: '', slug: '', icon: 'Utensils', color: '#F97316' });
+        setFormData({ name: '', slug: '', icon: 'Utensils', color: '#C5161D' });
         setIconSearch('');
     };
 
@@ -353,7 +353,7 @@ export default function CategoriesPage() {
                                     value={formData.name}
                                     onChange={handleNameChange}
                                     required
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 dark:text-white"
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
                                     placeholder="Contoh: Minuman"
                                 />
                             </div>
@@ -367,7 +367,7 @@ export default function CategoriesPage() {
                                     value={formData.slug}
                                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                                     required
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 dark:text-white font-mono text-sm"
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white font-mono text-sm"
                                     placeholder="contoh: minuman"
                                 />
                             </div>
@@ -384,7 +384,7 @@ export default function CategoriesPage() {
                                             placeholder="Cari icon..."
                                             value={iconSearch}
                                             onChange={(e) => setIconSearch(e.target.value)}
-                                            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary"
                                         />
                                     </div>
                                     <div className="grid grid-cols-6 gap-2 max-h-40 overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-white/10">
@@ -394,8 +394,8 @@ export default function CategoriesPage() {
                                                 type="button"
                                                 onClick={() => setFormData({ ...formData, icon: icon.name })}
                                                 className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${formData.icon === icon.name
-                                                    ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20'
-                                                    : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 hover:border-orange-500/50'
+                                                    ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                                                    : 'bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-400 hover:border-primary/50'
                                                     }`}
                                             >
                                                 <IconComponent name={icon.name} size={18} />
@@ -414,7 +414,7 @@ export default function CategoriesPage() {
                                     <div className="h-12 w-12 rounded-2xl overflow-hidden shadow-inner border border-gray-200 dark:border-white/10 relative">
                                         <input
                                             type="color"
-                                            value={formData.color.startsWith('#') ? formData.color : '#F97316'}
+                                            value={formData.color.startsWith('#') ? formData.color : '#C5161D'}
                                             onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                                             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] p-0 border-0 cursor-pointer"
                                         />
@@ -424,8 +424,8 @@ export default function CategoriesPage() {
                                             type="text"
                                             value={formData.color}
                                             onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 dark:text-white font-mono uppercase"
-                                            placeholder="#F97316"
+                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white font-mono uppercase"
+                                            placeholder="#C5161D"
                                         />
                                     </div>
                                 </div>
@@ -442,7 +442,7 @@ export default function CategoriesPage() {
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-red-700 text-white shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     {isSaving ? (
                                         <>

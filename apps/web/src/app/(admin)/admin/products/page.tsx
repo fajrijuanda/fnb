@@ -27,7 +27,7 @@ const IconComponent = ({ name, size = 16, className = "", style = {} }: { name: 
 };
 
 const CATEGORY_COLORS: Record<string, { bg: string, text: string, icon: string, style?: { container?: CSSProperties, icon?: CSSProperties } }> = {
-    'Makanan Berat': { bg: 'bg-orange-100 dark:bg-orange-500/20', text: 'text-orange-700 dark:text-orange-300', icon: 'text-orange-600' },
+    'Makanan Berat': { bg: 'bg-red-100 dark:bg-primary/20', text: 'text-red-800 dark:text-red-400', icon: 'text-red-700' },
     'Makanan Ringan': { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-300', icon: 'text-amber-600' },
     'Minuman': { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-300', icon: 'text-blue-600' },
     'Snack': { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-300', icon: 'text-amber-600' },
@@ -367,7 +367,7 @@ export default function ProductsPage() {
             }
 
             const mapping: Record<string, { bg: string, text: string, icon: string }> = {
-                orange: { bg: 'bg-orange-100 dark:bg-orange-500/20', text: 'text-orange-700 dark:text-orange-400', icon: 'text-orange-500' },
+                orange: { bg: 'bg-red-100 dark:bg-primary/20', text: 'text-red-800 dark:text-red-500', icon: 'text-primary' },
                 blue: { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-400', icon: 'text-blue-500' },
                 purple: { bg: 'bg-purple-100 dark:bg-purple-500/20', text: 'text-purple-700 dark:text-purple-400', icon: 'text-purple-500' },
                 green: { bg: 'bg-green-100 dark:bg-green-500/20', text: 'text-green-700 dark:text-green-400', icon: 'text-green-500' },
@@ -418,7 +418,7 @@ export default function ProductsPage() {
         {
             header: "Harga",
             accessor: (product) => formatCurrency(product.price),
-            className: "text-orange-600 dark:text-orange-400 font-semibold"
+            className: "text-red-700 dark:text-red-500 font-semibold"
         },
         {
             header: "Status",
@@ -530,7 +530,7 @@ export default function ProductsPage() {
                                         );
                                     })()}
                                 </div>
-                                <p className="text-sm font-semibold text-orange-600 dark:text-orange-400 mt-1">{formatCurrency(product.price)}</p>
+                                <p className="text-sm font-semibold text-red-700 dark:text-red-500 mt-1">{formatCurrency(product.price)}</p>
                                 {(() => {
                                     const isAvailable = product.stock_status?.available ?? product.is_available;
                                     return (
@@ -592,7 +592,7 @@ export default function ProductsPage() {
                                             type="text"
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-orange-500 text-sm font-medium"
+                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-primary text-sm font-medium"
                                             placeholder="Contoh: Nasi Goreng Spesial"
                                         />
                                     </div>
@@ -601,7 +601,7 @@ export default function ProductsPage() {
                                         <select
                                             value={formData.category}
                                             onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-orange-500 text-sm"
+                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-primary text-sm"
                                         >
                                             {categories.map((cat: Category) => (
                                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -615,7 +615,7 @@ export default function ProductsPage() {
                                                 type="number"
                                                 value={formData.price}
                                                 onChange={e => setFormData({ ...formData, price: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-orange-500 text-sm font-bold"
+                                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-primary text-sm font-bold"
                                                 placeholder="0"
                                             />
                                         </div>
@@ -625,7 +625,7 @@ export default function ProductsPage() {
                                                 type="number"
                                                 value={formData.stock}
                                                 onChange={e => setFormData({ ...formData, stock: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-orange-500 text-sm font-bold"
+                                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-primary text-sm font-bold"
                                                 placeholder="0"
                                             />
                                         </div>
@@ -638,7 +638,7 @@ export default function ProductsPage() {
                                                 onChange={e => setFormData({ ...formData, is_available: e.target.checked })}
                                                 className="sr-only peer"
                                             />
-                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-500"></div>
+                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                                         </label>
                                         <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Status Tersedia</span>
                                     </div>
@@ -649,7 +649,7 @@ export default function ProductsPage() {
                                         <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Foto Produk</label>
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="aspect-video rounded-2xl bg-gray-50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 overflow-hidden relative group cursor-pointer hover:border-orange-500/50 transition-colors"
+                                            className="aspect-video rounded-2xl bg-gray-50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-white/10 overflow-hidden relative group cursor-pointer hover:border-primary/50 transition-colors"
                                         >
                                             {formData.image_url ? (
                                                 <>
@@ -660,7 +660,7 @@ export default function ProductsPage() {
                                                     </div>
                                                 </>
                                             ) : (
-                                                <div className="flex flex-col items-center justify-center h-full text-gray-400 group-hover:text-orange-500 transition-colors">
+                                                <div className="flex flex-col items-center justify-center h-full text-gray-400 group-hover:text-primary transition-colors">
                                                     <ImagePlus size={32} />
                                                     <span className="text-[10px] mt-2 font-bold uppercase tracking-wider">Upload Gambar</span>
                                                 </div>
@@ -681,7 +681,7 @@ export default function ProductsPage() {
                                             value={formData.description}
                                             onChange={e => setFormData({ ...formData, description: e.target.value })}
                                             rows={3}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-orange-500 text-sm"
+                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-primary text-sm"
                                             placeholder="Penjelasan singkat produk..."
                                         />
                                     </div>
@@ -699,7 +699,7 @@ export default function ProductsPage() {
                             <button
                                 onClick={() => setShowSaveConfirm(true)}
                                 disabled={isSaving}
-                                className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-primary to-red-700 text-white shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                             >
                                 {isSaving ? (
                                     <div className="flex items-center gap-2">

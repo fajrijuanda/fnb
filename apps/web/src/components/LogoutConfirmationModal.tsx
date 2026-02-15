@@ -46,7 +46,7 @@ export function LogoutConfirmationModal({ isOpen, onClose, onConfirm }: LogoutCo
                 </button>
 
                 <div className="flex flex-col items-center text-center">
-                    <div className="h-16 w-16 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center mb-4 text-orange-600 dark:text-orange-500">
+                    <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-primary/10 flex items-center justify-center mb-4 text-red-700 dark:text-primary">
                         <LogOut size={32} />
                     </div>
 
@@ -67,7 +67,7 @@ export function LogoutConfirmationModal({ isOpen, onClose, onConfirm }: LogoutCo
                         </button>
                         <button
                             onClick={onConfirm}
-                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all"
+                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-primary to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
                         >
                             Ya, Keluar
                         </button>

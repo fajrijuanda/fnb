@@ -64,8 +64,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
         <div className="flex min-h-screen bg-white dark:bg-[#050505] transition-colors duration-500 relative overflow-hidden font-sans">
             {/* Ambient Background Glows */}
-            <div className="absolute top-[-20%] left-[-10%] w-[400px] lg:w-[600px] h-[400px] lg:h-[600px] bg-orange-600/10 rounded-full blur-[120px] animate-pulse pointer-events-none z-0" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[300px] lg:w-[500px] h-[300px] lg:h-[500px] bg-orange-500/5 rounded-full blur-[100px] pointer-events-none z-0" />
+            <div className="absolute top-[-20%] left-[-10%] w-[400px] lg:w-[600px] h-[400px] lg:h-[600px] bg-red-700/10 rounded-full blur-[120px] animate-pulse pointer-events-none z-0" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[300px] lg:w-[500px] h-[300px] lg:h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none z-0" />
 
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (

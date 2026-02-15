@@ -115,7 +115,7 @@ export default function SettingsPage() {
 
             {/* PROFILE SECTION */}
             <section className="space-y-3 lg:space-y-4">
-                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-500 mb-2">
+                <div className="flex items-center gap-2 text-red-700 dark:text-primary mb-2">
                     <UserIcon className="h-4 w-4 lg:h-5 lg:w-5" />
                     <h2 className="font-bold text-base lg:text-lg">Profil Pengguna</h2>
                 </div>
@@ -124,7 +124,7 @@ export default function SettingsPage() {
                     {/* Profile Card */}
                     <div className="md:col-span-1">
                         <div className="bg-white dark:bg-[#1a1a1a] rounded-xl lg:rounded-2xl p-4 lg:p-6 border border-gray-200 dark:border-white/10 shadow-sm flex flex-col items-center text-center">
-                            <div className="h-16 w-16 lg:h-24 lg:w-24 rounded-xl lg:rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white text-xl lg:text-3xl font-bold shadow-xl shadow-orange-500/20 mb-3 lg:mb-4 cursor-pointer hover:scale-105 transition-transform overflow-hidden relative">
+                            <div className="h-16 w-16 lg:h-24 lg:w-24 rounded-xl lg:rounded-2xl bg-gradient-to-br from-primary to-red-700 flex items-center justify-center text-white text-xl lg:text-3xl font-bold shadow-xl shadow-primary/20 mb-3 lg:mb-4 cursor-pointer hover:scale-105 transition-transform overflow-hidden relative">
                                 {avatarPreview ? (
                                     /* eslint-disable-next-line @next/next/no-img-element */
                                     <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
@@ -144,7 +144,7 @@ export default function SettingsPage() {
                             />
                             <button
                                 onClick={() => fileInputRef.current?.click()}
-                                className="mt-3 lg:mt-4 text-xs lg:text-sm font-medium text-orange-600 dark:text-orange-400 hover:text-orange-700 transition-colors"
+                                className="mt-3 lg:mt-4 text-xs lg:text-sm font-medium text-red-700 dark:text-red-500 hover:text-red-800 transition-colors"
                             >
                                 Ganti Foto Profil
                             </button>
@@ -162,7 +162,7 @@ export default function SettingsPage() {
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                                        className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                     />
                                 </div>
                             </div>
@@ -175,7 +175,7 @@ export default function SettingsPage() {
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                                        className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                     />
                                 </div>
                             </div>
@@ -206,7 +206,7 @@ export default function SettingsPage() {
 
             {/* PREFERENCES SECTION */}
             <section className="space-y-4">
-                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-500 mb-2 mt-4">
+                <div className="flex items-center gap-2 text-red-700 dark:text-primary mb-2 mt-4">
                     <Globe className="h-5 w-5" />
                     <h2 className="font-bold text-lg">Preferensi</h2>
                 </div>

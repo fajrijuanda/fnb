@@ -26,7 +26,7 @@ export default function InventoryPage() {
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Inventori</h1>
                         <p className="text-gray-500 dark:text-gray-400">Kelola stok bahan baku dan peringatan stok</p>
                     </div>
-                    <button className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl shadow-lg">
+                    <button className="flex items-center gap-2 bg-gradient-to-r from-primary to-red-700 text-white px-6 py-3 rounded-xl shadow-lg">
                         <Plus size={20} />
                         <span>Tambah Stok</span>
                     </button>
@@ -47,7 +47,7 @@ export default function InventoryPage() {
                 <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-orange-500/10 dark:bg-white/5 text-left">
+                            <tr className="bg-primary/10 dark:bg-white/5 text-left">
                                 <th className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200">Nama Bahan</th>
                                 <th className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200">Stok Saat Ini</th>
                                 <th className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-200">Satuan</th>
@@ -57,7 +57,7 @@ export default function InventoryPage() {
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                             {dummyItems.map((item) => (
-                                <tr key={item.id} className="hover:bg-orange-50 dark:hover:bg-white/5">
+                                <tr key={item.id} className="hover:bg-red-50 dark:hover:bg-white/5">
                                     <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{item.name}</td>
                                     <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{item.stock}</td>
                                     <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{item.unit}</td>
@@ -81,11 +81,11 @@ export default function InventoryPage() {
             <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
                 <div className="relative max-w-lg w-full bg-white/80 dark:bg-black/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-3xl p-8 text-center shadow-2xl animation-scale-in">
                     {/* Decorative Background Glow */}
-                    <div className="absolute -top-20 -left-20 w-40 h-40 bg-orange-500/30 rounded-full blur-3xl" />
+                    <div className="absolute -top-20 -left-20 w-40 h-40 bg-primary/30 rounded-full blur-3xl" />
                     <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-blue-500/30 rounded-full blur-3xl" />
 
                     <div className="relative z-10 flex flex-col items-center">
-                        <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 mb-6">
+                        <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg shadow-primary/30 mb-6">
                             <Lock className="h-10 w-10 text-white" />
                         </div>
 
@@ -94,7 +94,7 @@ export default function InventoryPage() {
                         </h2>
 
                         <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                            Maaf, fitur <span className="font-semibold text-orange-600 dark:text-orange-400">Manajemen Inventori</span> adalah fitur tambahan eksklusif.
+                            Maaf, fitur <span className="font-semibold text-red-700 dark:text-red-500">Manajemen Inventori</span> adalah fitur tambahan eksklusif.
                             Fitur ini memungkinkan Anda melacak stok bahan baku, mengatur peringatan stok menipis, dan manajemen resep produk secara otomatis.
                         </p>
 
@@ -111,8 +111,8 @@ export default function InventoryPage() {
                                 <span>Hubungi via WhatsApp</span>
                             </Link>
 
-                            <div className="mt-4 p-4 rounded-xl bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-500/10">
-                                <p className="text-xs font-mono text-orange-600 dark:text-orange-400">
+                            <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-primary/10">
+                                <p className="text-xs font-mono text-red-700 dark:text-red-500">
                                     Developer Contact: 0852-1786-1296
                                 </p>
                             </div>

@@ -73,7 +73,7 @@ export default function ReportsPage() {
         <button
             onClick={() => setActiveTab(value)}
             className={`flex items-center gap-1.5 lg:gap-2 px-3 lg:px-6 py-2 lg:py-3 rounded-lg lg:rounded-xl transition-all font-medium text-xs lg:text-base ${activeTab === value
-                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/20'
+                ? 'bg-gradient-to-r from-primary to-red-700 text-white shadow-lg shadow-primary/20'
                 : 'bg-white dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10'
                 }`}
         >
@@ -88,7 +88,7 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
                 <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 lg:p-6 rounded-xl lg:rounded-2xl">
                     <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
-                        <div className="p-1.5 md:p-2 lg:p-3 rounded-lg lg:rounded-xl bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400">
+                        <div className="p-1.5 md:p-2 lg:p-3 rounded-lg lg:rounded-xl bg-red-100 text-red-700 dark:bg-primary/20 dark:text-red-500">
                             <TrendingUp size={16} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
                         </div>
                         <div>
@@ -145,7 +145,7 @@ export default function ReportsPage() {
 
                 <table className="w-full text-xs lg:text-base">
                     <thead>
-                        <tr className="bg-orange-500/10 dark:bg-white/5 text-left text-xs lg:text-sm">
+                        <tr className="bg-primary/10 dark:bg-white/5 text-left text-xs lg:text-sm">
                             <th className="px-3 lg:px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Invoice</th>
                             <th className="px-3 lg:px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Waktu</th>
                             <th className="px-3 lg:px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Metode</th>
@@ -175,7 +175,7 @@ export default function ReportsPage() {
                             </tr>
                         ) : (
                             orders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => (
-                                <tr key={order.id} className="hover:bg-orange-50 dark:hover:bg-white/5 transition-colors text-xs lg:text-sm">
+                                <tr key={order.id} className="hover:bg-red-50 dark:hover:bg-white/5 transition-colors text-xs lg:text-sm">
                                     <td className="px-3 lg:px-4 py-2">
                                         <span className="font-mono font-medium text-gray-900 dark:text-white">
                                             {order.invoice_number}
@@ -228,7 +228,7 @@ export default function ReportsPage() {
             <div className="md:hidden space-y-3">
                 <div className="flex items-center justify-between mb-2">
                     <h3 className="font-bold text-sm text-gray-900 dark:text-white">Riwayat Transaksi</h3>
-                    <button className="text-xs text-orange-600 dark:text-orange-400 hover:underline">
+                    <button className="text-xs text-red-700 dark:text-red-500 hover:underline">
                         Lihat Semua
                     </button>
                 </div>
@@ -297,11 +297,11 @@ export default function ReportsPage() {
             <div className="absolute inset-0 z-10 flex items-center justify-center p-4">
                 <div className="relative max-w-lg w-full bg-white/80 dark:bg-black/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-3xl p-8 text-center shadow-2xl animation-scale-in">
                     {/* Decorative Background Glow */}
-                    <div className="absolute -top-20 -left-20 w-40 h-40 bg-orange-500/30 rounded-full blur-3xl" />
+                    <div className="absolute -top-20 -left-20 w-40 h-40 bg-primary/30 rounded-full blur-3xl" />
                     <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-blue-500/30 rounded-full blur-3xl" />
 
                     <div className="relative z-10 flex flex-col items-center">
-                        <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 mb-6">
+                        <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg shadow-primary/30 mb-6">
                             <Lock className="h-10 w-10 text-white" />
                         </div>
 
@@ -310,7 +310,7 @@ export default function ReportsPage() {
                         </h2>
 
                         <p className="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-                            Fitur <span className="font-semibold text-orange-600 dark:text-orange-400">
+                            Fitur <span className="font-semibold text-red-700 dark:text-red-500">
                                 {activeTab === 'profit_loss' ? 'Analisa Laba Rugi' : 'Analisa Stok'}
                             </span> hanya tersedia untuk pengguna Premium.
                             Dapatkan wawasan mendalam tentang keuntungan bisnis dan perputaran stok Anda secara real-time.
@@ -329,8 +329,8 @@ export default function ReportsPage() {
                                 <span>Hubungi via WhatsApp</span>
                             </Link>
 
-                            <div className="mt-4 p-4 rounded-xl bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-500/10">
-                                <p className="text-xs font-mono text-orange-600 dark:text-orange-400">
+                            <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-primary/10">
+                                <p className="text-xs font-mono text-red-700 dark:text-red-500">
                                     Developer Contact: 0852-1786-1296
                                 </p>
                             </div>

@@ -46,7 +46,7 @@ export function AdminDataTable<T>({
                             <tr>
                                 <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-500 text-sm">
                                     <div className="flex items-center justify-center gap-2">
-                                        <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                         <span>Memuat data...</span>
                                     </div>
                                 </td>
@@ -62,7 +62,7 @@ export function AdminDataTable<T>({
                                 <tr
                                     key={keyExtractor(item)}
                                     onClick={() => onRowClick && onRowClick(item)}
-                                    className={`group hover:bg-orange-500/[0.02] dark:hover:bg-orange-500/[0.05] transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
+                                    className={`group hover:bg-primary/[0.02] dark:hover:bg-primary/[0.05] transition-colors ${onRowClick ? 'cursor-pointer' : ''}`}
                                 >
                                     {columns.map((col, idx) => (
                                         <td key={idx} className={`px-3 py-2 text-[11px] xl:text-xs text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors ${col.className}`}>
@@ -80,7 +80,7 @@ export function AdminDataTable<T>({
             <div className="md:hidden space-y-3">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-10">
-                        <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     </div>
                 ) : data.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 text-xs italic bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl">

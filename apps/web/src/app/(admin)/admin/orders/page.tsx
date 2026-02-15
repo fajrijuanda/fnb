@@ -91,7 +91,7 @@ export default function OrdersPage() {
         {
             header: "Invoice",
             accessor: (order) => (
-                <span className="font-mono font-medium text-gray-900 dark:text-white group-hover:text-orange-600 transition-colors">
+                <span className="font-mono font-medium text-gray-900 dark:text-white group-hover:text-red-700 transition-colors">
                     {order.invoice_number}
                 </span>
             )
@@ -139,7 +139,7 @@ export default function OrdersPage() {
             accessor: (order) => (
                 <button
                     onClick={() => handleViewDetail(order.id)}
-                    className="p-1.5 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-200 rounded-lg hover:bg-orange-500 hover:text-white transition-all shadow-sm"
+                    className="p-1.5 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-200 rounded-lg hover:bg-primary hover:text-white transition-all shadow-sm"
                     title="Lihat Detail"
                 >
                     <Eye size={14} />
@@ -190,7 +190,7 @@ export default function OrdersPage() {
                         <div className="flex justify-between items-end">
                             <div>
                                 <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1">{formatDate(order.created_at)}</p>
-                                <p className="text-sm font-bold text-orange-600 dark:text-orange-400">{formatCurrency(order.total_amount)}</p>
+                                <p className="text-sm font-bold text-red-700 dark:text-red-500">{formatCurrency(order.total_amount)}</p>
                             </div>
                             <button
                                 onClick={() => handleViewDetail(order.id)}
@@ -220,7 +220,7 @@ export default function OrdersPage() {
                         {/* Modal Header */}
                         <div className="px-6 py-4 border-b border-gray-100 dark:border-white/10 flex items-center justify-between bg-gray-50 dark:bg-white/5">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-orange-100 dark:bg-orange-500/20 rounded-lg text-orange-600 dark:text-orange-300">
+                                <div className="p-2 bg-red-100 dark:bg-primary/20 rounded-lg text-red-700 dark:text-red-400">
                                     <Receipt size={20} />
                                 </div>
                                 <div>
@@ -275,10 +275,10 @@ export default function OrdersPage() {
                                             </tr>
                                         ))}
                                     </tbody>
-                                    <tfoot className="bg-orange-50 dark:bg-orange-500/10 border-t border-orange-100 dark:border-orange-500/20">
+                                    <tfoot className="bg-red-50 dark:bg-primary/10 border-t border-red-100 dark:border-primary/20">
                                         <tr>
                                             <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">Total Akhir</td>
-                                            <td className="px-4 py-3 text-right font-bold text-orange-600 dark:text-orange-400 text-lg">
+                                            <td className="px-4 py-3 text-right font-bold text-red-700 dark:text-red-500 text-lg">
                                                 {formatCurrency(selectedOrder.total_amount)}
                                             </td>
                                         </tr>
@@ -305,7 +305,7 @@ export default function OrdersPage() {
                             </button>
                             <button
                                 onClick={() => setSelectedOrder(null)}
-                                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20 font-medium text-sm"
+                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-primary/20 font-medium text-sm"
                             >
                                 Tutup
                             </button>

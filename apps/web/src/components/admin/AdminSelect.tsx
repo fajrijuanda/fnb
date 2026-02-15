@@ -37,7 +37,7 @@ export function AdminSelect({ value, onChange, options, className }: AdminSelect
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-gray-900 dark:text-white hover:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-sm min-w-[60px] justify-between"
+                className="flex items-center gap-2 px-3 py-1.5 bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-gray-900 dark:text-white hover:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-sm min-w-[60px] justify-between"
             >
                 <span>{activeOption?.label || value}</span>
                 <ChevronDown size={14} className={cn("text-gray-400 transition-transform duration-300", isOpen && "rotate-180")} />
@@ -56,7 +56,7 @@ export function AdminSelect({ value, onChange, options, className }: AdminSelect
                                 className={cn(
                                     "w-full flex items-center justify-center px-3 py-2 rounded-lg text-xs font-bold transition-all",
                                     value === option.value
-                                        ? "bg-orange-50 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400"
+                                        ? "bg-red-50 text-red-800 dark:bg-primary/20 dark:text-red-500"
                                         : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5"
                                 )}
                             >

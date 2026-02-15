@@ -37,7 +37,7 @@ export const AdminPagination = ({
                         key={i}
                         onClick={() => onPageChange(i + 1)}
                         className={`min-w-[28px] xl:min-w-[32px] h-7 xl:h-8 text-[10px] xl:text-xs font-bold rounded-lg transition-all ${currentPage === i + 1
-                            ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                            ? 'bg-primary text-white shadow-md shadow-primary/20'
                             : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-white/10'
                             }`}
                     >

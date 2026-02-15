@@ -16,7 +16,7 @@ export const RecentTransactionsList = ({ orders, title, viewAllLink }: RecentTra
         <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl p-3 xl:p-4 shadow-sm h-full">
             <div className="flex items-center justify-between mb-3 xl:mb-4">
                 <h3 className="font-bold text-xs xl:text-sm text-gray-900 dark:text-white">{title}</h3>
-                <Link href={viewAllLink} className="text-[10px] xl:text-xs text-orange-500 hover:text-orange-600 font-medium">Lihat Semua</Link>
+                <Link href={viewAllLink} className="text-[10px] xl:text-xs text-primary hover:text-red-700 font-medium">Lihat Semua</Link>
             </div>
             <div className="space-y-2 xl:space-y-3">
                 {orders.length === 0 ? (
@@ -25,7 +25,7 @@ export const RecentTransactionsList = ({ orders, title, viewAllLink }: RecentTra
                     orders.map(order => (
                         <div key={order.id} className="flex items-center justify-between p-2 xl:p-3 rounded-lg hover:bg-white/40 dark:hover:bg-white/5 transition-colors group">
                             <div className="flex items-center gap-2 xl:gap-3">
-                                <div className="p-1.5 xl:p-2 rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-white group-hover:scale-110 transition-transform">
+                                <div className="p-1.5 xl:p-2 rounded-lg bg-red-100 text-red-700 dark:bg-primary/20 dark:text-white group-hover:scale-110 transition-transform">
                                     <Receipt size={14} className="xl:w-4 xl:h-4" />
                                 </div>
                                 <div>

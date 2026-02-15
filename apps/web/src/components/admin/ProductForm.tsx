@@ -113,7 +113,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Foto Produk
                         </label>
-                        <div className="relative aspect-square w-full max-w-sm mx-auto rounded-2xl border-2 border-dashed border-gray-300 dark:border-white/20 hover:border-orange-500 dark:hover:border-orange-500 transition-colors overflow-hidden group bg-gray-50 dark:bg-black/20">
+                        <div className="relative aspect-square w-full max-w-sm mx-auto rounded-2xl border-2 border-dashed border-gray-300 dark:border-white/20 hover:border-primary dark:hover:border-primary transition-colors overflow-hidden group bg-gray-50 dark:bg-black/20">
                             {previewImage ? (
                                 <>
                                     <Image
@@ -154,7 +154,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                         <button
                             type="button"
                             onClick={() => setIsAvailable(!isAvailable)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${isAvailable ? 'bg-orange-500' : 'bg-gray-200 dark:bg-gray-700'
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isAvailable ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'
                                 }`}
                         >
                             <span
@@ -176,7 +176,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
-                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
                             placeholder="Contoh: Nasi Goreng Spesial"
                         />
                     </div>
@@ -189,7 +189,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                             value={categoryId}
                             onChange={(e) => setCategoryId(e.target.value)}
                             required
-                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
                         >
                             <option value="">Pilih Kategori</option>
                             {categories.map((cat) => (
@@ -210,7 +210,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                             onChange={(e) => setPrice(e.target.value)}
                             required
                             min="0"
-                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 dark:text-white"
+                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
                             placeholder="0"
                         />
                     </div>
@@ -230,7 +230,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={4}
-                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 dark:text-white resize-none"
+                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white resize-none"
                             placeholder="Deskripsi singkat produk..."
                         />
                     </div>
@@ -247,7 +247,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-red-700 text-white shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     {isLoading ? (
                         <>

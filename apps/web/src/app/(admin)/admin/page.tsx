@@ -116,7 +116,7 @@ export default function AdminDashboard() {
                     title="Total Pesanan"
                     value={stats.totalOrders}
                     icon={Receipt}
-                    color="bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-white"
+                    color="bg-red-100 text-red-700 dark:bg-primary/20 dark:text-white"
                 />
                 <StatCard
                     title="Total Produk"
