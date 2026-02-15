@@ -31,6 +31,19 @@ export interface Category {
   color?: string;
 }
 
+export interface StoreSettings {
+  id: number;
+  bank_name: string;
+  bank_account: string;
+  bank_holder: string;
+  dana_number: string;
+  gopay_number: string;
+  shopeepay_number: string;
+  ovo_number: string;
+  qris_image: string | null;
+  updated_at: string;
+}
+
 // Authentication
 export interface User {
   id: number;

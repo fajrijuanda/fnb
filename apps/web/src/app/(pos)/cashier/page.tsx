@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown } from 'lucide-react';
+import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown, CreditCard } from 'lucide-react';
 import { ProductGrid } from '@/components/pos/ProductGrid';
 import { CartSheet } from '@/components/pos/CartSheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
+import { PaymentSettingsModal } from '@/components/pos/PaymentSettingsModal';
 import { CashierProfileModal } from '@/components/pos/CashierProfileModal';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCartStore } from '@/store';
@@ -24,6 +25,7 @@ export default function CashierPage() {
 
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showPaymentSettingsModal, setShowPaymentSettingsModal] = useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -175,6 +177,22 @@ export default function CashierPage() {
 
                                         <div className="my-1 border-t border-gray-100 dark:border-white/5" />
 
+                                        {/* Payment Settings - Only for Superadmin/Mitra */}
+                                        {(user?.role === 'superadmin' || user?.role === 'mitra') && (
+                                            <button
+                                                onClick={() => {
+                                                    setShowPaymentSettingsModal(true);
+                                                    setIsProfileDropdownOpen(false);
+                                                }}
+                                                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                            >
+                                                <CreditCard className="h-4 w-4" />
+                                                Pengaturan Pembayaran
+                                            </button>
+                                        )}
+
+                                        <div className="my-1 border-t border-gray-100 dark:border-white/5" />
+
                                         <button
                                             onClick={() => {
                                                 setShowLogoutConfirm(true);
@@ -246,6 +264,11 @@ export default function CashierPage() {
             <CashierProfileModal
                 isOpen={showProfileModal}
                 onClose={() => setShowProfileModal(false)}
+            />
+
+            <PaymentSettingsModal
+                isOpen={showPaymentSettingsModal}
+                onClose={() => setShowPaymentSettingsModal(false)}
             />
 
             <LogoutConfirmationModal

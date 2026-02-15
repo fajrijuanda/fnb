@@ -6,7 +6,8 @@ import { X, Loader2, Banknote, QrCode, CreditCard, CheckCircle, Printer } from '
 import { useCartStore } from '@/store';
 import { formatRupiah, cn } from '@/lib/utils';
 import api from '@/lib/api';
-import type { CreateOrderRequest, OrderResponse, WrappedResponse } from '@/types/api';
+import type { CreateOrderRequest, OrderResponse, WrappedResponse, StoreSettings } from '@/types/api';
+import Image from 'next/image';
 
 type PaymentMethod = 'CASH' | 'QRIS' | 'TRANSFER';
 

@@ -7,6 +7,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from core.views import StoreSettingsView
 
 
 @api_view(['GET'])
@@ -22,6 +23,7 @@ def api_root(request):
             'ingredients': '/api/v1/inventory/ingredients/',
             'recipes': '/api/v1/inventory/recipes/',
             'stock_logs': '/api/v1/inventory/logs/',
+            'store_settings': '/api/v1/settings/store/',
         }
     })
 
@@ -36,6 +38,7 @@ urlpatterns = [
     path('api/v1/users/', include('users.urls')),
     path('api/v1/inventory/', include('inventory.urls')),
     path('api/v1/ai/', include('ai_assistant.urls')),
+    path('api/v1/settings/store/', StoreSettingsView.as_view(), name='store-settings'),
 ]
 
 # Serve media files in development
