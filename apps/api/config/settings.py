@@ -152,11 +152,12 @@ REST_FRAMEWORK = {
 # =============================================================================
 # CORS Configuration (for Next.js frontend)
 # =============================================================================
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'https://fnb-five.vercel.app',
-]
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:3000',
+#     'http://127.0.0.1:3000',
+#     'https://fnb-five.vercel.app',
+# ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
     'https://fnb-five.vercel.app',
@@ -172,3 +173,20 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 # Google Gemini API Configuration
 # =============================================================================
 GEMINI_API_KEY = "AIzaSyB2lR9hxwyEQj80cq7Rhr_23aBFLpnkHRM"
+
+
+# =============================================================================
+# Web Push Configuration
+# =============================================================================
+VAPID_PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg6JCDUCX8FgXcdmHT
+R2GnLZQQtjZlXYKYralmH159/P6hRANCAAQkkM1Fl0itReoislr/8Lkbp4ncnCRQ
+7PP2tkMo0LRQrJYn25YVBtHboxAJr/cwBcDexSvrKDDU2kf4bfBa47vN
+-----END PRIVATE KEY-----"""
+
+VAPID_PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEJJDNRZdIrUXqIrJa//C5G6eJ3Jwk
+UOzz9rZDKNC0UKyWJ9uWFQbR26MQCa/3MAXA3sUr6ygw1NpH+G3wWuO7zQ==
+-----END PUBLIC KEY-----"""
+
+VAPID_CLAIMS_EMAIL = "mailto:admin@omden.com"

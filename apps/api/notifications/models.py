@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 from users.models import User
 
 class Notification(models.Model):
@@ -23,3 +22,19 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.recipient.username}"
+
+
+class WebPushSubscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='web_push_subscriptions')
+    endpoint = models.URLField(max_length=500, unique=True)
+    auth = models.CharField(max_length=100)
+    p256dh = models.CharField(max_length=100)
+    user_agent = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'endpoint')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.user_agent}"

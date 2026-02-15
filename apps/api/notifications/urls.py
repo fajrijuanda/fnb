@@ -1,9 +1,13 @@
-from django.urls import path
-from .views import NotificationListView, MarkNotificationReadView, MarkAllReadView, DeleteNotificationView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import NotificationViewSet, WebPushSubscriptionView, WebPushTestView, VapidPublicKeyView
+
+router = DefaultRouter()
+router.register(r'', NotificationViewSet, basename='notification')
 
 urlpatterns = [
-    path('', NotificationListView.as_view(), name='notification-list'),
-    path('<int:pk>/read/', MarkNotificationReadView.as_view(), name='notification-mark-read'),
-    path('read-all/', MarkAllReadView.as_view(), name='notification-read-all'),
-    path('<int:pk>/', DeleteNotificationView.as_view(), name='notification-delete'),
+    path('push/subscribe/', WebPushSubscriptionView.as_view(), name='push-subscribe'),
+    path('push/test/', WebPushTestView.as_view(), name='push-test'),
+    path('push/key/', VapidPublicKeyView.as_view(), name='push-key'),
+    path('', include(router.urls)),
 ]

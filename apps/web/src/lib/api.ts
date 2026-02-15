@@ -56,4 +56,19 @@ api.interceptors.response.use(
   },
 );
 
+// ... existing code ...
+
+export const subscribeToPush = async (subscription: PushSubscription) => {
+  const response = await api.post(
+    "/notifications/push/subscribe/",
+    subscription,
+  );
+  return response.data;
+};
+
+export const getVapidPublicKey = async () => {
+  const response = await api.get("/notifications/push/key/");
+  return response.data.publicKey;
+};
+
 export default api;
