@@ -1,9 +1,12 @@
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
 import { CreditCard, Users, MoreHorizontal, CheckCircle, X as XIcon } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
-import { Subscription } from '@/types/api';
+import { extractApiArray } from '@/lib/api-utils';
+import { Subscription, ApiResponse } from '@/types/api';
 
 export default function SubscriptionsPage() {
     const { user } = useAuthStore();
@@ -14,11 +17,8 @@ export default function SubscriptionsPage() {
 
     const fetchSubscriptions = useCallback(async () => {
         try {
-            const response = await api.get('/subscriptions/');
-            // Handle both array and paginated response
-            const data = Array.isArray(response.data) ? response.data :
-                (response.data as any).results ? (response.data as any).results :
-                    (response.data as any).data ? (response.data as any).data : [];
+            const response = await api.get<ApiResponse<Subscription[]>>('/subscriptions/');
+            const data = extractApiArray(response.data);
             setSubscriptions(data);
         } catch (error) {
             console.error('Failed to fetch subscriptions:', error);
