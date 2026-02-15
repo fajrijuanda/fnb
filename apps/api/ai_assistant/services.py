@@ -3,9 +3,8 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 from sales.models import Order
-from inventory.models import StockLog, Ingredient, Recipe
-from catalog.models import Product
-from django.db.models import Sum, Count, F
+from inventory.models import Ingredient
+from django.db.models import Sum, F
 
 class GeminiService:
     def __init__(self):
