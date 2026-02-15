@@ -1,0 +1,538 @@
+@import "tailwindcss";
+
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =============================================================================
+   CloudPOS - A&W Style Design System
+   Warm Brown, Cream, Orange - Classic F&B Aesthetic
+   ============================================================================= */
+
+/* 
+   COLOR PALETTE (Inspired by A&W):
+   
+   🟤 Primary (Brown): #4A2C2A - Deep warm brown
+   🟠 Accent (Orange): #E86A33 - Vibrant orange for CTAs
+   🟡 Background (Cream): #FFF8F0 - Warm cream
+   ⚪ Card (White): #FFFFFF - Clean white cards
+   📝 Text (Dark Brown): #2D1810 - Rich readable brown
+*/
+
+:root {
+  /* === Core Colors === */
+  --background: #FFFFFF;
+  --foreground: #121212;
+
+  /* === Brand Colors === */
+  --primary: #C5161D;
+  /* Merah Utama */
+  --primary-hover: #A01217;
+  --primary-light: #FEE2E2;
+  --primary-foreground: #FFFFFF;
+
+  --accent: #F4B42B;
+  /* Kuning Brand */
+  --accent-hover: #D99F20;
+  --accent-light: #FFFBEB;
+  --accent-foreground: #121212;
+
+  /* === Surface Colors === */
+  --card: #FFFFFF;
+  --card-foreground: #121212;
+  --card-hover: #FFFFFF;
+  /* Keep white on hover to simpler interactions, maybe distinct border/shadow */
+
+  --muted: #FAFAFA;
+  /* Very light gray for internal areas */
+  --muted-foreground: #71717A;
+
+  /* === Semantic Colors === */
+  --success: #10B981;
+  --success-light: #D1FAE5;
+  --warning: #F59E0B;
+  --warning-light: #FEF3C7;
+  --danger: #EF4444;
+  --danger-light: #FEE2E2;
+
+  /* === Border & Divider === */
+  --border: #F4F4F5;
+  --border-hover: #E4E4E5;
+  --ring: #FF8C00;
+
+  /* === Shadows (High Contrast for White on White) === */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.15);
+
+  /* === Radius === */
+  --radius-sm: 0.375rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+  /* === Specific Login Variables === */
+  --login-text: #1a1a1a;
+  --login-text-muted: #4b5563;
+}
+
+/* Dark Mode */
+/* Dark Mode */
+.dark {
+  --background: #121212 !important;
+  --foreground: #EDEDED !important;
+
+  /* === Specific Login Variables === */
+  --login-text: #ffffff !important;
+  --login-text-muted: rgba(255, 255, 255, 0.7) !important;
+
+  --primary: #FF8C00 !important;
+  --primary-hover: #E07B00 !important;
+  --primary-light: #1E1E1E !important;
+  --primary-foreground: #FFFFFF !important;
+
+  --accent: #f97316 !important;
+  --accent-hover: #E07B00 !important;
+  --accent-light: #2C2C2C !important;
+  --accent-foreground: #FFFFFF !important;
+
+  --card: #1E1E1E !important;
+  --card-foreground: #EDEDED !important;
+  --card-hover: #27272A !important;
+
+  --muted: #27272A !important;
+  --muted-foreground: #A1A1AA !important;
+
+  --border: #2E2E2E !important;
+  --border-hover: #3E3E3E !important;
+  --ring: #FF8C00 !important;
+
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4) !important;
+  --shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.5) !important;
+  --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* =============================================================================
+   Tailwind v4 Theme Configuration
+   ============================================================================= */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-danger: var(--danger);
+  --color-danger-light: var(--danger-light);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+
+  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  --shadow-soft: var(--shadow);
+  --shadow-card: var(--shadow-md);
+  --shadow-elevated: var(--shadow-lg);
+}
+
+/* =============================================================================
+   Base Styles
+   ============================================================================= */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: var(--accent-light);
+  color: var(--accent);
+}
+
+/* =============================================================================
+   Custom Scrollbar - Orange, Thin, Semi-Transparent
+   ============================================================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.4);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.6);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(249, 115, 22, 0.4) transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(251, 146, 60, 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(251, 146, 60, 0.5);
+}
+
+.dark * {
+  scrollbar-color: rgba(251, 146, 60, 0.3) transparent;
+}
+
+/* =============================================================================
+   Utility Classes
+   ============================================================================= */
+
+/* Primary Button - Brown */
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+/* Accent Button - Orange (for CTAs) */
+.btn-accent {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-accent:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background: transparent;
+  color: var(--foreground);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  background: var(--muted);
+}
+
+/* Card Hover Effect */
+.card-interactive {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.card-interactive:hover {
+  background: var(--card-hover);
+}
+
+.card-interactive:active {
+  transform: scale(0.98);
+}
+
+/* Badge Styles */
+.badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+/* Price Styling */
+.price {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Hide scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Input Styles */
+input,
+textarea,
+select {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  transition: all 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover);
+}
+
+/* Dark Mode Specific Scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #f97316, #ea580c);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #ea580c, #c2410c);
+}
+
+/* =============================================================================
+   Glassmorphism Utilities
+   ============================================================================= */
+
+/* Base Glass Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Glass */
+.glass-dark {
+  background: rgba(30, 30, 30, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Card Glass */
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Sidebar Glass */
+.glass-sidebar {
+  background: rgba(18, 18, 18, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Modal Glass */
+.glass-modal {
+  background: rgba(30, 30, 30, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Input Glass */
+.glass-input {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--accent) !important;
+}
+
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Button Glass */
+.btn-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-lg);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Gradient Backgrounds */
+.bg-gradient-dark {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+.bg-gradient-mesh {
+  background:
+    radial-gradient(at 40% 20%, rgba(255, 140, 0, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+    linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+}
+
+/* Animated Gradient */
+.bg-gradient-animated {
+  background: linear-gradient(-45deg, #0a0a0a, #1a1a2e, #0f172a, #1e1b4b);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Glow Effects */
+.glow-accent {
+  box-shadow: 0 0 20px rgba(255, 140, 0, 0.3), 0 0 40px rgba(255, 140, 0, 0.1);
+}
+
+.glow-accent-hover:hover {
+  box-shadow: 0 0 30px rgba(255, 140, 0, 0.4), 0 0 60px rgba(255, 140, 0, 0.2);
+}
+
+/* Text Glow */
+.text-glow {
+  text-shadow: 0 0 10px rgba(255, 140, 0, 0.5);
+}
+
+/* Futuristic Orange Background - Theme Aware */
+.bg-futuristic-orange {
+  background-color: #ffffff;
+  /* Light Mode Base */
+  background-image:
+    radial-gradient(at 0% 0%, rgba(255, 140, 0, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(234, 88, 12, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(255, 100, 0, 0.02) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(234, 88, 12, 0.03) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(255, 140, 0, 0.03) 0px, transparent 50%);
+  background-attachment: fixed;
+  background-size: cover;
+  transition: background-color 0.5s ease;
+}
+
+.dark .bg-futuristic-orange {
+  background-color: #050505;
+  /* Dark Mode Base */
+  background-image:
+    radial-gradient(at 0% 0%, rgba(255, 140, 0, 0.3) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(234, 88, 12, 0.3) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(255, 100, 0, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(234, 88, 12, 0.2) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(255, 140, 0, 0.2) 0px, transparent 50%);
+}
+
+.orb-glow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 140, 0, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(50px);
+  z-index: 0;
+}

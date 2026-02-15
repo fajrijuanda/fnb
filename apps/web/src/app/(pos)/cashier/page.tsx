@@ -1,0 +1,230 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown } from 'lucide-react';
+import { ProductGrid } from '@/components/pos/ProductGrid';
+import { CartSheet } from '@/components/pos/CartSheet';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
+import { CashierProfileModal } from '@/components/pos/CashierProfileModal';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { useCartStore } from '@/store';
+import { useAuthStore } from '@/store/useAuthStore';
+import { cn } from '@/lib/utils';
+import { useRef, useEffect } from 'react';
+
+export default function CashierPage() {
+    const router = useRouter();
+    const { logout, isAuthenticated, user, _hasHydrated } = useAuthStore();
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    const totalItems = useCartStore((state) => state.getTotalItems());
+
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsProfileDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    // Show loading screen until hydration completes
+    if (!_hasHydrated) {
+        return <LoadingScreen />;
+    }
+
+    // Protect Route - only check after hydration
+    if (!isAuthenticated) {
+        router.replace('/login');
+        return <LoadingScreen />;
+    }
+
+    const handleLogout = () => {
+        logout();
+        router.replace('/login');
+    };
+
+    return (
+        <div className="h-screen w-full bg-white dark:bg-[#050505] relative overflow-hidden font-sans transition-colors duration-500">
+            {/* Ambient Background Glows */}
+            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-orange-600/10 dark:bg-orange-600/30 rounded-full blur-[120px] animate-pulse pointer-events-none z-0" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-orange-500/5 dark:bg-orange-500/20 rounded-full blur-[100px] pointer-events-none z-0" />
+
+            {/* Main Flex Layout */}
+            <div className="relative z-10 flex flex-col md:flex-row h-full gap-3 lg:gap-4 p-2 lg:p-4">
+
+                {/* Left Panel: Header & Product Grid */}
+                <main className="flex-1 flex flex-col rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl bg-white/90 dark:bg-gray-900/40 backdrop-blur-md border border-white/20 dark:border-white/5 transition-all w-full min-w-0">
+                    {/* Header */}
+                    <header className="flex h-16 items-center justify-between gap-4 px-4 lg:px-6 shrink-0 border-b border-gray-100 dark:border-white/5">
+                        <div className="flex items-center gap-3 shrink-0">
+                            <div className="flex items-center gap-2">
+                                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                                    <span className="text-base animate-bounce">🍚</span>
+                                </div>
+                                <div className="hidden sm:block">
+                                    <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">Warung Jawa</h1>
+                                    <p className="text-[10px] text-gray-500 font-medium tracking-wider uppercase">Cashier Point</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Search Bar */}
+                        <div className="flex-1 max-w-sm mx-4">
+                            <div className="relative group">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+                                <input
+                                    type="text"
+                                    placeholder="Cari menu..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full rounded-xl bg-gray-100 dark:bg-white/5 py-2.5 pl-10 pr-4 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all border-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Right Actions */}
+                        <div className="flex items-center gap-2 shrink-0">
+                            <ThemeToggle
+                                dropdownSide="right"
+                                className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
+                            />
+
+                            {/* Admin Link (Only for Admin Role) */}
+                            {user?.role === 'admin' && (
+                                <button
+                                    onClick={() => router.push('/admin')}
+                                    title="Admin Panel"
+                                    className="hidden lg:flex items-center justify-center h-9 w-9 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                                >
+                                    <Settings className="h-5 w-5" />
+                                </button>
+                            )}
+
+                            {/* Profile Dropdown */}
+                            <div className="relative" ref={dropdownRef}>
+                                <button
+                                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                                    className="flex items-center gap-2 h-9 px-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-white/5"
+                                >
+                                    <div className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+                                        <User className="h-3.5 w-3.5" />
+                                    </div>
+                                    <span className="text-sm font-medium hidden lg:block">{user?.username || 'Kasir'}</span>
+                                    <ChevronDown className="h-3.5 w-3.5 opacity-50 hidden lg:block" />
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                {isProfileDropdownOpen && (
+                                    <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-white dark:bg-[#1a1a1a] shadow-xl border border-gray-100 dark:border-white/10 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="px-3 py-2 border-b border-gray-100 dark:border-white/5 lg:hidden">
+                                            <p className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">{user?.username}</p>
+                                            <p className="text-[10px] text-gray-500 capitalize">{user?.role}</p>
+                                        </div>
+
+                                        <button
+                                            onClick={() => {
+                                                setShowProfileModal(true);
+                                                setIsProfileDropdownOpen(false);
+                                            }}
+                                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                        >
+                                            <Settings className="h-4 w-4" />
+                                            Pengaturan Akun
+                                        </button>
+
+                                        <div className="my-1 border-t border-gray-100 dark:border-white/5" />
+
+                                        <button
+                                            onClick={() => {
+                                                setShowLogoutConfirm(true);
+                                                setIsProfileDropdownOpen(false);
+                                            }}
+                                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                        >
+                                            <LogOut className="h-4 w-4" />
+                                            Keluar
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+
+                            <button
+                                onClick={() => setIsCartOpen(true)}
+                                className="relative flex items-center justify-center h-10 w-10 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white transition-all hover:shadow-lg hover:shadow-orange-500/30 active:scale-95 md:hidden"
+                            >
+                                <ShoppingCart className="h-5 w-5" />
+                                {totalItems > 0 && (
+                                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-orange-600 shadow-sm border border-orange-100">
+                                        {totalItems}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Product Grid Area */}
+                    <div className="flex-1 overflow-hidden relative">
+                        <ProductGrid searchQuery={searchQuery} />
+                    </div>
+                </main>
+
+                {/* Right Panel: Cart */}
+                <aside className="hidden md:flex flex-col w-[260px] lg:w-[300px] xl:w-[340px] shrink-0 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl bg-white/90 dark:bg-gray-900/40 backdrop-blur-md border border-white/20 dark:border-white/5 h-full">
+                    <CartSheet />
+                </aside>
+            </div>
+
+            {/* Mobile Cart Overlay */}
+            <div
+                className={cn(
+                    'fixed inset-0 z-50 md:hidden',
+                    isCartOpen ? 'block' : 'hidden'
+                )}
+            >
+                <div
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                    onClick={() => setIsCartOpen(false)}
+                />
+
+                <div
+                    className={cn(
+                        'absolute bottom-0 left-0 right-0 h-[85vh] rounded-t-3xl bg-white dark:bg-[#1a1a1a] shadow-2xl transition-transform duration-300 flex flex-col',
+                        isCartOpen ? 'translate-y-0' : 'translate-y-full'
+                    )}
+                >
+                    <div className="flex justify-center py-3 shrink-0">
+                        <div className="h-1.5 w-12 rounded-full bg-gray-300 dark:bg-white/20" />
+                    </div>
+                    <div className="flex-1 overflow-hidden relative">
+                        <CartSheet onClose={() => setIsCartOpen(false)} />
+                    </div>
+                </div>
+            </div>
+
+            <CashierProfileModal
+                isOpen={showProfileModal}
+                onClose={() => setShowProfileModal(false)}
+            />
+
+            <LogoutConfirmationModal
+                isOpen={showLogoutConfirm}
+                onClose={() => setShowLogoutConfirm(false)}
+                onConfirm={handleLogout}
+            />
+        </div>
+    );
+}
