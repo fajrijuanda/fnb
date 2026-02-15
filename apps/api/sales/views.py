@@ -32,7 +32,34 @@ class OrderViewSet(viewsets.ModelViewSet):
     list: Daftar semua order
     retrieve: Detail order berdasarkan ID
     """
-    queryset = Order.objects.all()
+    # queryset = Order.objects.all() # Replaced with get_queryset for RBAC
+    
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Order.objects.none()
+
+        # Superuser sees all
+        if user.is_superuser:
+            return Order.objects.all()
+
+        # Mitra sees orders from their cashiers OR themselves
+        if hasattr(user, 'mitra_profile'):
+            from django.db.models import Q
+            return Order.objects.filter(
+                Q(cashier__cashier_profile__mitra__user=user) | 
+                Q(cashier=user)
+            ).distinct()
+
+        # Cashier sees their own orders (and potentially others in same store depending on policy)
+        # For strict security audit, start with OWN orders only.
+        if hasattr(user, 'cashier_profile'):
+             # Optional: Allow seeing all orders in same store:
+             # return Order.objects.filter(cashier__cashier_profile__mitra=user.cashier_profile.mitra)
+             return Order.objects.filter(cashier=user)
+
+        # Fallback
+        return Order.objects.none()
     
     def get_serializer_class(self):
         if self.action == 'create':

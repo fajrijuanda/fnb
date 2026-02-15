@@ -10,21 +10,20 @@ def notify_mitra_on_order(sender, instance, created, **kwargs):
     Notify Mitra (Store Owner) when a new order is created by a Cashier.
     """
     if created and instance.cashier:
-        # Assuming the system is single-tenant for now or Mitra is identified by role 'mitra'
-        # In a real multi-tenant system, we'd link Cashier to Mitra via a Store relation.
-        # For now, notify all 'mitra' users (or specific one if linked).
+        # Check if Cashier has a Mitra (Owner)
+        recipient = None
+        if hasattr(instance.cashier, 'cashier_profile'):
+             recipient = instance.cashier.cashier_profile.mitra.user
+        elif hasattr(instance.cashier, 'mitra_profile'):
+             # Mitra created the order themselves. Notify them?
+             # Yes, for confirmation.
+             recipient = instance.cashier
         
-        # Logic: Find Mitra users. 
-        # Ideally, Cashier is created by a Mitra. We need a way to link them.
-        # If no direct link, we might skip or notify all Mitras (bad for multi-tenant).
-        # Let's assume for this project scope: 1 admin/mitra group or small scale.
-        
-        mitras = User.objects.filter(mitra_profile__isnull=False)
-        for mitra in mitras:
+        if recipient:
             Notification.objects.create(
-                recipient=mitra,
+                recipient=recipient,
                 title="Pesanan Baru",
-                message=f"Pesanan #{instance.id} baru saja dibuat oleh {instance.cashier.username}.",
+                message=f"Pesanan #{instance.invoice_number or instance.id} baru saja dibuat oleh {instance.cashier.username}.",
                 notification_type='success',
                 related_link="/admin/orders" 
             )

@@ -37,10 +37,16 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.request.user
         serializer.save(created_by=user)
 
+from rest_framework.throttling import AnonRateThrottle
+
+class LoginRateThrottle(AnonRateThrottle):
+    scope = 'login'
+
 class CustomLoginView(ObtainAuthToken):
     """
     Custom Login View to return User Role along with Token
     """
+    throttle_classes = [LoginRateThrottle]
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
                                          context={'request': request})

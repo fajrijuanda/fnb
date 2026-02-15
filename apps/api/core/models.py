@@ -1,4 +1,5 @@
 from django.db import models
+from core.utils import compress_image
 
 class StoreSettings(models.Model):
     """Singleton model for store-wide settings (Payment info, etc.)"""
@@ -23,6 +24,13 @@ class StoreSettings(models.Model):
         # Ensure only one instance exists
         if not self.pk and StoreSettings.objects.exists():
             return StoreSettings.objects.first()
+        
+        if self.qris_image:
+             if hasattr(self.qris_image, 'file'):
+                 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+                 if isinstance(self.qris_image.file, (InMemoryUploadedFile, TemporaryUploadedFile)):
+                     self.qris_image = compress_image(self.qris_image)
+
         return super(StoreSettings, self).save(*args, **kwargs)
         
     def __str__(self):
