@@ -19,14 +19,14 @@ def notify_mitra_on_order(sender, instance, created, **kwargs):
         # If no direct link, we might skip or notify all Mitras (bad for multi-tenant).
         # Let's assume for this project scope: 1 admin/mitra group or small scale.
         
-        mitras = User.objects.filter(role='mitra')
+        mitras = User.objects.filter(mitra_profile__isnull=False)
         for mitra in mitras:
             Notification.objects.create(
                 recipient=mitra,
                 title="Pesanan Baru",
                 message=f"Pesanan #{instance.id} baru saja dibuat oleh {instance.cashier.username}.",
                 notification_type='success',
-                related_link=f"/admin/orders" 
+                related_link="/admin/orders" 
             )
 
 # Placeholder for Subscription Signals (if Subscription model exists)

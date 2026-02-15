@@ -46,7 +46,8 @@ class CreateOrderSerializer(serializers.Serializer):
         order = Order.objects.create(
             payment_method=validated_data['payment_method'],
             notes=validated_data.get('notes', ''),
-            status=Order.Status.PAID
+            status=Order.Status.PAID,
+            cashier=validated_data.get('cashier')
         )
         
         # Create order items

@@ -92,3 +92,6 @@ Thumbs.db
 .pytest_cache/
 .nyc_output/
 coverage/
+
+# Documentation
+Rencana_Anggaran_Biaya*

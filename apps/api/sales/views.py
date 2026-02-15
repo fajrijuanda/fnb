@@ -9,8 +9,19 @@ from .serializers import (
     OrderSerializer,
     OrderListSerializer
 )
-from .selectors import get_daily_sales_summary, get_sales_by_date_range
 from inventory.services import deduct_stock_for_order
+from .selectors import (
+    get_daily_sales_summary, 
+    get_sales_by_date_range,
+    get_orders_for_export
+)
+import pandas as pd
+import io
+from django.http import HttpResponse
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -38,7 +49,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        order = serializer.save()
+        order = serializer.save(cashier=request.user)
         
         # Deduct stock from inventory (products and/or ingredients)
         deduct_stock_for_order(order)
@@ -140,4 +151,126 @@ class OrderViewSet(viewsets.ModelViewSet):
             'status': 'success',
             'data': data
         })
+
+    @action(detail=False, methods=['get'], url_path='download-report')
+    def export_report(self, request):
+        print("DEBUG: HIT EXPORT")
+        """
+        Export sales report to Excel or PDF.
+        GET /api/v1/sales/orders/export/?start=...&end=...&format=excel|pdf
+        """
+        start_str = request.query_params.get('start')
+        end_str = request.query_params.get('end')
+        date_str = request.query_params.get('date')
+        export_format = request.query_params.get('format', 'excel')
+        
+        # Date Logic
+        try:
+            if start_str and end_str:
+                start_date = datetime.strptime(start_str, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_str, '%Y-%m-%d').date()
+            elif date_str:
+                start_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                end_date = start_date
+            else:
+                return Response({
+                    'status': 'error',
+                    'message': 'Date or start/end range required.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid date format.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Fetch Data
+        orders = get_orders_for_export(start_date, end_date)
+        
+        if export_format == 'excel':
+            return self._export_to_excel(orders, start_date, end_date)
+        elif export_format == 'pdf':
+            return self._export_to_pdf(orders, start_date, end_date)
+        else:
+            return Response({'error': 'Invalid format'}, status=400)
+
+    def _export_to_excel(self, orders, start_date, end_date):
+        data = []
+        for o in orders:
+            data.append({
+                'Order ID': o.id,
+                'Date': o.created_at.strftime('%Y-%m-%d %H:%M'),
+                'Amount': o.total_amount,
+                'Payment': o.payment_method,
+                'Status': o.status,
+                'Cashier': o.cashier.user.username if hasattr(o, 'cashier') else '-',
+                'Mitra': o.mitra.user.username if hasattr(o, 'mitra') else '-'
+            })
+        
+        if not data:
+            data.append({'Message': 'No Data Available'})
+
+        df = pd.DataFrame(data)
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Sales Report')
+            
+        buffer.seek(0)
+        filename = f"Sales_Report_{start_date}_{end_date}.xlsx"
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    def _export_to_pdf(self, orders, start_date, end_date):
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        elements = []
+        styles = getSampleStyleSheet()
+        
+        # Header
+        elements.append(Paragraph("Sales Report", styles['Title']))
+        elements.append(Paragraph(f"Period: {start_date} to {end_date}", styles['Normal']))
+        elements.append(Spacer(1, 12))
+        
+        # Table Data
+        data = [['Order ID', 'Date', 'Amount', 'Payment', 'Status']]
+        total_amount = 0
+        for o in orders:
+            data.append([
+                str(o.id),
+                o.created_at.strftime('%Y-%m-%d %H:%M'),
+                f"{o.total_amount:,.0f}",
+                o.payment_method,
+                o.status
+            ])
+            total_amount += o.total_amount
+        
+        if not orders:
+            data.append(['No Data', '-', '-', '-', '-'])
+
+        # Total Row
+        data.append(['', '', '', 'TOTAL', f"{total_amount:,.0f}"])
+        
+        # Table Styling
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        
+        buffer.seek(0)
+        filename = f"Sales_Report_{start_date}_{end_date}.pdf"
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 

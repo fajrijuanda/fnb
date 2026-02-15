@@ -33,6 +33,13 @@ class Order(models.Model):
         choices=PaymentMethod.choices,
         default=PaymentMethod.CASH
     )
+    cashier = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='processed_orders'
+    )
     notes = models.TextField(blank=True, null=True)
 
     class Meta:

@@ -76,3 +76,18 @@ def get_sales_by_date_range(start_date, end_date):
 def get_recent_orders(limit=10):
     """Get most recent orders."""
     return Order.objects.select_related().prefetch_related('items__product')[:limit]
+
+def get_orders_for_export(start_date, end_date=None):
+    """
+    Get detailed order list for export.
+    """
+    if end_date is None:
+        end_date = start_date
+        
+    orders = Order.objects.filter(
+        created_at__date__gte=start_date,
+        created_at__date__lte=end_date,
+        status=Order.Status.PAID
+    ).select_related('cashier', 'mitra').order_by('-created_at')
+    
+    return orders

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { DollarSign, ShoppingCart, TrendingUp } from 'lucide-react';
+import { DollarSign, ShoppingCart, TrendingUp, Download, FileText } from 'lucide-react';
 import api from '@/lib/api';
 
 interface DailySummary {
@@ -51,6 +51,26 @@ export default function ReportsPage() {
         }).format(amount);
     };
 
+    const handleExport = async (format: 'excel' | 'pdf') => {
+        try {
+            const response = await api.get(`/sales/orders/download-report/?date=${selectedDate}&format=${format}`, {
+                responseType: 'blob',
+            });
+
+            // Create blob link to download
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Sales_Report_${selectedDate}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert('Gagal mengunduh laporan.');
+        }
+    };
+
     return (
         <div className="p-6">
             {/* Header */}
@@ -59,12 +79,34 @@ export default function ReportsPage() {
                     <h1 className="text-2xl font-bold text-foreground">Laporan Penjualan</h1>
                     <p className="text-muted-foreground">Ringkasan penjualan harian</p>
                 </div>
-                <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="px-4 py-2 border border-border rounded-lg bg-card text-foreground"
-                />
+
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => handleExport('excel')}
+                        className="flex items-center gap-2 px-4 py-2 bg-success/10 text-success hover:bg-success/20 rounded-lg transition-colors"
+                        title="Export Excel"
+                    >
+                        <FileText size={18} />
+                        <span className="hidden sm:inline">Excel</span>
+                    </button>
+                    <button
+                        onClick={() => handleExport('pdf')}
+                        className="flex items-center gap-2 px-4 py-2 bg-danger/10 text-danger hover:bg-danger/20 rounded-lg transition-colors text-red-500"
+                        title="Export PDF"
+                    >
+                        <Download size={18} />
+                        <span className="hidden sm:inline">PDF</span>
+                    </button>
+
+                    <div className="h-8 w-px bg-border mx-2"></div>
+
+                    <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="px-4 py-2 border border-border rounded-lg bg-card text-foreground"
+                    />
+                </div>
             </div>
 
             {loading ? (
