@@ -51,6 +51,7 @@ export interface User {
   email: string;
   role: "superadmin" | "mitra" | "cashier";
   avatar?: string | null;
+  location?: string | null;
   is_subscribed?: boolean;
 }
 

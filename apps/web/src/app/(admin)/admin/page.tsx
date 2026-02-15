@@ -150,6 +150,9 @@ export default function AdminDashboard() {
                     description="Ringkasan pertumbuhan pengguna dan langganan."
                 />
 
+                {/* AI Insights */}
+                <AIInsightsCard />
+
                 {/* Superadmin Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 xl:gap-4">
                     <StatCard

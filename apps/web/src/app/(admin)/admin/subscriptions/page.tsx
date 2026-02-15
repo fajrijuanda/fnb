@@ -79,6 +79,7 @@ export default function SubscriptionsPage() {
                             <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 font-medium">
                                 <tr>
                                     <th className="px-6 py-4">Mitra</th>
+                                    <th className="px-6 py-4">Lokasi</th>
                                     <th className="px-6 py-4">Paket</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4">Berakhir</th>
@@ -88,15 +89,18 @@ export default function SubscriptionsPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                                 {[
-                                    { name: 'Kopi Kenangan', plan: 'Business', status: 'Active', end: '24 Okt 2024', bill: 199000 },
-                                    { name: 'Janji Jiwa', plan: 'Enterprise', status: 'Active', end: '12 Nov 2024', bill: 499000 },
-                                    { name: 'Es Teh Indonesia', plan: 'Starter', status: 'Expiring', end: '2 Hari lagi', bill: 99000 },
-                                    { name: 'Mixue', plan: 'Business', status: 'Inactive', end: 'Expired', bill: 199000 },
-                                    { name: 'Fore Coffee', plan: 'Enterprise', status: 'Active', end: '01 Des 2024', bill: 499000 },
+                                    { name: 'mitra1', location: 'Jakarta Selatan', plan: 'Business', status: 'Active', end: '30 Hari lagi', bill: 199000 },
+                                    { name: 'Kopi Kenangan', location: 'Jakarta Pusat', plan: 'Business', status: 'Active', end: '24 Okt 2024', bill: 199000 },
+                                    { name: 'Janji Jiwa', location: 'Bandung', plan: 'Enterprise', status: 'Active', end: '12 Nov 2024', bill: 499000 },
+                                    { name: 'Es Teh Indonesia', location: 'Surabaya', plan: 'Starter', status: 'Expiring', end: '2 Hari lagi', bill: 99000 },
+                                    { name: 'Mixue', location: 'Medan', plan: 'Business', status: 'Inactive', end: 'Expired', bill: 199000 },
                                 ].map((item, i) => (
                                     <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                                         <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
                                             {item.name}
+                                        </td>
+                                        <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                                            {item.location}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${item.plan === 'Enterprise' ? 'bg-purple-50 text-purple-600 border-purple-100 dark:bg-purple-900/20 dark:border-purple-900/30' :

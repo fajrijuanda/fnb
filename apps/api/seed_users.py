@@ -40,20 +40,24 @@ def create_users():
         print(f"Admin {admin_username} already exists.")
 
     # 2. Mitra 1 (Subscribed - full access)
-    _create_user('mitra1', 'mitra123', 'mitra1@example.com', is_staff=True, is_subscribed=True)
+    _create_user('mitra1', 'mitra123', 'mitra1@example.com', is_staff=True, is_subscribed=True, location='Jakarta Selatan')
 
     # 3. Mitra 2 (Not subscribed - blocked)
-    _create_user('mitra2', 'mitra123', 'mitra2@example.com', is_staff=True, is_subscribed=False)
+    _create_user('mitra2', 'mitra123', 'mitra2@example.com', is_staff=True, is_subscribed=False, location='Bandung')
 
     # 4. Kasir 1 (Subscribed - full POS access)
-    _create_user('kasir1', 'kasir123', 'kasir1@example.com', is_staff=False, is_subscribed=True)
+    # Kasir inherits location from Mitra usually, but for seed we set it.
+    _create_user('kasir1', 'kasir123', 'kasir1@example.com', is_staff=False, is_subscribed=True, location='Jakarta Selatan')
 
     # 5. Kasir 2 (Not subscribed - blocked)
-    _create_user('kasir2', 'kasir123', 'kasir2@example.com', is_staff=False, is_subscribed=False)
+    _create_user('kasir2', 'kasir123', 'kasir2@example.com', is_staff=False, is_subscribed=False, location='Bandung')
 
 
-def _create_user(username, password, email, is_staff=False, is_subscribed=False):
+def _create_user(username, password, email, is_staff=False, is_subscribed=False, location=None):
     from users.models import UserProfile
+    from subscriptions.models import Subscription
+    from django.utils import timezone
+    from datetime import timedelta
 
     if not User.objects.filter(username=username).exists():
         print(f"Creating User: {username}")
@@ -64,13 +68,50 @@ def _create_user(username, password, email, is_staff=False, is_subscribed=False)
 
         profile, _ = UserProfile.objects.get_or_create(user=user)
         profile.is_subscribed = is_subscribed
+        profile.location = location
         profile.save()
+
+        # Create Subscription record if subscribed
+        if is_subscribed:
+            Subscription.objects.create(
+                user=user,
+                plan_name='Business', # Default plan for seeded users
+                status='active',
+                start_date=timezone.now().date(),
+                end_date=timezone.now().date() + timedelta(days=30)
+            )
 
         role = 'mitra' if is_staff else 'cashier'
         sub = 'subscribed' if is_subscribed else 'not subscribed'
-        print(f"  -> {username} ({role}, {sub}) created successfully.")
+        print(f"  -> {username} ({role}, {sub}, {location}) created successfully.")
     else:
-        print(f"User {username} already exists.")
+        # Update existing user if needed (e.g. location or subscription)
+        user = User.objects.get(username=username)
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        
+        updated = False
+        if location and profile.location != location:
+            profile.location = location
+            updated = True
+        
+        if is_subscribed != profile.is_subscribed:
+            profile.is_subscribed = is_subscribed
+            updated = True
+            
+        if updated:
+            profile.save()
+            print(f"  -> Updated {username} profile.")
+        
+        # Check/Create subscription if missing
+        if is_subscribed and not Subscription.objects.filter(user=user, status='active').exists():
+            Subscription.objects.create(
+                user=user,
+                plan_name='Business',
+                status='active',
+                start_date=timezone.now().date(),
+                end_date=timezone.now().date() + timedelta(days=30)
+            )
+            print(f"  -> Created missing subscription for {username}.")
 
 
 if __name__ == '__main__':
