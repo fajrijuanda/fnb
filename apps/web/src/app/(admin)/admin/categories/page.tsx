@@ -40,6 +40,8 @@ const COMMON_ICONS = [
     { name: 'Package', label: 'Paket' },
     { name: 'Tag', label: 'Promo' },
     { name: 'ShoppingBag', label: 'Takeaway' },
+    { name: 'EggFried', label: 'Gyoza/Goreng' },
+    { name: 'ChefHat', label: 'Chef' },
 ];
 
 // Helper to determine if color is hex or legacy preset
@@ -76,9 +78,9 @@ const getCategoryStyles = (colorName: string | null | undefined) => {
 };
 
 const IconComponent = ({ name, size = 16, className = "" }: { name: string, size?: number, className?: string }) => {
-    // Standardize name to PascalCase (e.g., 'utensils' -> 'Utensils')
-    const standardizedName = name.charAt(0).toUpperCase() + name.slice(1);
-    const Icon = (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[standardizedName]
+    // Convert kebab-case to PascalCase (e.g., 'egg-fried' -> 'EggFried', 'utensils' -> 'Utensils')
+    const pascalCase = name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+    const Icon = (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[pascalCase]
         || (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[name]
         || LucideIcons.HelpCircle;
     return <Icon size={size} className={className} />;

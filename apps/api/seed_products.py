@@ -26,9 +26,9 @@ def seed_products():
 
     # 1. Define Categories
     categories_data = [
-        {'name': 'Dimsum', 'icon': 'utensils', 'color': 'orange', 'order': 1},
-        {'name': 'Gyoza', 'icon': 'chef-hat', 'color': 'red', 'order': 2},
-        {'name': 'Wonton', 'icon': 'soup', 'color': 'yellow', 'order': 3},
+        {'name': 'Dimsum', 'icon': 'utensils', 'color': 'red', 'order': 1},
+        {'name': 'Gyoza', 'icon': 'egg-fried', 'color': 'orange', 'order': 2},
+        {'name': 'Wonton', 'icon': 'soup', 'color': 'green', 'order': 3},
     ]
 
     categories = {}

@@ -18,15 +18,18 @@ import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
 
 const IconComponent = ({ name, size = 16, className = "", style = {} }: { name: string, size?: number, className?: string, style?: CSSProperties }) => {
-    // Standardize name to PascalCase (e.g., 'utensils' -> 'Utensils')
-    const standardizedName = name.charAt(0).toUpperCase() + name.slice(1);
-    const Icon = (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[standardizedName]
+    // Convert kebab-case to PascalCase (e.g., 'chef-hat' -> 'ChefHat', 'utensils' -> 'Utensils')
+    const pascalCase = name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('');
+    const Icon = (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[pascalCase]
         || (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[name]
         || LucideIcons.HelpCircle;
     return <Icon size={size} className={className} style={style} />;
 };
 
 const CATEGORY_COLORS: Record<string, { bg: string, text: string, icon: string, style?: { container?: CSSProperties, icon?: CSSProperties } }> = {
+    'Dimsum': { bg: 'bg-red-100 dark:bg-red-500/20', text: 'text-red-700 dark:text-red-300', icon: 'text-red-600' },
+    'Gyoza': { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-300', icon: 'text-amber-600' },
+    'Wonton': { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-300', icon: 'text-emerald-600' },
     'Makanan Berat': { bg: 'bg-red-100 dark:bg-primary/20', text: 'text-red-800 dark:text-red-400', icon: 'text-red-700' },
     'Makanan Ringan': { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-300', icon: 'text-amber-600' },
     'Minuman': { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-300', icon: 'text-blue-600' },
@@ -367,14 +370,15 @@ export default function ProductsPage() {
             }
 
             const mapping: Record<string, { bg: string, text: string, icon: string }> = {
-                orange: { bg: 'bg-red-100 dark:bg-primary/20', text: 'text-red-800 dark:text-red-500', icon: 'text-primary' },
+                orange: { bg: 'bg-amber-100 dark:bg-amber-500/20', text: 'text-amber-700 dark:text-amber-400', icon: 'text-amber-500' },
                 blue: { bg: 'bg-blue-100 dark:bg-blue-500/20', text: 'text-blue-700 dark:text-blue-400', icon: 'text-blue-500' },
                 purple: { bg: 'bg-purple-100 dark:bg-purple-500/20', text: 'text-purple-700 dark:text-purple-400', icon: 'text-purple-500' },
-                green: { bg: 'bg-green-100 dark:bg-green-500/20', text: 'text-green-700 dark:text-green-400', icon: 'text-green-500' },
+                green: { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-400', icon: 'text-emerald-500' },
                 red: { bg: 'bg-red-100 dark:bg-red-500/20', text: 'text-red-700 dark:text-red-400', icon: 'text-red-500' },
                 cyan: { bg: 'bg-cyan-100 dark:bg-cyan-500/20', text: 'text-cyan-700 dark:text-cyan-400', icon: 'text-cyan-500' },
                 pink: { bg: 'bg-pink-100 dark:bg-pink-500/20', text: 'text-pink-700 dark:text-pink-400', icon: 'text-pink-500' },
                 indigo: { bg: 'bg-indigo-100 dark:bg-indigo-500/20', text: 'text-indigo-700 dark:text-indigo-400', icon: 'text-indigo-500' },
+                yellow: { bg: 'bg-yellow-100 dark:bg-yellow-500/20', text: 'text-yellow-700 dark:text-yellow-400', icon: 'text-yellow-500' },
             };
             if (mapping[cat.color]) {
                 colorConfig = mapping[cat.color];
