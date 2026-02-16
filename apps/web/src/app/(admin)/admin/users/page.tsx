@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Pencil, Trash2, X, Loader2, Save, Shield, UserCircle, Store, Users } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Save, Shield, UserCircle, Store, Users, CreditCard } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -159,8 +159,7 @@ export default function UsersPage() {
     };
 
     const filteredUsers = users.filter(user => {
-        // Hide Cashiers
-        if (user.role === 'cashier') return false;
+        // Show all roles including cashier
 
         // Role filter
         if (filterRole !== 'all' && user.role !== filterRole) return false;
@@ -196,11 +195,13 @@ export default function UsersPage() {
             header: "Role",
             accessor: (user) => (
                 <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'superadmin'
-                    ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
-                    : 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
+                        ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
+                        : user.role === 'mitra'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
+                            : 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300'
                     }`}>
-                    {user.role === 'superadmin' ? <Shield size={10} /> : <Store size={10} />}
-                    {user.role === 'superadmin' ? 'Super Admin' : 'Mitra'}
+                    {user.role === 'superadmin' ? <Shield size={10} /> : user.role === 'mitra' ? <Store size={10} /> : <CreditCard size={10} />}
+                    {user.role === 'superadmin' ? 'Super Admin' : user.role === 'mitra' ? 'Mitra' : 'Kasir'}
                 </span>
             )
         },
@@ -230,18 +231,25 @@ export default function UsersPage() {
             className: "text-right",
             accessor: (user) => (
                 <div className="flex items-center justify-end gap-1">
-                    <button
-                        onClick={() => handleOpenModal(user)}
-                        className="p-1 lg:p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 dark:hover:bg-blue-500/20 dark:text-blue-400 transition-colors"
-                    >
-                        <Pencil size={14} />
-                    </button>
-                    <button
-                        onClick={() => setDeleteId(user.id)}
-                        className="p-1 lg:p-1.5 rounded-lg hover:bg-red-50 text-red-600 dark:hover:bg-red-500/20 dark:text-red-400 transition-colors"
-                    >
-                        <Trash2 size={14} />
-                    </button>
+                    {user.role !== 'cashier' && (
+                        <>
+                            <button
+                                onClick={() => handleOpenModal(user)}
+                                className="p-1 lg:p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 dark:hover:bg-blue-500/20 dark:text-blue-400 transition-colors"
+                            >
+                                <Pencil size={14} />
+                            </button>
+                            <button
+                                onClick={() => setDeleteId(user.id)}
+                                className="p-1 lg:p-1.5 rounded-lg hover:bg-red-50 text-red-600 dark:hover:bg-red-500/20 dark:text-red-400 transition-colors"
+                            >
+                                <Trash2 size={14} />
+                            </button>
+                        </>
+                    )}
+                    {user.role === 'cashier' && (
+                        <span className="text-[10px] text-gray-400 italic px-2">View Only</span>
+                    )}
                 </div>
             )
         }
@@ -258,7 +266,7 @@ export default function UsersPage() {
             <div className="grid grid-cols-3 gap-2 lg:gap-4">
                 <StatCard
                     title="Total Pengguna"
-                    value={users.filter(u => u.role !== 'cashier').length}
+                    value={users.length}
                     icon={Users}
                     color="bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-white"
                 />

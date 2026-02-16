@@ -59,10 +59,7 @@ export default function AdminDashboard() {
                 const subs = extractApiArray(subsRes.data);
 
                 const activeSubs = subs.filter(s => s.status === 'active').length;
-                const monthlyRevenue = subs.filter(s => s.status === 'active').reduce((acc, curr) => {
-                    const price = curr.plan_name === 'Eksklusif' ? 299000 : (curr.plan_name === 'Eksekutif' ? 199000 : 0);
-                    return acc + price;
-                }, 0);
+                const monthlyRevenue = 0; // Free for first 2 years
 
                 // Compute trends based on data joined in last 30 vs 30-60 days
                 const now = new Date();
@@ -117,7 +114,7 @@ export default function AdminDashboard() {
                     activeSubs,
                     monthlyRevenue
                 });
-                setRecentUsers(users.slice(0, 5));
+                setRecentUsers(users.slice(0, 2));
             } else {
                 // Fetch Sales/Products for Mitra
                 const [ordersRes, productsRes] = await Promise.all([

@@ -191,10 +191,7 @@ export default function SubscriptionsPage() {
                             </h3>
                             <p className="text-lg md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
                                 {isLoading ? '...' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
-                                    isSuperAdmin ? subscriptions.reduce((acc, curr) => {
-                                        const price = curr.plan_name === 'Eksklusif' ? 299000 : (curr.plan_name === 'Eksekutif' ? 199000 : 0);
-                                        return acc + price;
-                                    }, 0) : (subscriptions.length > 0 && subscriptions[0].plan_name === 'Eksklusif' ? 299000 : (subscriptions.length > 0 && subscriptions[0].plan_name === 'Eksekutif' ? 199000 : 0))
+                                    isSuperAdmin ? 0 : 0
                                 )}
                             </p>
                         </div>

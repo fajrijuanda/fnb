@@ -444,9 +444,9 @@ export default function ProductsPage() {
             accessor: (product) => formatCurrency(product.price),
             className: "text-red-700 dark:text-red-500 font-semibold"
         },
-        {
+        ...(user?.role === 'mitra' ? [{
             header: "Status",
-            accessor: (product) => {
+            accessor: (product: Product) => {
                 const isAvailable = product.mitra_availability ?? (product.stock_status?.available ?? product.is_available);
                 return (
                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold ${isAvailable
@@ -457,7 +457,7 @@ export default function ProductsPage() {
                     </span>
                 );
             }
-        },
+        } as Column<Product>] : []),
         ...(user?.role === 'superadmin' ? [{
             header: "Aksi",
             className: "text-right",
@@ -501,18 +501,22 @@ export default function ProductsPage() {
                     icon={Tag}
                     color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white"
                 />
-                <StatCard
-                    title="Tersedia"
-                    value={(Array.isArray(products) ? products : []).filter(p => p.mitra_availability ?? (p.stock_status?.available ?? p.is_available)).length}
-                    icon={CheckCircle2}
-                    color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white"
-                />
-                <StatCard
-                    title="Habis"
-                    value={(Array.isArray(products) ? products : []).filter(p => !(p.mitra_availability ?? (p.stock_status?.available ?? p.is_available))).length}
-                    icon={XCircle}
-                    color="bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-white"
-                />
+                {user?.role === 'mitra' && (
+                    <>
+                        <StatCard
+                            title="Tersedia"
+                            value={(Array.isArray(products) ? products : []).filter(p => p.mitra_availability ?? (p.stock_status?.available ?? p.is_available)).length}
+                            icon={CheckCircle2}
+                            color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white"
+                        />
+                        <StatCard
+                            title="Habis"
+                            value={(Array.isArray(products) ? products : []).filter(p => !(p.mitra_availability ?? (p.stock_status?.available ?? p.is_available))).length}
+                            icon={XCircle}
+                            color="bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-white"
+                        />
+                    </>
+                )}
             </div>
 
             <AdminSearchHeader
@@ -707,29 +711,17 @@ export default function ProductsPage() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
-                                        <div className="flex-1">
-                                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300 block">Status Tersedia</span>
-                                            {user?.role === 'mitra' && (
+                                    {user?.role === 'mitra' && (
+                                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+                                            <div className="flex-1">
+                                                <span className="text-sm font-bold text-gray-700 dark:text-gray-300 block">Status Tersedia</span>
                                                 <span className="text-[10px] text-gray-500 block mt-0.5">Otomatis berdasarkan stok bahan baku</span>
-                                            )}
-                                        </div>
-                                        {user?.role !== 'mitra' ? (
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.is_available}
-                                                    onChange={e => setFormData({ ...formData, is_available: e.target.checked })}
-                                                    className="sr-only peer"
-                                                />
-                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-                                            </label>
-                                        ) : (
+                                            </div>
                                             <div className="px-2 py-1 bg-gray-200 dark:bg-white/10 rounded text-[10px] font-bold text-gray-500">
                                                 AUTO
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-4">

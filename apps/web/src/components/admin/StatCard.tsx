@@ -24,7 +24,7 @@ export const StatCard = ({ title, value, icon: Icon, trend, color }: StatCardPro
                 </div>
             )}
         </div>
-        <p className="text-gray-500 dark:text-gray-100 text-[9px] md:text-[10px] xl:text-xs font-medium truncate">{title}</p>
-        <h3 className="text-xs md:text-sm xl:text-lg font-bold text-gray-900 dark:text-white mt-0.5 truncate">{value}</h3>
+        <p className="text-gray-500 dark:text-gray-100 text-[9px] md:text-[9px] lg:text-[10px] xl:text-xs font-medium truncate">{title}</p>
+        <h3 className="text-xs md:text-xs lg:text-sm xl:text-lg font-bold text-gray-900 dark:text-white mt-0.5 truncate">{value}</h3>
     </div>
 );

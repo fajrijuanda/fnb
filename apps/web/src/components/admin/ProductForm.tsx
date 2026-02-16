@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { AIGenerateButton } from '@/components/admin/ai/AIGenerateButton';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import type { Product, Category, WrappedResponse } from '@/types/api';
 
@@ -18,6 +19,7 @@ interface ProductFormProps {
 
 export default function ProductForm({ initialData, isEditing = false }: ProductFormProps) {
     const router = useRouter();
+    const { user } = useAuthStore();
     const [isLoading, setIsLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [previewImage, setPreviewImage] = useState<string | null>(initialData?.image_url || null);
@@ -145,25 +147,27 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
-                        <div>
-                            <span className="block font-medium text-gray-900 dark:text-white">Status Produk</span>
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                                {isAvailable ? 'Tersedia untuk dijual' : 'Tidak tersedia (Habis)'}
-                            </span>
+                    {user?.role === 'mitra' && (
+                        <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+                            <div>
+                                <span className="block font-medium text-gray-900 dark:text-white">Status Produk</span>
+                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                    {isAvailable ? 'Tersedia untuk dijual' : 'Tidak tersedia (Habis)'}
+                                </span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsAvailable(!isAvailable)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isAvailable ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'
+                                    }`}
+                            >
+                                <span
+                                    className={`${isAvailable ? 'translate-x-6' : 'translate-x-1'
+                                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                                />
+                            </button>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setIsAvailable(!isAvailable)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isAvailable ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'
-                                }`}
-                        >
-                            <span
-                                className={`${isAvailable ? 'translate-x-6' : 'translate-x-1'
-                                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                            />
-                        </button>
-                    </div>
+                    )}
                 </div>
 
                 {/* Right Column: Details */}
