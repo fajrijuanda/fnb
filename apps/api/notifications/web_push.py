@@ -1,5 +1,10 @@
 import json
-from pywebpush import webpush, WebPushException
+try:
+    from pywebpush import webpush, WebPushException
+except ImportError:
+    webpush = None
+    WebPushException = None
+
 from django.conf import settings
 from .models import WebPushSubscription
 
@@ -7,6 +12,10 @@ def send_web_push(subscription, payload):
     """
     Send a Web Push notification to a specific subscription.
     """
+    if not webpush:
+        print("pywebpush not installed. Skipping notification.")
+        return False
+
     try:
         webpush(
             subscription_info={
