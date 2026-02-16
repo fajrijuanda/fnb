@@ -25,6 +25,12 @@ export default function SubscriptionsPage() {
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [filterPlan, setFilterPlan] = useState<string>('all');
 
+    // Extension Modal State
+    const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
+    const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
+    const [extensionDuration, setExtensionDuration] = useState<number>(1);
+    const [isExtending, setIsExtending] = useState(false);
+
     const fetchSubscriptions = useCallback(async () => {
         try {
             const response = await api.get<ApiResponse<Subscription[]>>('/subscriptions/');
@@ -52,6 +58,27 @@ export default function SubscriptionsPage() {
 
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+
+    const handleOpenExtensionModal = (subscription: Subscription) => {
+        setSelectedSubscription(subscription);
+        setExtensionDuration(1); // Default 1 month
+        setIsExtensionModalOpen(true);
+    };
+
+    const handleExtendSubscription = async () => {
+        if (!selectedSubscription) return;
+        setIsExtending(true);
+        try {
+            await api.post(`/subscriptions/${selectedSubscription.id}/extend/`, { months: extensionDuration });
+            fetchSubscriptions();
+            setIsExtensionModalOpen(false);
+            setSelectedSubscription(null);
+        } catch (error) {
+            console.error('Failed to extend subscription:', error);
+        } finally {
+            setIsExtending(false);
+        }
     };
 
     const filteredSubscriptions = subscriptions.filter(item => {
@@ -130,7 +157,22 @@ export default function SubscriptionsPage() {
                     {formatDate(item.start_date)} — {formatDate(item.end_date)}
                 </span>
             )
-        }
+        },
+        ...(isSuperAdmin ? [{
+            header: "Aksi",
+            className: "text-right",
+            accessor: (item: Subscription) => (
+                <div className="flex justify-end">
+                    <button
+                        onClick={() => handleOpenExtensionModal(item)}
+                        className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1.5"
+                    >
+                        <TrendingUp size={14} />
+                        Perpanjang
+                    </button>
+                </div>
+            )
+        }] : [])
     ];
 
     return (
@@ -269,6 +311,68 @@ export default function SubscriptionsPage() {
                 pageSize={pageSize}
                 onPageChange={setCurrentPage}
             />
+            {/* Extension Modal */}
+            {isExtensionModalOpen && selectedSubscription && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animation-fade-in">
+                    <div className="w-full max-w-md bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden animation-scale-in">
+                        <div className="px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                                Perpanjang Langganan
+                            </h3>
+                            <button
+                                onClick={() => setIsExtensionModalOpen(false)}
+                                className="text-gray-500 hover:text-gray-700 dark:hover:text-white transition-colors"
+                            >
+                                <XIcon size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800">
+                                <p className="text-sm text-blue-800 dark:text-blue-300">
+                                    Memperpanjang langganan untuk <strong>{selectedSubscription.user_details?.username}</strong> ({selectedSubscription.plan_name}).
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Durasi Perpanjangan
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {[1, 3, 6, 12].map((month) => (
+                                        <button
+                                            key={month}
+                                            onClick={() => setExtensionDuration(month)}
+                                            className={`px-4 py-3 rounded-xl border-2 transition-all font-medium ${extensionDuration === month
+                                                    ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-500'
+                                                    : 'border-gray-200 dark:border-white/10 hover:border-blue-200 dark:hover:border-white/20 text-gray-600 dark:text-gray-400'
+                                                }`}
+                                        >
+                                            {month} Bulan
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4">
+                                <button
+                                    onClick={() => setIsExtensionModalOpen(false)}
+                                    className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-medium"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={handleExtendSubscription}
+                                    disabled={isExtending}
+                                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-900/20 transition-all font-bold disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {isExtending ? 'Menyimpan...' : 'Simpan Perubahan'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

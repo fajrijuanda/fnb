@@ -133,7 +133,7 @@ export default function BillingPage() {
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
                         <div className="bg-white/5 rounded-2xl p-4 md:p-5 backdrop-blur-sm border border-white/5 hover:bg-white/10 transition-colors">
                             <p className="text-xs text-white/50 mb-1.5 uppercase font-medium tracking-wide">Mulai Langganan</p>
                             <p className="font-semibold text-lg md:text-xl tracking-tight">{activeSubscription?.start_date ? formatDate(activeSubscription.start_date) : '-'}</p>
@@ -146,6 +146,18 @@ export default function BillingPage() {
                             <p className="text-xs text-white/50 mb-1.5 uppercase font-medium tracking-wide">Pembayaran Terakhir</p>
                             <p className="font-semibold text-lg md:text-xl tracking-tight capitalize">{activeSubscription?.status === 'active' ? 'Lunas' : (activeSubscription?.status || '-')}</p>
                         </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                        <a
+                            href={`https://wa.me/628112835789?text=${encodeURIComponent(`Halo Admin OMDEN, saya pemilik akun *${user?.username}* ingin memperpanjang langganan dan melakukan pembayaran.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold shadow-lg shadow-green-900/20 transition-all hover:scale-105 active:scale-95"
+                        >
+                            <CreditCard size={20} />
+                            Perpanjang Langganan & Bayar
+                        </a>
                     </div>
                 </div>
             </section>

@@ -52,7 +52,8 @@ export default function UsersPage() {
         setIsLoading(true);
         try {
             const response = await api.get<ApiResponse<User[]>>('/users/');
-            setUsers(extractApiArray(response.data));
+            const allUsers = extractApiArray(response.data);
+            setUsers(allUsers.filter(u => u.role === 'cashier'));
         } catch (error) {
             console.error('Failed to fetch users:', error);
             showError('Gagal memuat data kasir');
