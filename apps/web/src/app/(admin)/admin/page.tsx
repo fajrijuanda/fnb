@@ -14,7 +14,7 @@ import api from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import type { OrderResponse, ApiResponse, Product, User, Subscription } from '@/types/api';
 import { StatCard } from '@/components/admin/StatCard';
-import { AIInsightsCard } from '@/components/admin/ai/AIInsightsCard';
+// import { AIInsightsCard } from '@/components/admin/ai/AIInsightsCard';
 import { DashboardChart } from '@/components/admin/DashboardChart';
 import { RecentTransactionsList } from '@/components/admin/RecentTransactionsList';
 import { AdminHeader } from '@/components/admin/AdminHeader';
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
                 />
 
                 {/* AI Insights */}
-                <AIInsightsCard />
+                {/* <AIInsightsCard /> */}
 
                 {/* Superadmin Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 xl:gap-4">
@@ -295,7 +295,7 @@ export default function AdminDashboard() {
             />
 
             {/* AI Insights */}
-            <AIInsightsCard />
+            {/* <AIInsightsCard /> */}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 xl:gap-4">

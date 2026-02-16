@@ -147,155 +147,24 @@ class PaymentVerificationService:
         Analyze payment proof image using Gemini Vision AI.
         Returns: { verified: bool, confidence: int, details: dict, reason: str }
         """
-        from django.utils import timezone
-        from PIL import Image as PILImage
-        from core.models import StoreSettings
-
-        # Get HQ bank details for comparison
-        store_settings = StoreSettings.objects.first()
-        hq_bank_account = store_settings.bank_account if store_settings else ''
-        hq_bank_name = store_settings.bank_name if store_settings else ''
-        hq_bank_holder = store_settings.bank_holder if store_settings else ''
-
-        order = payment.order
-        expected_amount = float(order.total_amount)
-        payment_method = order.get_payment_method_display()
-
-        # Open the proof image for Gemini Vision
-        try:
-            img = PILImage.open(payment.payment_proof.path)
-        except Exception as e:
-            return {
-                'verified': False,
-                'confidence': 0,
-                'details': {'error': str(e)},
-                'reason': 'Gagal membuka gambar bukti pembayaran. Pastikan file adalah gambar yang valid.'
-            }
-
-        # Build the AI prompt
-        prompt = f"""Kamu adalah sistem verifikasi pembayaran otomatis. Analisis screenshot bukti transfer/pembayaran berikut.
-
-TUGAS: Ekstrak informasi dari gambar dan validasi terhadap data pesanan.
-
-DATA PESANAN YANG HARUS DICOCOKKAN:
-- Nominal yang harus dibayar: Rp {expected_amount:,.0f}
-- Metode pembayaran: {payment_method}
-- Rekening tujuan HQ: {hq_bank_name} - {hq_bank_account} a/n {hq_bank_holder}
-- Kode pembayaran: {payment.payment_code}
-
-INSTRUKSI:
-1. Baca semua teks dalam gambar
-2. Ekstrak: nominal transfer, rekening tujuan, nama penerima, tanggal transaksi, status transaksi
-3. Cocokkan nominal dengan data pesanan (toleransi ±Rp 0)
-4. Cocokkan rekening tujuan dengan data HQ
-5. Pastikan status transaksi menunjukkan "berhasil"/"sukses"/"success"/"completed"
-
-RESPOND DALAM FORMAT JSON SAJA (tanpa markdown code block):
-{{
-    "extracted_amount": <nominal yang terdeteksi dalam angka, 0 jika tidak terdeteksi>,
-    "extracted_account": "<nomor rekening tujuan yang terdeteksi>",
-    "extracted_recipient": "<nama penerima yang terdeteksi>",
-    "extracted_date": "<tanggal transaksi yang terdeteksi>",
-    "transaction_status": "<status transaksi: berhasil/gagal/pending/tidak_terdeteksi>",
-    "amount_match": <true/false>,
-    "account_match": <true/false>,
-    "is_successful": <true apabila status transaksi berhasil>,
-    "confidence": <0-100 tingkat keyakinan analisis>,
-    "notes": "<catatan tambahan jika ada yang mencurigakan>"
-}}"""
-
-        try:
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=[prompt, img]
-            )
-            result_text = response.text.strip()
-
-            # Clean markdown wrapping if present
-            if result_text.startswith('```'):
-                result_text = result_text.split('\n', 1)[1] if '\n' in result_text else result_text
-                if result_text.endswith('```'):
-                    result_text = result_text[:-3].strip()
-
-            import json
-            result = json.loads(result_text)
-        except json.JSONDecodeError:
-            return {
-                'verified': False,
-                'confidence': 0,
-                'details': {'raw_response': response.text if 'response' in dir() else ''},
-                'reason': 'AI tidak dapat menganalisis gambar. Pastikan bukti pembayaran jelas dan terbaca.'
-            }
-        except Exception as e:
-            error_str = str(e)
-            if '429' in error_str or 'quota' in error_str.lower():
-                return {
-                    'verified': False,
-                    'confidence': 0,
-                    'details': {'error': 'rate_limit'},
-                    'reason': 'Batas penggunaan AI tercapai. Coba lagi dalam beberapa menit.'
-                }
-            return {
-                'verified': False,
-                'confidence': 0,
-                'details': {'error': error_str},
-                'reason': f'Terjadi kesalahan saat verifikasi: {error_str}'
-            }
-
-        # Evaluate verification
-        confidence = result.get('confidence', 0)
-        amount_match = result.get('amount_match', False)
-        account_match = result.get('account_match', False)
-        is_successful = result.get('is_successful', False)
-
-        all_pass = amount_match and account_match and is_successful
-        verified = all_pass and confidence >= self.CONFIDENCE_THRESHOLD
-
-        # Build rejection reason if not verified
-        reason = ''
-        if not verified:
-            reasons = []
-            if not amount_match:
-                extracted = result.get('extracted_amount', 0)
-                reasons.append(f'Nominal tidak cocok (terdeteksi: Rp {extracted:,.0f}, seharusnya: Rp {expected_amount:,.0f})')
-            if not is_successful:
-                reasons.append(f'Status transaksi: {result.get("transaction_status", "tidak terdeteksi")}')
-            if not account_match:
-                reasons.append('Rekening tujuan tidak cocok')
-            if confidence < self.CONFIDENCE_THRESHOLD and all_pass:
-                reasons.append(f'Tingkat keyakinan AI rendah ({confidence}%)')
-            reason = '. '.join(reasons) if reasons else 'Verifikasi belum dapat dilakukan.'
-
-        # Determine status
-        if verified:
-            status = 'VERIFIED'
-        elif confidence < self.CONFIDENCE_THRESHOLD and all_pass:
-            status = 'MANUAL_REVIEW'
-        else:
-            status = 'REJECTED'
-
+        # AI Feature Disabled
+        # Default to MANUAL_REVIEW so admin can check it manually.
+        
+        # from django.utils import timezone
+        
         # Update payment record
-        payment.verification_status = status
-        payment.verification_result = result
-        payment.verification_confidence = confidence
-        payment.rejection_reason = reason
-        if verified:
-            payment.verified_at = timezone.now()
+        payment.verification_status = 'MANUAL_REVIEW'
+        payment.verification_result = {'info': 'AI verification disabled'}
+        payment.verification_confidence = 0
+        payment.rejection_reason = 'Fitur AI dinonaktifkan. Menunggu verifikasi manual.'
         payment.save()
 
-        # Auto-advance order to PAID if verified
-        if verified:
-            order = payment.order
-            order.status = 'PAID'
-            order.paid_at = timezone.now()
-            order.save()
-
         return {
-            'verified': verified,
-            'confidence': confidence,
-            'details': result,
-            'reason': reason,
-            'status': status,
+            'verified': False,
+            'confidence': 0,
+            'details': {'info': 'AI verification disabled'},
+            'reason': 'Fitur AI dinonaktifkan. Menunggu verifikasi manual.',
+            'status': 'MANUAL_REVIEW',
         }
 
     @staticmethod

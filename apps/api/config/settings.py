@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'catalog',
     'inventory',
     'sales',
-    'ai_assistant',
+    # 'ai_assistant',
     'notifications',
     'subscriptions',
     'finances',

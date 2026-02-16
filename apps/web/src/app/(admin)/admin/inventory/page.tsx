@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { InventoryPrediction } from '@/components/admin/ai/InventoryPrediction';
+// import { InventoryPrediction } from '@/components/admin/ai/InventoryPrediction';
 import {
     Lock, Phone, Plus, AlertTriangle, CheckCircle, RefreshCw,
     X, Pencil, Trash2, Loader2, Save, ShoppingCart,
@@ -597,7 +597,7 @@ export default function InventoryPage() {
 
             {/* AI Prediction */}
             <div className={!isUnlocked ? 'filter blur-md pointer-events-none select-none opacity-50' : ''}>
-                <InventoryPrediction />
+                {/* <InventoryPrediction /> */}
             </div>
 
             {/* Main Content */}

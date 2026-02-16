@@ -17,12 +17,13 @@ import {
     X,
     CreditCard,
     Tags,
-    Layers
+    Layers,
+    FileText
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useInactivityLogout } from '@/hooks/useInactivityLogout';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
-import { AIChatWidget } from '@/components/admin/ai/AIChatWidget';
+// import { AIChatWidget } from '@/components/admin/ai/AIChatWidget';
 import { LoadingScreen } from '@/components/LoadingScreen';
 
 interface AdminLayoutProps {
@@ -49,6 +50,7 @@ const mitraNav = [
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
     { href: '/admin/finance', label: 'Keuangan', icon: CreditCard },
     { href: '/admin/cashiers', label: 'Kasir', icon: Users },
+    { href: '/admin/billing', label: 'Billing / Langganan', icon: FileText },
     { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 
@@ -238,7 +240,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </div>
 
             </div>
-            <AIChatWidget />
+            {/* <AIChatWidget /> */}
         </div >
     );
 }
