@@ -13,6 +13,7 @@ import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { Save } from 'lucide-react';
 import { extractApiArray } from '@/lib/api-utils';
+import { FormSelect } from '@/components/admin/FormSelect';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
@@ -679,15 +680,12 @@ export default function ProductsPage() {
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Kategori</label>
-                                        <select
+                                        <FormSelect
                                             value={formData.category}
-                                            onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-primary text-sm"
-                                        >
-                                            {categories.map((cat: Category) => (
-                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => setFormData({ ...formData, category: val })}
+                                            options={categories.map((cat: Category) => ({ value: String(cat.id), label: cat.name }))}
+                                            placeholder="Pilih kategori..."
+                                        />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>

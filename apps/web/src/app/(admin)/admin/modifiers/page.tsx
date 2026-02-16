@@ -13,6 +13,7 @@ import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { FormSelect } from '@/components/admin/FormSelect';
 import { StatCard } from '@/components/admin/StatCard';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -191,8 +192,8 @@ export default function ModifiersPage() {
                 if (user?.role === 'mitra') {
                     return (
                         <div className={`px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 ${isAvailable
-                                ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
-                                : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
+                            : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
                             }`}>
                             {isAvailable ? (
                                 <>
@@ -291,9 +292,12 @@ export default function ModifiersPage() {
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Grup</label>
-                                <select value={formData.group} onChange={e => setFormData({ ...formData, group: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 focus:ring-2 focus:ring-primary">
-                                    {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                                </select>
+                                <FormSelect
+                                    value={formData.group}
+                                    onChange={(val) => setFormData({ ...formData, group: val })}
+                                    options={groups.map(g => ({ value: String(g.id), label: g.name }))}
+                                    placeholder="Pilih grup..."
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Tambahan Harga</label>

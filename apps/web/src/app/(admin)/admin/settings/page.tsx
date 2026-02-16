@@ -18,6 +18,7 @@ import {
     Crown
 } from 'lucide-react';
 import { DeviceManagement } from '@/components/settings/DeviceManagement';
+import { FormSelect } from '@/components/admin/FormSelect';
 
 
 export default function SettingsPage() {
@@ -26,6 +27,7 @@ export default function SettingsPage() {
     const [name, setName] = useState(user?.username || '');
     const [email, setEmail] = useState(user?.email || '');
     const [notifications, setNotifications] = useState(true);
+    const [language, setLanguage] = useState('id');
 
     // Avatar state
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -222,10 +224,15 @@ export default function SettingsPage() {
                                 <p className="text-xs text-gray-500">Bahasa utama aplikasi</p>
                             </div>
                         </div>
-                        <select className="bg-transparent text-sm font-medium border-none outline-none text-right cursor-pointer">
-                            <option>Indonesia</option>
-                            <option>English</option>
-                        </select>
+                        <FormSelect
+                            value={language}
+                            onChange={setLanguage}
+                            options={[
+                                { value: 'id', label: 'Indonesia' },
+                                { value: 'en', label: 'English' },
+                            ]}
+                            className="w-36"
+                        />
                     </div>
 
                     <div className="p-4 flex items-center justify-between cursor-pointer" onClick={() => setNotifications(!notifications)}>

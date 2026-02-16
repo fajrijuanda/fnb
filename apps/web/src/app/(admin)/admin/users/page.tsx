@@ -13,6 +13,7 @@ import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { FormSelect } from '@/components/admin/FormSelect';
 import { StatCard } from '@/components/admin/StatCard';
 
 export default function UsersPage() {
@@ -195,10 +196,10 @@ export default function UsersPage() {
             header: "Role",
             accessor: (user) => (
                 <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${user.role === 'superadmin'
-                        ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
-                        : user.role === 'mitra'
-                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
-                            : 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300'
+                    ? 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300'
+                    : user.role === 'mitra'
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300'
+                        : 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300'
                     }`}>
                     {user.role === 'superadmin' ? <Shield size={10} /> : user.role === 'mitra' ? <Store size={10} /> : <CreditCard size={10} />}
                     {user.role === 'superadmin' ? 'Super Admin' : user.role === 'mitra' ? 'Mitra' : 'Kasir'}
@@ -395,14 +396,14 @@ export default function UsersPage() {
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Role
                                 </label>
-                                <select
+                                <FormSelect
                                     value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
-                                >
-                                    <option value="mitra">Mitra</option>
-                                    <option value="superadmin">Super Admin</option>
-                                </select>
+                                    onChange={(val) => setFormData({ ...formData, role: val })}
+                                    options={[
+                                        { value: 'mitra', label: 'Mitra' },
+                                        { value: 'superadmin', label: 'Super Admin' },
+                                    ]}
+                                />
                             </div>
 
                             {formData.role === 'mitra' && (
@@ -423,14 +424,14 @@ export default function UsersPage() {
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Paket Langganan
                                         </label>
-                                        <select
+                                        <FormSelect
                                             value={formData.plan_name}
-                                            onChange={(e) => setFormData({ ...formData, plan_name: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
-                                        >
-                                            <option value="Eksekutif">Eksekutif</option>
-                                            <option value="Eksklusif">Eksklusif</option>
-                                        </select>
+                                            onChange={(val) => setFormData({ ...formData, plan_name: val })}
+                                            options={[
+                                                { value: 'Eksekutif', label: 'Eksekutif' },
+                                                { value: 'Eksklusif', label: 'Eksklusif' },
+                                            ]}
+                                        />
                                     </div>
                                 </>
                             )}

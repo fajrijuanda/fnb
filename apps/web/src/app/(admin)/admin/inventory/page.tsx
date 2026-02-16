@@ -18,6 +18,7 @@ import { AdminHeader } from '@/components/admin/AdminHeader';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { FormSelect } from '@/components/admin/FormSelect';
 
 // ── Constants ──
 const SHIPPING_RATES: Record<string, number> = {
@@ -801,10 +802,13 @@ export default function InventoryPage() {
                                     {orderItems.map((item, idx) => (
                                         <div key={idx} className="p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 space-y-2">
                                             <div className="flex items-center gap-2">
-                                                <select value={item.ingredientId || ''} onChange={e => updateOrderItem(idx, 'ingredientId', e.target.value)} className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-                                                    <option value="">Pilih bahan baku...</option>
-                                                    {ingredients.map(ing => <option key={ing.id} value={ing.id}>{ing.name} ({ing.current_stock} {ing.unit})</option>)}
-                                                </select>
+                                                <FormSelect
+                                                    value={item.ingredientId || ''}
+                                                    onChange={(val) => updateOrderItem(idx, 'ingredientId', val)}
+                                                    options={ingredients.map(ing => ({ value: String(ing.id), label: `${ing.name} (${ing.current_stock} ${ing.unit})` }))}
+                                                    placeholder="Pilih bahan baku..."
+                                                    className="flex-1"
+                                                />
                                                 {orderItems.length > 1 && (
                                                     <button onClick={() => removeOrderItem(idx)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"><X size={14} /></button>
                                                 )}
@@ -885,9 +889,11 @@ export default function InventoryPage() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Satuan</label>
-                                    <select value={ingredientForm.unit} onChange={e => setIngredientForm({ ...ingredientForm, unit: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm text-gray-900 dark:text-white">
-                                        {UNIT_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                                    </select>
+                                    <FormSelect
+                                        value={ingredientForm.unit}
+                                        onChange={(val) => setIngredientForm({ ...ingredientForm, unit: val })}
+                                        options={UNIT_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }))}
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Stok Awal</label>
