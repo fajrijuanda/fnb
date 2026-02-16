@@ -263,7 +263,7 @@ export default function AdminDashboard() {
                             <a href="/admin/users" className="text-xs font-medium text-primary hover:underline">Lihat Semua</a>
                         </div>
                         <div className="space-y-3">
-                            {recentUsers.map(u => (
+                            {recentUsers.slice(0, 2).map(u => (
                                 <div key={u.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5">
                                     <div className="flex items-center gap-3">
                                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
