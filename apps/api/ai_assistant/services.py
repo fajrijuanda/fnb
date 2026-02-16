@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
@@ -8,12 +8,15 @@ from django.db.models import Sum, F
 
 class GeminiService:
     def __init__(self):
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel('gemini-2.0-flash')
+        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        self.model_name = 'gemini-2.0-flash'
 
     def generate_content(self, prompt):
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             return response.text
         except Exception as e:
             error_str = str(e)

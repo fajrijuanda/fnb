@@ -125,10 +125,10 @@ class PaymentVerificationService:
     CONFIDENCE_THRESHOLD = 70  # Auto-approve if confidence >= 70%
 
     def __init__(self):
-        import google.generativeai as genai
+        from google import genai
         from django.conf import settings
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel('gemini-2.0-flash')
+        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        self.model_name = 'gemini-2.0-flash'
 
     def create_payment(self, order):
         """Create a Payment record for a RestockOrder with 24h expiry."""
@@ -205,7 +205,10 @@ RESPOND DALAM FORMAT JSON SAJA (tanpa markdown code block):
 }}"""
 
         try:
-            response = self.model.generate_content([prompt, img])
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=[prompt, img]
+            )
             result_text = response.text.strip()
 
             # Clean markdown wrapping if present
