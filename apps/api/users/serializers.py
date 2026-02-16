@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Mitra, Cashier, TrustedDevice, LoginAttempt
@@ -12,11 +13,12 @@ class UserSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
     plan_name = serializers.SerializerMethodField()
+    payment_info = serializers.SerializerMethodField()
     # owner_id = serializers.IntegerField(source='profile.owner.id', read_only=True) # Deprecated
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'role', 'avatar', 'location', 'is_subscribed', 'plan_name', 'date_joined']
+        fields = ['id', 'username', 'email', 'password', 'role', 'avatar', 'location', 'is_subscribed', 'plan_name', 'date_joined', 'payment_info']
         extra_kwargs = {
             'email': {'required': False},
         }
@@ -53,6 +55,19 @@ class UserSerializer(serializers.ModelSerializer):
             obj.mitra_profile  # Check if mitra
             sub = Subscription.objects.filter(user=obj).order_by('-end_date').first()
             return sub.plan_name if sub else 'No Plan'
+        except Mitra.DoesNotExist:
+            return None
+
+    def get_payment_info(self, obj):
+        try:
+            mitra = obj.mitra_profile
+            return {
+                'bank_name': mitra.bank_name,
+                'bank_account_number': mitra.bank_account_number,
+                'bank_account_holder': mitra.bank_account_holder,
+                'ewallet_type': mitra.ewallet_type,
+                'ewallet_number': mitra.ewallet_number,
+            }
         except Mitra.DoesNotExist:
             return None
         
@@ -156,6 +171,23 @@ class UserSerializer(serializers.ModelSerializer):
             if loc:
                 mitra.location = loc
                 mitra.save()
+            
+            # Update Payment Info if provided
+            payment_info = self.context['request'].data.get('payment_info')
+            if payment_info:
+                if isinstance(payment_info, str):
+                    try:
+                        payment_info = json.loads(payment_info)
+                    except json.JSONDecodeError:
+                        payment_info = {}
+                
+                # Handle both JSON dict and FormData (where nested dicts might be flattened or need parsing if complex)
+                if isinstance(payment_info, dict):
+                    for field in ['bank_name', 'bank_account_number', 'bank_account_holder', 'ewallet_type', 'ewallet_number']:
+                        if field in payment_info:
+                            setattr(mitra, field, payment_info[field])
+                    mitra.save()
+
         
         # Avatar is on UserProfile
         if instance.profile and 'avatar' in profile_data:
@@ -175,6 +207,3 @@ class LoginAttemptSerializer(serializers.ModelSerializer):
     class Meta:
         model = LoginAttempt
         fields = ['id', 'device_name', 'ip_address', 'status', 'created_at', 'expires_at']
-
-
-

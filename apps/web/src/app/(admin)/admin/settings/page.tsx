@@ -15,7 +15,9 @@ import {
     TrendingUp,
     Store,
     Sparkles,
-    Crown
+    Crown,
+    CreditCard,
+    Wallet
 } from 'lucide-react';
 import { DeviceManagement } from '@/components/settings/DeviceManagement';
 import { FormSelect } from '@/components/admin/FormSelect';
@@ -40,8 +42,44 @@ export default function SettingsPage() {
             setName(user.username); // User interface has username, not name
             setEmail(user.email);
             if (user.avatar) setAvatarPreview(user.avatar);
+
+            if (user.payment_info) {
+                setPaymentInfo({
+                    bank_name: user.payment_info.bank_name || '',
+                    bank_account_number: user.payment_info.bank_account_number || '',
+                    bank_account_holder: user.payment_info.bank_account_holder || '',
+                    ewallet_type: user.payment_info.ewallet_type || '',
+                    ewallet_number: user.payment_info.ewallet_number || ''
+                });
+            } else if (user.role === 'mitra') {
+                // Fetch latest user data to get payment info if not in store
+                api.get(`/users/${user.id}/`).then(res => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const userData = res.data as any;
+                    if (userData.payment_info) {
+                        const pi = userData.payment_info;
+                        setPaymentInfo({
+                            bank_name: pi.bank_name || '',
+                            bank_account_number: pi.bank_account_number || '',
+                            bank_account_holder: pi.bank_account_holder || '',
+                            ewallet_type: pi.ewallet_type || '',
+                            ewallet_number: pi.ewallet_number || ''
+                        });
+                        // update store (optional, but good for consistency)
+                        updateProfile({ payment_info: userData.payment_info });
+                    }
+                }).catch(err => console.error("Failed to fetch user details", err));
+            }
         }
-    }, [user]);
+    }, [user, updateProfile]);
+
+    const [paymentInfo, setPaymentInfo] = useState({
+        bank_name: '',
+        bank_account_number: '',
+        bank_account_holder: '',
+        ewallet_type: '',
+        ewallet_number: ''
+    });
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -83,6 +121,10 @@ export default function SettingsPage() {
                 formData.append('profile[avatar]', avatarFile);
             }
 
+            if (user.role === 'mitra') {
+                formData.append('payment_info', JSON.stringify(paymentInfo));
+            }
+
             const res = await api.patch(`/users/${user.id}/`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
@@ -95,7 +137,14 @@ export default function SettingsPage() {
                 username: updatedUser.username,
                 email: updatedUser.email,
                 avatar: updatedUser.avatar,
-                role: updatedUser.role
+                role: updatedUser.role,
+                payment_info: updatedUser.mitra_profile ? { // Adjust based on how API returns it. Serializer returns payment_info directly now?
+                    bank_name: updatedUser.payment_info?.bank_name,
+                    bank_account_number: updatedUser.payment_info?.bank_account_number,
+                    bank_account_holder: updatedUser.payment_info?.bank_account_holder,
+                    ewallet_type: updatedUser.payment_info?.ewallet_type,
+                    ewallet_number: updatedUser.payment_info?.ewallet_number
+                } : undefined
             });
 
             success('Profil berhasil diperbarui');
@@ -205,6 +254,95 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </section>
+
+            {/* PAYMENT SETTINGS SECTION (MITRA ONLY) */}
+            {user?.role === 'mitra' && (
+                <section className="space-y-3 lg:space-y-4 pt-4">
+                    <div className="flex items-center gap-2 text-red-700 dark:text-primary mb-2">
+                        <CreditCard className="h-4 w-4 lg:h-5 lg:w-5" />
+                        <h2 className="font-bold text-base lg:text-lg">Metode Pembayaran (Rekening & E-Wallet)</h2>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm">
+                        <div className="grid gap-6 md:grid-cols-2">
+                            {/* Bank Account */}
+                            <div className="space-y-4">
+                                <h3 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                    <Store size={16} />
+                                    Rekening Bank
+                                </h3>
+                                <div className="grid gap-3">
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-500 mb-1 block">Nama Bank</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Contoh: BCA, Mandiri"
+                                            value={paymentInfo.bank_name || ''}
+                                            onChange={(e) => setPaymentInfo({ ...paymentInfo, bank_name: e.target.value })}
+                                            className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-500 mb-1 block">Nomor Rekening</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Nomor Rekening"
+                                            value={paymentInfo.bank_account_number || ''}
+                                            onChange={(e) => setPaymentInfo({ ...paymentInfo, bank_account_number: e.target.value })}
+                                            className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-500 mb-1 block">Atas Nama</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Nama Pemilik Rekening"
+                                            value={paymentInfo.bank_account_holder || ''}
+                                            onChange={(e) => setPaymentInfo({ ...paymentInfo, bank_account_holder: e.target.value })}
+                                            className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* E-Wallet */}
+                            <div className="space-y-4">
+                                <h3 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                    <Wallet size={16} />
+                                    E-Wallet
+                                </h3>
+                                <div className="grid gap-3">
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-500 mb-1 block">Tipe E-Wallet</label>
+                                        <FormSelect
+                                            value={paymentInfo.ewallet_type || ''}
+                                            onChange={(val) => setPaymentInfo({ ...paymentInfo, ewallet_type: val as string })}
+                                            options={[
+                                                { value: '', label: 'Pilih E-Wallet' },
+                                                { value: 'GOPAY', label: 'GoPay' },
+                                                { value: 'OVO', label: 'OVO' },
+                                                { value: 'DANA', label: 'DANA' },
+                                                { value: 'SHOPEEPAY', label: 'ShopeePay' },
+                                                { value: 'LINKAJA', label: 'LinkAja' },
+                                            ]}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-500 mb-1 block">Nomor E-Wallet</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Nomor HP E-Wallet"
+                                            value={paymentInfo.ewallet_number || ''}
+                                            onChange={(e) => setPaymentInfo({ ...paymentInfo, ewallet_number: e.target.value })}
+                                            className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* PREFERENCES SECTION */}
             <section className="space-y-4">

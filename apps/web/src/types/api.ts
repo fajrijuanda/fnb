@@ -87,6 +87,13 @@ export interface User {
     owner?: number;
   };
   plan_name?: string;
+  payment_info?: {
+    bank_name?: string;
+    bank_account_number?: string;
+    bank_account_holder?: string;
+    ewallet_type?: string;
+    ewallet_number?: string;
+  };
 }
 
 export interface LoginResponse {

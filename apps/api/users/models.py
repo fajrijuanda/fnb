@@ -26,6 +26,13 @@ class Mitra(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='mitra_profile')
     location = models.CharField(max_length=255, null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
+    
+    # Payment Info (For manual transfer instructions or display)
+    bank_name = models.CharField(max_length=100, null=True, blank=True)
+    bank_account_number = models.CharField(max_length=50, null=True, blank=True)
+    bank_account_holder = models.CharField(max_length=255, null=True, blank=True)
+    ewallet_type = models.CharField(max_length=50, null=True, blank=True) # e.g. OVO, DANA, GOPAY
+    ewallet_number = models.CharField(max_length=50, null=True, blank=True)
     # Subscription info could be here or link to Subscription model.
     # For now, let's keep is_subscribed logic derived or in Subscription model, but Mitra is the anchor.
     

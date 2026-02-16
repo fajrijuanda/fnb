@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, User, Settings, LogOut, ChevronDown, Menu } from 'lucide-react';
+import { Search, Settings, LogOut, ChevronDown, Menu } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuthStore } from '@/store/useAuthStore';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
@@ -81,14 +81,7 @@ export function AdminNavbar({ onMenuClick }: AdminNavbarProps) {
                                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.username || 'admin@cloudpos.id'}</p>
                                 </div>
                                 <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
-                                <Link
-                                    href="/admin/settings"
-                                    onClick={() => setIsProfileOpen(false)}
-                                    className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-white/5 hover:text-[#C5161D] dark:hover:text-red-400 transition-colors"
-                                >
-                                    <User size={16} />
-                                    Profil & Akun
-                                </Link>
+
                                 <Link
                                     href="/admin/settings"
                                     onClick={() => setIsProfileOpen(false)}
