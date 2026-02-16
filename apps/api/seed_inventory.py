@@ -152,7 +152,6 @@ def seed_inventory():
     # 4. Seed Mitra Stock (Based on Package)
     # Eksekutif: 450 total (150 Dimsum, 150 Gyoza, 150 Wonton)
     # Eksklusif: 900 total (300 Dimsum, 300 Gyoza, 300 Wonton)
-    # Eksklusif: 900 total (300 Dimsum, 300 Gyoza, 300 Wonton)
     print("\nSeeding Mitra Stock...")
 
     mitras = Mitra.objects.all()
