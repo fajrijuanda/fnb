@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Pencil, Trash2, X, Loader2, Save, UserCircle, Users } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import type { User, ApiResponse } from '@/types/api';
 import { extractApiArray } from '@/lib/api-utils';
@@ -17,6 +19,15 @@ import { StatCard } from '@/components/admin/StatCard';
 
 export default function UsersPage() {
     const { success, error: showError } = useToast();
+    const router = useRouter();
+    const { user, isAuthenticated } = useAuthStore();
+
+    useEffect(() => {
+        if (isAuthenticated && user?.role === 'superadmin') {
+            router.replace('/admin');
+        }
+    }, [isAuthenticated, user, router]);
+
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');

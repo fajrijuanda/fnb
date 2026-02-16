@@ -1,74 +1,178 @@
-# OMDEN - FnB Management System
+# OMDEN - FnB Management System (CloudPOS)
 
-Sistem kasir berbasis web (PWA) yang dirancang untuk bisnis F&B (Warung Makan/Restoran). Menyatukan operasional kasir (POS) dan manajemen gudang (Inventory) dalam satu platform responsif.
+Sistem kasir dan manajemen stok terintegrasi untuk bisnis F&B modern. Mendukung multi-outlet (Mitra), manajemen inventaris real-time, dan pelaporan yang komprehensif.
 
-## 🚀 Tech Stack
+## 🌟 Fitur Utama
 
-### Backend (apps/api)
+### 🛒 Point of Sales (Kasir)
 
-- **Framework:** Django + Django REST Framework
-- **Database:** PostgreSQL
-- **Task Queue:** Celery + Redis
-- **Architecture:** Service Layer Pattern
+- **Interactive POS**: Tampilan kasir yang responsif (Mobile First) dan mudah digunakan.
+- **Product Variants & Modifiers**: Dukungan penuh untuk varian produk dan topping/level.
+- **Automated Availability**: Ketersediaan produk otomatis non-aktif jika stok bahan baku habis (Real-time check).
+- **Smart Cart**: Keranjang belanja dinamis dengan perhitungan total otomatis.
 
-### Frontend (apps/web)
+### 📦 Manajemen Inventaris & Stok
 
-- **Framework:** Next.js 14+ (App Router)
-- **Language:** TypeScript (Strict Mode)
-- **Styling:** Tailwind CSS + Shadcn/UI
-- **State:** Zustand
-- **PWA:** next-pwa
+- **Recipe Management**: Mapping produk ke bahan baku (Ingredient) via Resep.
+- **Automated Deduction**: Stok bahan baku berkurang otomatis saat terjadi penjualan.
+- **Stock Logs**: Pencatatan riwayat pergerakan stok (masuk/keluar/adjustment).
+- **Per-Mitra Inventory**: Stok dikelola terpisah untuk setiap Mitra/Outlet.
 
-## 📁 Project Structure
+### 👥 Manajemen Pengguna & Peran
+
+- **Super Admin**: Akses penuh ke seluruh sistem, manajemen Mitra, Produk Global, dan Laporan.
+- **Mitra (Franchise Owner)**: Manajemen outlet sendiri, stok bahan baku, toggle ketersediaan topping, dan laporan penjualan outlet.
+- **Kasir**: Akses terbatas khusus untuk melakukan transaksi penjualan (POS).
+
+### 📊 Laporan & Analitik
+
+- Dashboard real-time untuk omzet dan transaksi harian.
+- Laporan penjualan terperinci.
+- Analisis produk terlaris (Top Selling Items).
+
+## 🚀 Teknologi yang Digunakan
+
+### Backend (`apps/api`)
+
+- **Framework**: Django 5.0 + Django REST Framework
+- **Database**: PostgreSQL (Production) / SQLite (Dev)
+- **Auth**: JWT (Simple JWT) + Role Based Access Control
+- **Task Queue**: Celery + Redis (Background tasks)
+- **AI Integration**: Google Gemini (AI Assistant capability)
+
+### Frontend (`apps/web`)
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + Shadcn UI
+- **State Management**: Zustand
+- **Icons**: Lucide React
+- **Data Fetching**: Axios + SWR (implied patterns)
+- **Charts**: Recharts
+
+## 🛠️ Panduan Instalasi (Development)
+
+### Prasyarat
+
+- Python 3.10 atau lebih baru
+- Node.js 18 atau lebih baru
+- PostgreSQL (Disarankan) atau SQLite
+- Redis (Opsional, untuk fitur background task penuh)
+
+### 1. Setup Backend
+
+Masuk ke direktori backend:
+
+```bash
+cd apps/api
+```
+
+Buat virtual environment dan aktifkan:
+
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/macOS
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r ../../requirements.txt
+```
+
+Migrasi database dan buat superuser:
+
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+(Opsional) Seed data awal:
+
+```bash
+python seed_users.py
+python seed_products.py
+```
+
+Jalankan server:
+
+```bash
+python manage.py runserver
+```
+
+Server akan berjalan di `http://localhost:8000`.
+
+### 2. Setup Frontend
+
+Masuk ke direktori frontend:
+
+```bash
+cd apps/web
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Buat file `.env.local` (sesuaikan dengan `.env.example` jika ada, atau gunakan default):
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+```
+
+Jalankan server dev:
+
+```bash
+npm run dev
+```
+
+Akses aplikasi di `http://localhost:3000`.
+
+## 📂 Struktur Proyek
 
 ```
 cloudpos/
 ├── apps/
 │   ├── api/          # Django Backend
-│   │   ├── core/     # Utilities & Abstract Models
-│   │   ├── users/    # Auth Management
-│   │   ├── catalog/  # Products & Categories
-│   │   ├── inventory/# Ingredients & Stock Logic
-│   │   └── sales/    # Orders & Payments
+│   │   ├── config/   # Project Settings
+│   │   ├── core/     # Core logic & Utils
+│   │   ├── users/    # User Models & Auth
+│   │   ├── catalog/  # Models: Product, Category, Modifier
+│   │   ├── inventory/# Models: Ingredient, Stock, Recipe
+│   │   ├── sales/    # Models: Order, Payment
+│   │   └── ai_assistant/ # AI Logic
 │   └── web/          # Next.js Frontend
-│       └── src/
-│           ├── app/  # App Router Pages
-│           ├── components/
-│           ├── hooks/
-│           ├── store/
-│           └── lib/
-├── blueprint.md      # Architecture Documentation
+│       ├── src/
+│       │   ├── app/
+│       │   │   ├── (admin)/   # Admin Dashboard Layout & Pages
+│       │   │   ├── (pos)/     # POS/Cashier Layout & Pages
+│       │   │   └── (auth)/    # Login Page
+│       │   ├── components/    # Reusable UI Components
+│       │   ├── lib/           # API Client & Utils
+│       │   ├── store/         # Zustand Stores (Auth, Cart)
+│       │   └── types/         # TypeScript Interfaces
+├── requirements.txt
 └── README.md
 ```
 
-## 🛠️ Getting Started
+## 🔒 Matriks Hak Akses
 
-### Backend Setup
+| Fitur                | Super Admin | Mitra                    | Kasir |
+| -------------------- | ----------- | ------------------------ | ----- |
+| **POS Access**       | ✅          | ✅                       | ✅    |
+| **Manage Products**  | ✅ (CRUD)   | ❌ (View Only)           | ❌    |
+| **Manage Toppings**  | ✅ (CRUD)   | ✅ (Toggle Availability) | ❌    |
+| **Manage Inventory** | ❌          | ✅ (Outlet Stock)        | ❌    |
+| **Sales Reports**    | ✅ (Global) | ✅ (Own Outlet)          | ❌    |
+| **Manage Cashiers**  | ❌          | ✅ (Own Cashiers)        | ❌    |
 
-```bash
-cd apps/api
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
-```
+## 📄 Lisensi
 
-### Frontend Setup
-
-```bash
-cd apps/web
-npm install
-npm run dev
-```
-
-## 📋 Development Phases
-
-1. **Phase 1:** Core Catalog & POS UI
-2. **Phase 2:** Transaction & Receipt
-3. **Phase 3:** Inventory Logic
-4. **Phase 4:** Reporting & Dashboard
-
-## 📄 License
-
-Private - All rights reserved.
+Private Proprietary Software - OMDEN.
