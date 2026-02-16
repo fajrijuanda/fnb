@@ -24,7 +24,7 @@ export function SecurityPuller() {
 
         const checkPendingLogins = async () => {
             try {
-                const response = await api.get<{ data: LoginAttempt[] }>('/auth/pending/');
+                const response = await api.get<{ data: LoginAttempt[] }>('/users/auth/pending/');
                 if (response.data.data.length > 0) {
                     setPendingAttempt(response.data.data[0]);
                 } else {
@@ -43,7 +43,7 @@ export function SecurityPuller() {
 
         // Also send heartbeat
         const heartbeatInterval = setInterval(() => {
-            api.post('/auth/heartbeat/').catch(() => { });
+            api.post('/users/auth/heartbeat/').catch(() => { });
         }, 60000); // Every minute
 
         return () => {
@@ -56,7 +56,7 @@ export function SecurityPuller() {
         if (!pendingAttempt) return;
 
         try {
-            await api.post('/auth/approve/', {
+            await api.post('/users/auth/approve/', {
                 attempt_id: pendingAttempt.id,
                 action
             });

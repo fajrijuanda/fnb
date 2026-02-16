@@ -39,7 +39,7 @@ export default function LoginPage() {
         const pollInterval = setInterval(async () => {
             try {
                 const response = await api.get<{ status: string; data: LoginResponse }>(
-                    `/auth/status/${pendingAttempt.id}/`
+                    `/users/auth/status/${pendingAttempt.id}/`
                 );
 
                 if (response.data.status === 'success') {
