@@ -19,6 +19,7 @@ import {
     Tags
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useInactivityLogout } from '@/hooks/useInactivityLogout';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
 import { AIChatWidget } from '@/components/admin/ai/AIChatWidget';
 
@@ -50,6 +51,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const pathname = usePathname();
     const router = useRouter();
     const { user, isAuthenticated, _hasHydrated } = useAuthStore();
+    useInactivityLogout(); // Enable inactivity logout
     const [collapsed, setCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 

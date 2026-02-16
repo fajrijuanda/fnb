@@ -2,9 +2,11 @@
 
 import { useEffect } from 'react';
 import { useShiftStore } from '@/store/useShiftStore';
+import { useInactivityLogout } from '@/hooks/useInactivityLogout';
 import { OpenShiftModal } from './OpenShiftModal';
 
 export function ShiftManager() {
+    useInactivityLogout(); // Enable inactivity logout for POS
     const { fetchCurrentShift, activeShift, isLoading } = useShiftStore();
 
     useEffect(() => {

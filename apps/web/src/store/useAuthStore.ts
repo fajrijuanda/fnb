@@ -5,26 +5,33 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import type { User, LoginResponse } from "@/types/api";
 
 interface AuthState {
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   user: User | null;
   isAuthenticated: boolean;
   _hasHydrated: boolean;
   login: (data: LoginResponse) => void;
+  setTokens: (access: string, refresh: string) => void;
   logout: () => void;
   updateProfile: (data: Partial<User>) => void;
   setHasHydrated: (state: boolean) => void;
+  lastActivity: number;
+  updateActivity: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      token: null,
+      accessToken: null,
+      refreshToken: null,
       user: null,
       isAuthenticated: false,
       _hasHydrated: false,
+      lastActivity: Date.now(),
       login: (data) =>
         set({
-          token: data.token,
+          accessToken: data.access,
+          refreshToken: data.refresh,
           user: {
             id: data.user_id,
             username: data.username,
@@ -33,10 +40,17 @@ export const useAuthStore = create<AuthState>()(
             is_subscribed: data.is_subscribed,
           },
           isAuthenticated: true,
+          lastActivity: Date.now(),
+        }),
+      setTokens: (access, refresh) =>
+        set({
+          accessToken: access,
+          refreshToken: refresh,
         }),
       logout: () =>
         set({
-          token: null,
+          accessToken: null,
+          refreshToken: null,
           user: null,
           isAuthenticated: false,
         }),
@@ -44,6 +58,7 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
         })),
+      updateActivity: () => set({ lastActivity: Date.now() }),
       setHasHydrated: (state) => {
         set({ _hasHydrated: state });
       },

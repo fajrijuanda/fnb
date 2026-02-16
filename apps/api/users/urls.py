@@ -5,12 +5,14 @@ from .views import (
     LoginAttemptView, ApproveLoginView, PendingLoginsView,
     DeviceManagementView, HeartbeatView
 )
+from rest_framework_simplejwt.views import TokenRefreshView
 
 router = DefaultRouter()
 router.register(r'', UserViewSet)
 
 urlpatterns = [
     path('login/', CustomLoginView.as_view(), name='login'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/status/<uuid:attempt_id>/', LoginAttemptView.as_view(), name='login-status'),
     path('auth/approve/', ApproveLoginView.as_view(), name='approve-login'),
     path('auth/pending/', PendingLoginsView.as_view(), name='pending-logins'),

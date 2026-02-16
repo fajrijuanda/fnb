@@ -15,12 +15,12 @@ interface LoginAttempt {
 }
 
 export function SecurityPuller() {
-    const { user, token } = useAuthStore();
+    const { user, accessToken } = useAuthStore();
     const [pendingAttempt, setPendingAttempt] = useState<LoginAttempt | null>(null);
     const { success, error } = useToast();
 
     useEffect(() => {
-        if (!user || !token) return;
+        if (!user || !accessToken) return;
 
         const checkPendingLogins = async () => {
             try {
@@ -50,7 +50,7 @@ export function SecurityPuller() {
             clearInterval(interval);
             clearInterval(heartbeatInterval);
         };
-    }, [user, token]);
+    }, [user, accessToken]);
 
     const handleAction = async (action: 'APPROVE' | 'REJECT') => {
         if (!pendingAttempt) return;

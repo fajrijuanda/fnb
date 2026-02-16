@@ -87,7 +87,8 @@ export interface User {
 }
 
 export interface LoginResponse {
-  token: string;
+  access: string;
+  refresh: string;
   user_id: number;
   username: string;
   email: string;

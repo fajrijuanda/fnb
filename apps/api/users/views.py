@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from .serializers import UserSerializer, LoginAttemptSerializer, TrustedDeviceSerializer
 from .models import UserSession, TrustedDevice, LoginAttempt
@@ -113,7 +113,10 @@ class CustomLoginView(ObtainAuthToken):
             defaults={'device_name': device_name, 'ip_address': ip_address}
         )
         
-        token, created = Token.objects.get_or_create(user=user)
+        # Generate JWT Tokens
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
         
         # Determine Role & Subscription (Same as before)
         role = 'cashier'
@@ -137,7 +140,8 @@ class CustomLoginView(ObtainAuthToken):
         return Response({
             'status': 'success',
             'data': {
-                'token': token.key,
+                'access': access_token,
+                'refresh': refresh_token,
                 'user_id': user.pk,
                 'username': user.username,
                 'email': user.email,
@@ -174,7 +178,10 @@ class LoginAttemptView(APIView):
                  # Better: Return token here directly if approved.
                  
                  user = attempt.user
-                 token, _ = Token.objects.get_or_create(user=user)
+
+                 refresh = RefreshToken.for_user(user)
+                 access_token = str(refresh.access_token)
+                 refresh_token = str(refresh)
                  
                  # Prepare Login Data (simplified)
                  role = 'cashier'
@@ -202,7 +209,8 @@ class LoginAttemptView(APIView):
                  return Response({
                      'status': 'success',
                      'data': {
-                        'token': token.key,
+                        'access': access_token,
+                        'refresh': refresh_token,
                         'user_id': user.pk,
                         'username': user.username,
                         'role': role,
