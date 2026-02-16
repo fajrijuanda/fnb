@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Lock, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
+import { Lock, CreditCard } from 'lucide-react';
 
 interface PremiumLockedProps {
     featureName?: string;
@@ -32,25 +33,23 @@ export const PremiumLocked: React.FC<PremiumLockedProps> = ({
             </div>
 
             <div className="w-full max-w-md bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/10 p-6 shadow-xl relative overflow-hidden group">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-50" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50" />
 
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-6 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-                    Tertarik membuka fitur ini? Hubungi Developer:
+                    Silakan perpanjang langganan Anda untuk membuka kembali akses fitur ini.
                 </p>
 
-                <a
-                    href="https://wa.me/6285217861296?text=Halo%20Admin,%20saya%20tertarik%20membuka%20fitur%20premium%20ini."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-2xl font-bold text-lg shadow-lg shadow-green-500/20 hover:shadow-green-500/40 hover:-translate-y-1 transition-all duration-300"
+                <Link
+                    href="/admin/billing"
+                    className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300"
                 >
-                    <MessageCircle className="w-6 h-6" />
-                    Hubungi via WhatsApp
-                </a>
+                    <CreditCard className="w-6 h-6" />
+                    Buka Halaman Langganan
+                </Link>
 
                 <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5 flex flex-col items-center gap-2">
                     <p className="text-xs font-mono text-gray-400 dark:text-gray-500">
-                        Developer Contact: <span className="text-red-500 font-semibold tracking-wider">0852-1786-1296</span>
+                        Butuh bantuan? Hubungi <span className="text-blue-500 font-semibold tracking-wider">Superadmin</span>
                     </p>
                 </div>
             </div>

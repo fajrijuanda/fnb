@@ -1,3 +1,5 @@
+'use client';
+
 import { PremiumLocked } from '@/components/PremiumLocked';
 
 import { ReactNode, useState, useEffect } from 'react';
