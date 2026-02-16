@@ -25,6 +25,12 @@ class Ingredient(models.Model):
         default=0,
         help_text="Alert threshold"
     )
+    cost_per_unit = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        help_text="Harga beli per unit (Rp). Digunakan untuk kalkulasi HPP."
+    )
 
     class Meta:
         ordering = ['name']

@@ -312,32 +312,206 @@ export default function ReportsPage() {
         </div>
     );
 
-    const ProfitLossView = () => (
-        <div className="space-y-6 animation-fade-in text-center py-12">
-            <div className="bg-white/50 dark:bg-white/5 p-8 rounded-3xl border border-gray-200 dark:border-white/10 max-w-2xl mx-auto">
-                <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
-                    <PieChart size={40} />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Analisa Laba Rugi</h2>
-                <p className="text-gray-500 mb-6">Fitur ini menghitung selisih antara Pendapatan Penjualan dan Harga Pokok Penjualan (HPP) berdasarkan resep.</p>
+    const ProfitLossView = () => {
+        const [plData, setPlData] = useState<{
+            period: { start: string; end: string };
+            revenue: number;
+            cogs: number;
+            gross_profit: number;
+            expenses: number;
+            net_profit: number;
+            gross_margin: number;
+            net_margin: number;
+            product_breakdown: {
+                product: string;
+                qty: number;
+                revenue: number;
+                cogs: number;
+                profit: number;
+                margin_pct: number;
+            }[];
+            expense_breakdown: { category: string; total: number }[];
+        } | null>(null);
+        const [plLoading, setPlLoading] = useState(true);
+        const [plStart, setPlStart] = useState(() => {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        });
+        const [plEnd, setPlEnd] = useState(() => {
+            return new Date().toISOString().split('T')[0];
+        });
 
-                <div className="grid grid-cols-2 gap-4 text-left p-6 bg-gray-50 dark:bg-white/5 rounded-2xl mb-6">
-                    <div>
-                        <p className="text-sm text-gray-500">Pendapatan Kotor</p>
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency(totalRevenue)}</p>
+        const fetchPL = useCallback(async () => {
+            setPlLoading(true);
+            try {
+                const res = await api.get(`/sales/orders/profit-loss/?start=${plStart}&end=${plEnd}`);
+                setPlData(res.data?.data || res.data);
+            } catch (err) {
+                console.error('Failed to fetch P/L:', err);
+                setPlData(null);
+            } finally {
+                setPlLoading(false);
+            }
+        }, [plStart, plEnd]);
+
+        useEffect(() => {
+            fetchPL();
+        }, [fetchPL]);
+
+        if (plLoading) {
+            return (
+                <div className="flex items-center justify-center py-16 animation-fade-in">
+                    <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+            );
+        }
+
+        if (!plData) {
+            return (
+                <div className="text-center py-12 text-gray-500 animation-fade-in">
+                    Gagal memuat data laba rugi.
+                </div>
+            );
+        }
+
+        const isProfit = plData.net_profit >= 0;
+        const isGrossProfit = plData.gross_profit >= 0;
+
+        return (
+            <div className="space-y-4 lg:space-y-6 animation-fade-in">
+
+                {/* Date Range Filter */}
+                <div className="flex flex-wrap items-center gap-3 bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 lg:p-4">
+                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Periode:</span>
+                    <input
+                        type="date"
+                        value={plStart}
+                        onChange={(e) => setPlStart(e.target.value)}
+                        className="px-3 py-1.5 text-xs rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                    <span className="text-xs text-gray-400">—</span>
+                    <input
+                        type="date"
+                        value={plEnd}
+                        onChange={(e) => setPlEnd(e.target.value)}
+                        className="px-3 py-1.5 text-xs rounded-lg bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                </div>
+
+                {/* Summary Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+                    {/* Revenue */}
+                    <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 rounded-xl">
+                        <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Pendapatan</p>
+                        <p className="text-sm md:text-lg font-bold text-gray-900 dark:text-white mt-1 truncate">{formatCurrency(plData.revenue)}</p>
                     </div>
-                    <div>
-                        <p className="text-sm text-gray-500">Estimasi Laba Bersih</p>
-                        <p className="text-xl font-bold text-green-600">{formatCurrency(totalRevenue * 0.4)} <span className="text-xs text-gray-400 font-normal">(Est. 40%)</span></p>
+                    {/* COGS */}
+                    <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 rounded-xl">
+                        <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">HPP (Bahan)</p>
+                        <p className="text-sm md:text-lg font-bold text-red-600 dark:text-red-400 mt-1 truncate">- {formatCurrency(plData.cogs)}</p>
+                    </div>
+                    {/* Gross Profit */}
+                    <div className={`backdrop-blur-xl border p-3 md:p-4 rounded-xl ${isGrossProfit ? 'bg-green-50/50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20' : 'bg-red-50/50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20'}`}>
+                        <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Laba Kotor</p>
+                        <p className={`text-sm md:text-lg font-bold mt-1 truncate ${isGrossProfit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {formatCurrency(plData.gross_profit)}
+                            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal ml-1">({plData.gross_margin}%)</span>
+                        </p>
+                    </div>
+                    {/* Expenses */}
+                    <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 rounded-xl">
+                        <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Pengeluaran</p>
+                        <p className="text-sm md:text-lg font-bold text-orange-600 dark:text-orange-400 mt-1 truncate">- {formatCurrency(plData.expenses)}</p>
+                    </div>
+                    {/* Net Profit */}
+                    <div className={`col-span-2 md:col-span-1 backdrop-blur-xl border p-3 md:p-4 rounded-xl ${isProfit ? 'bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20' : 'bg-red-50/50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20'}`}>
+                        <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Laba Bersih</p>
+                        <p className={`text-sm md:text-xl font-bold mt-1 ${isProfit ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {formatCurrency(plData.net_profit)}
+                            <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal ml-1">({plData.net_margin}%)</span>
+                        </p>
                     </div>
                 </div>
 
-                <p className="text-xs text-gray-400">
-                    Catatan: Input Data Resep dan Data Pembelian Bahan Baku diperlukan untuk kalkulasi akurat.
-                </p>
+                {/* Product Breakdown Table */}
+                {plData.product_breakdown.length > 0 && (
+                    <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                        <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/10">
+                            <h3 className="font-bold text-sm md:text-lg text-gray-900 dark:text-white">📊 Breakdown per Produk</h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Laba kotor per produk berdasarkan resep bahan baku</p>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-xs lg:text-sm">
+                                <thead>
+                                    <tr className="bg-primary/10 dark:bg-white/5 text-left">
+                                        <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Produk</th>
+                                        <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200 text-center">Qty</th>
+                                        <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200 text-right">Pendapatan</th>
+                                        <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200 text-right">HPP</th>
+                                        <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200 text-right">Laba</th>
+                                        <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200 text-right">Margin</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                                    {plData.product_breakdown.map((item) => (
+                                        <tr key={item.product} className="hover:bg-red-50/50 dark:hover:bg-white/5">
+                                            <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{item.product}</td>
+                                            <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{item.qty}</td>
+                                            <td className="px-4 py-3 text-right">{formatCurrency(item.revenue)}</td>
+                                            <td className="px-4 py-3 text-right text-red-500">{formatCurrency(item.cogs)}</td>
+                                            <td className={`px-4 py-3 text-right font-bold ${item.profit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                                {formatCurrency(item.profit)}
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.margin_pct >= 50 ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' :
+                                                    item.margin_pct >= 30 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400' :
+                                                        'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                                                    }`}>
+                                                    {item.margin_pct}%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* Expense Breakdown */}
+                {plData.expense_breakdown.length > 0 && (
+                    <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-4 md:p-6">
+                        <h3 className="font-bold text-sm md:text-lg text-gray-900 dark:text-white mb-4">💸 Breakdown Pengeluaran</h3>
+                        <div className="space-y-3">
+                            {plData.expense_breakdown.map((exp) => {
+                                const pct = plData.expenses > 0 ? (exp.total / plData.expenses * 100) : 0;
+                                return (
+                                    <div key={exp.category}>
+                                        <div className="flex justify-between text-xs mb-1">
+                                            <span className="font-medium text-gray-700 dark:text-gray-300 capitalize">{exp.category.replace(/_/g, ' ')}</span>
+                                            <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(exp.total)} ({pct.toFixed(0)}%)</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                                            <div className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Hint if no data */}
+                {plData.revenue === 0 && plData.cogs === 0 && (
+                    <div className="bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/20 rounded-xl p-4 text-center">
+                        <p className="text-sm text-yellow-700 dark:text-yellow-400 font-medium">
+                            Belum ada transaksi di periode ini. Pastikan data resep dan harga bahan baku sudah diisi agar kalkulasi HPP akurat.
+                        </p>
+                    </div>
+                )}
             </div>
-        </div>
-    );
+        );
+    };
 
     const LockedView = () => (
         <div className="relative min-h-[500px] flex items-center justify-center">

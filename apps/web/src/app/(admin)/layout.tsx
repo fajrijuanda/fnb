@@ -46,6 +46,7 @@ const mitraNav = [
     { href: '/admin/inventory', label: 'Inventori', icon: Package },
     { href: '/admin/orders', label: 'Pesanan', icon: Receipt },
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
+    { href: '/admin/finance', label: 'Keuangan', icon: CreditCard },
     { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
     { href: '/admin/cashiers', label: 'Kasir', icon: Users },
 ];

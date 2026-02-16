@@ -13,7 +13,8 @@ from inventory.services import deduct_stock_for_order
 from .selectors import (
     get_daily_sales_summary, 
     get_sales_by_date_range,
-    get_orders_for_export
+    get_orders_for_export,
+    get_profit_loss_report
 )
 import pandas as pd
 import io
@@ -185,7 +186,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         data = get_sales_by_date_range(start_date, end_date)
-        
+
         return Response({
             'status': 'success',
             'data': data
@@ -312,6 +313,38 @@ class OrderViewSet(viewsets.ModelViewSet):
         response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+    @action(detail=False, methods=['get'], url_path='profit-loss')
+    def profit_loss(self, request):
+        """
+        Get profit/loss report.
+        GET /api/v1/sales/orders/profit-loss/?start=YYYY-MM-DD&end=YYYY-MM-DD
+        """
+        start_str = request.query_params.get('start')
+        end_str = request.query_params.get('end')
+
+        if not start_str:
+            # Default to current month
+            from django.utils import timezone
+            today = timezone.now().date()
+            start_str = today.replace(day=1).strftime('%Y-%m-%d')
+            end_str = today.strftime('%Y-%m-%d')
+
+        try:
+            start_date = datetime.strptime(start_str, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_str, '%Y-%m-%d').date() if end_str else start_date
+        except ValueError:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid date format. Use YYYY-MM-DD.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        data = get_profit_loss_report(start_date, end_date)
+
+        return Response({
+            'status': 'success',
+            'data': data
+        })
 
 
 class ShiftViewSet(viewsets.ModelViewSet):

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'ai_assistant',
     'notifications',
     'subscriptions',
+    'finances',
 ]
 
 MIDDLEWARE = [
