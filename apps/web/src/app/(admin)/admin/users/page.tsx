@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Pencil, Trash2, X, Loader2, Save, Shield, UserCircle, Store } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Save, Shield, UserCircle, Store, Users } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -13,6 +13,7 @@ import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { StatCard } from '@/components/admin/StatCard';
 
 export default function UsersPage() {
     const { success, error: showError } = useToast();
@@ -252,6 +253,28 @@ export default function UsersPage() {
                 title="Pengguna"
                 description="Kelola akses staff dan admin"
             />
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-3 gap-2 lg:gap-4">
+                <StatCard
+                    title="Total Pengguna"
+                    value={users.filter(u => u.role !== 'cashier').length}
+                    icon={Users}
+                    color="bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-white"
+                />
+                <StatCard
+                    title="Super Admin"
+                    value={users.filter(u => u.role === 'superadmin').length}
+                    icon={Shield}
+                    color="bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-white"
+                />
+                <StatCard
+                    title="Mitra"
+                    value={users.filter(u => u.role === 'mitra').length}
+                    icon={Store}
+                    color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white"
+                />
+            </div>
 
             <AdminSearchHeader
                 searchQuery={searchQuery}

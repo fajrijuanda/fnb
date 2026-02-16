@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Pencil, Trash2, X, Loader2, Save, UserCircle } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Save, UserCircle, Users } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -13,6 +13,7 @@ import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { StatCard } from '@/components/admin/StatCard';
 
 export default function UsersPage() {
     const { success, error: showError } = useToast();
@@ -185,6 +186,16 @@ export default function UsersPage() {
                 title="Manajemen Kasir"
                 description="Kelola akun kasir untuk outlet Anda"
             />
+
+            {/* Stats Card */}
+            <div className="grid grid-cols-1 gap-2 lg:gap-4 max-w-xs">
+                <StatCard
+                    title="Total Kasir"
+                    value={users.length}
+                    icon={Users}
+                    color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white"
+                />
+            </div>
 
             <AdminSearchHeader
                 searchQuery={searchQuery}

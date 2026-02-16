@@ -9,6 +9,8 @@ import {
     CreditCard,
     X,
     Printer,
+    TrendingUp,
+    Clock,
 } from 'lucide-react';
 import api from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -20,6 +22,7 @@ import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { StatCard } from '@/components/admin/StatCard';
 
 export default function OrdersPage() {
     const { error: showError } = useToast();
@@ -162,6 +165,34 @@ export default function OrdersPage() {
                 title="Pesanan"
                 description="Kelola dan pantau riwayat pesanan"
             />
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-4">
+                <StatCard
+                    title="Total Pesanan"
+                    value={orders.length}
+                    icon={Receipt}
+                    color="bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-white"
+                />
+                <StatCard
+                    title="Lunas"
+                    value={orders.filter(o => o.status === 'PAID').length}
+                    icon={CheckCircle2}
+                    color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white"
+                />
+                <StatCard
+                    title="Pending"
+                    value={orders.filter(o => o.status === 'PENDING').length}
+                    icon={Clock}
+                    color="bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-white"
+                />
+                <StatCard
+                    title="Total Pendapatan"
+                    value={formatCurrency(orders.filter(o => o.status === 'PAID').reduce((sum, o) => sum + o.total_amount, 0))}
+                    icon={TrendingUp}
+                    color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white"
+                />
+            </div>
 
             <AdminSearchHeader
                 searchQuery={searchQuery}

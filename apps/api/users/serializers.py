@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'role', 'avatar', 'location', 'is_subscribed', 'plan_name']
+        fields = ['id', 'username', 'email', 'password', 'role', 'avatar', 'location', 'is_subscribed', 'plan_name', 'date_joined']
         extra_kwargs = {
             'email': {'required': False},
         }

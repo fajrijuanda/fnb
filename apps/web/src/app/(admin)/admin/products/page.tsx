@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useState, useEffect, useRef } from 'react';
-import { Pencil, Trash2, Loader2, ImageOff, X, ImagePlus } from 'lucide-react';
+import { Pencil, Trash2, Loader2, ImageOff, X, ImagePlus, ShoppingBag, Tag, CheckCircle2, XCircle } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import api from '@/lib/api';
 import type { Product, Category, ApiResponse } from '@/types/api';
@@ -18,6 +18,7 @@ import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { StatCard } from '@/components/admin/StatCard';
 import { useAuthStore } from '@/store/useAuthStore';
 
 const IconComponent = ({ name, size = 16, className = "", style = {} }: { name: string, size?: number, className?: string, style?: CSSProperties }) => {
@@ -485,6 +486,34 @@ export default function ProductsPage() {
                 title="Produk"
                 description="Kelola daftar menu dan produk anda"
             />
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-4">
+                <StatCard
+                    title="Total Produk"
+                    value={(Array.isArray(products) ? products : []).length}
+                    icon={ShoppingBag}
+                    color="bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-white"
+                />
+                <StatCard
+                    title="Kategori"
+                    value={categories.length}
+                    icon={Tag}
+                    color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white"
+                />
+                <StatCard
+                    title="Tersedia"
+                    value={(Array.isArray(products) ? products : []).filter(p => p.stock_status?.available ?? p.is_available).length}
+                    icon={CheckCircle2}
+                    color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white"
+                />
+                <StatCard
+                    title="Habis"
+                    value={(Array.isArray(products) ? products : []).filter(p => !(p.stock_status?.available ?? p.is_available)).length}
+                    icon={XCircle}
+                    color="bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-white"
+                />
+            </div>
 
             <AdminSearchHeader
                 searchQuery={searchQuery}

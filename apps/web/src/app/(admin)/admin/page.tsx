@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import api from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-import type { OrderResponse, ApiResponse, Product, User } from '@/types/api';
+import type { OrderResponse, ApiResponse, Product, User, Subscription } from '@/types/api';
 import { StatCard } from '@/components/admin/StatCard';
 import { AIInsightsCard } from '@/components/admin/ai/AIInsightsCard';
 import { DashboardChart } from '@/components/admin/DashboardChart';
@@ -40,23 +40,83 @@ export default function AdminDashboard() {
     const [adminStats, setAdminStats] = useState({
         totalUsers: 0,
         totalMitra: 0,
-        activeSubs: 52, // Mocked
-        monthlyRevenue: 15500000 // Mocked
+        activeSubs: 0,
+        monthlyRevenue: 0
     });
     const [recentUsers, setRecentUsers] = useState<User[]>([]);
+    const [userGrowthData, setUserGrowthData] = useState<{ date: string; value: number }[]>([]);
+    const [adminTrends, setAdminTrends] = useState({ userTrend: '', mitraTrend: '', subsTrend: '', revTrend: '' });
 
     const fetchDashboardData = useCallback(async () => {
         try {
             if (isSuperAdmin) {
-                // Fetch Users for Superadmin
-                const usersRes = await api.get<ApiResponse<User[]>>('/users/');
+                // Fetch Users and Subscriptions for Superadmin
+                const [usersRes, subsRes] = await Promise.all([
+                    api.get<ApiResponse<User[]>>('/users/'),
+                    api.get<ApiResponse<Subscription[]>>('/subscriptions/')
+                ]);
                 const users = extractApiArray(usersRes.data);
+                const subs = extractApiArray(subsRes.data);
 
-                setAdminStats(prev => ({
-                    ...prev,
+                const activeSubs = subs.filter(s => s.status === 'active').length;
+                const monthlyRevenue = subs.filter(s => s.status === 'active').reduce((acc, curr) => {
+                    const price = curr.plan_name === 'Eksklusif' ? 299000 : (curr.plan_name === 'Eksekutif' ? 199000 : 0);
+                    return acc + price;
+                }, 0);
+
+                // Compute trends based on data joined in last 30 vs 30-60 days
+                const now = new Date();
+                const thirtyDaysAgo = new Date(now); thirtyDaysAgo.setDate(now.getDate() - 30);
+                const sixtyDaysAgo = new Date(now); sixtyDaysAgo.setDate(now.getDate() - 60);
+
+                const usersThisMonth = users.filter(u => u.date_joined && new Date(u.date_joined) >= thirtyDaysAgo).length;
+                const usersLastMonth = users.filter(u => {
+                    if (!u.date_joined) return false;
+                    const d = new Date(u.date_joined);
+                    return d >= sixtyDaysAgo && d < thirtyDaysAgo;
+                }).length;
+
+                const mitraThisMonth = users.filter(u => u.role === 'mitra' && u.date_joined && new Date(u.date_joined) >= thirtyDaysAgo).length;
+
+                const subsThisMonth = subs.filter(s => s.status === 'active' && new Date(s.start_date) >= thirtyDaysAgo).length;
+
+                const calcTrend = (current: number, previous: number) => {
+                    if (previous > 0) {
+                        const pct = Math.round(((current - previous) / previous) * 100);
+                        return pct >= 0 ? `+${pct}%` : `${pct}%`;
+                    }
+                    return current > 0 ? `+${current} baru` : '';
+                };
+
+                setAdminTrends({
+                    userTrend: calcTrend(usersThisMonth, usersLastMonth) || `${usersThisMonth} baru`,
+                    mitraTrend: mitraThisMonth > 0 ? `+${mitraThisMonth} bulan ini` : 'Live',
+                    subsTrend: subsThisMonth > 0 ? `+${subsThisMonth} bulan ini` : '',
+                    revTrend: ''
+                });
+
+                // Compute User Growth Chart (last 7 days)
+                const last7Days = [...Array(7)].map((_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    return d.toISOString().split('T')[0];
+                }).reverse();
+
+                const growthData = last7Days.map(date => {
+                    const dayUsers = users.filter(u => u.date_joined && u.date_joined.startsWith(date)).length;
+                    return {
+                        date: new Date(date).toLocaleDateString('id-ID', { weekday: 'short' }),
+                        value: dayUsers
+                    };
+                });
+                setUserGrowthData(growthData);
+
+                setAdminStats({
                     totalUsers: users.length,
-                    totalMitra: users.filter(u => u.role === 'mitra').length
-                }));
+                    totalMitra: users.filter(u => u.role === 'mitra').length,
+                    activeSubs,
+                    monthlyRevenue
+                });
                 setRecentUsers(users.slice(0, 5));
             } else {
                 // Fetch Sales/Products for Mitra
@@ -160,27 +220,28 @@ export default function AdminDashboard() {
                         value={adminStats.totalUsers}
                         icon={Users}
                         color="bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-white"
-                        trend="+12% bulan ini"
+                        trend={adminTrends.userTrend || undefined}
                     />
                     <StatCard
                         title="Mitra Aktif"
                         value={adminStats.totalMitra}
                         icon={UserPlus}
                         color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white"
-                        trend="Live"
+                        trend={adminTrends.mitraTrend || 'Live'}
                     />
                     <StatCard
                         title="Langganan Aktif"
                         value={adminStats.activeSubs}
                         icon={CreditCard}
                         color="bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-white"
+                        trend={adminTrends.subsTrend || undefined}
                     />
                     <StatCard
                         title="Estimasi Pendapatan"
                         value={formatCurrency(adminStats.monthlyRevenue)}
                         icon={TrendingUp}
                         color="bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-white"
-                        trend="+8% vs bulan lalu"
+                        trend={adminTrends.revTrend || undefined}
                     />
                 </div>
 
@@ -189,15 +250,7 @@ export default function AdminDashboard() {
                     {/* Chart Section - User Growth (Mocked) */}
                     <div className="md:col-span-2">
                         <DashboardChart
-                            data={[
-                                { date: 'Sen', value: 10 },
-                                { date: 'Sel', value: 12 },
-                                { date: 'Rab', value: 15 },
-                                { date: 'Kam', value: 14 },
-                                { date: 'Jum', value: 18 },
-                                { date: 'Sab', value: 22 },
-                                { date: 'Min', value: 25 },
-                            ]}
+                            data={userGrowthData}
                             title="Pertumbuhan Pengguna Baru (7 Hari)"
                             dataKey="value"
                             tooltipLabel="Pengguna Baru"

@@ -77,6 +77,7 @@ export interface User {
   is_subscribed: boolean;
   avatar?: string | null;
   location?: string | null;
+  date_joined?: string;
   profile?: {
     location?: string;
     avatar?: string;

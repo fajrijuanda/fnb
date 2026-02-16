@@ -141,32 +141,32 @@ export default function SubscriptionsPage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
-                            <Users size={24} />
+                <div className="bg-white dark:bg-[#1a1a1a] p-4 lg:p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                        <div className="p-2 lg:p-3 rounded-xl bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                            <Users size={24} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <h3 className="text-xs md:text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
                                 {isSuperAdmin ? 'Total Mitra Aktif' : 'Status Langganan'}
                             </h3>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <p className="text-lg md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
                                 {isLoading ? '...' : (isSuperAdmin ? subscriptions.filter(s => s.status === 'active').length : (subscriptions.length > 0 && subscriptions[0].status === 'active' ? 'Aktif' : 'Tidak Aktif'))}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400">
-                            <Activity size={24} />
+                <div className="bg-white dark:bg-[#1a1a1a] p-4 lg:p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                        <div className="p-2 lg:p-3 rounded-xl bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400">
+                            <Activity size={24} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <h3 className="text-xs md:text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
                                 {isSuperAdmin ? 'Langganan Baru' : 'Sisa Durasi'}
                             </h3>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <p className="text-lg md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
                                 {isLoading ? '...' : (isSuperAdmin ? subscriptions.filter(s => {
                                     const date = new Date(s.start_date);
                                     const now = new Date();
@@ -180,16 +180,16 @@ export default function SubscriptionsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
-                            <TrendingUp size={24} />
+                <div className="bg-white dark:bg-[#1a1a1a] p-4 lg:p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                        <div className="p-2 lg:p-3 rounded-xl bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+                            <TrendingUp size={24} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <h3 className="text-xs md:text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
                                 {isSuperAdmin ? 'Estimasi Pendapatan' : 'Biaya Langganan'}
                             </h3>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            <p className="text-lg md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
                                 {isLoading ? '...' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
                                     isSuperAdmin ? subscriptions.reduce((acc, curr) => {
                                         const price = curr.plan_name === 'Eksklusif' ? 299000 : (curr.plan_name === 'Eksekutif' ? 199000 : 0);
