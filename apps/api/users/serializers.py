@@ -22,10 +22,14 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def get_location(self, obj):
-        if hasattr(obj, 'mitra_profile'):
+        try:
             return obj.mitra_profile.location
-        if hasattr(obj, 'cashier_profile'):
+        except Mitra.DoesNotExist:
+            pass
+        try:
             return obj.cashier_profile.mitra.location
+        except Cashier.DoesNotExist:
+            pass
         return None
 
     def get_is_subscribed(self, obj):
@@ -33,28 +37,38 @@ class UserSerializer(serializers.ModelSerializer):
         if Subscription.objects.filter(user=obj, status='active', end_date__gte=timezone.now().date()).exists():
             return True
         # Check owner's subscription (Cashier)
-        if hasattr(obj, 'cashier_profile'):
-             owner = obj.cashier_profile.mitra.user
-             if Subscription.objects.filter(user=owner, status='active', end_date__gte=timezone.now().date()).exists():
-                 return True
+        try:
+            owner = obj.cashier_profile.mitra.user
+            if Subscription.objects.filter(user=owner, status='active', end_date__gte=timezone.now().date()).exists():
+                return True
+        except Cashier.DoesNotExist:
+            pass
         # Superadmin fallback
         if obj.is_superuser:
             return True
         return False
 
     def get_plan_name(self, obj):
-        if hasattr(obj, 'mitra_profile'):
-            sub = Subscription.objects.filter(user=obj, status='active').first()
+        try:
+            obj.mitra_profile  # Check if mitra
+            sub = Subscription.objects.filter(user=obj).order_by('-end_date').first()
             return sub.plan_name if sub else 'No Plan'
-        return None
+        except Mitra.DoesNotExist:
+            return None
         
     def get_role(self, obj):
         if obj.is_superuser:
             return 'superadmin'
-        if hasattr(obj, 'mitra_profile'):
+        try:
+            obj.mitra_profile
             return 'mitra'
-        if hasattr(obj, 'cashier_profile'):
+        except Mitra.DoesNotExist:
+            pass
+        try:
+            obj.cashier_profile
             return 'cashier'
+        except Cashier.DoesNotExist:
+            pass
         # Fallback for old data or incomplete users
         if obj.is_staff: 
             return 'mitra'

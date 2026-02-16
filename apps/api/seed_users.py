@@ -18,6 +18,13 @@ User = get_user_model()
 def create_users():
     print("Seeding Users with new Mitra/Cashier models...")
 
+    # Cleanup: Remove deprecated users
+    deprecated_users = ['mitra', 'mitra_eksekutif', 'mitra_ekslusif']
+    for username in deprecated_users:
+        if User.objects.filter(username=username).exists():
+            User.objects.filter(username=username).delete()
+            print(f"  Deleted deprecated user: {username}")
+
     # 1. Create Admin (Superuser)
     admin_username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
     admin_email = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com')

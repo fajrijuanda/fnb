@@ -21,17 +21,20 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        base_qs = User.objects.select_related(
+            'mitra_profile', 'cashier_profile', 'cashier_profile__mitra', 'profile'
+        )
         if user.is_superuser:
-            return User.objects.all().order_by('-date_joined')
+            return base_qs.all().order_by('-date_joined')
         
         # Mitra can only see their own employees (cashiers) and themselves
         if hasattr(user, 'mitra_profile'):
              from django.db.models import Q
-             return User.objects.filter(Q(cashier_profile__mitra=user.mitra_profile) | Q(id=user.id))
+             return base_qs.filter(Q(cashier_profile__mitra=user.mitra_profile) | Q(id=user.id))
         
         # Cashier sees nothing (or just themselves?)
         if hasattr(user, 'cashier_profile'):
-             return User.objects.filter(id=user.id)
+             return base_qs.filter(id=user.id)
              
         return User.objects.none()
 
