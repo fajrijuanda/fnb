@@ -8,7 +8,8 @@ import {
     Lock,
     Phone,
     Receipt,
-    Package
+    Package,
+    Clock
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -18,6 +19,8 @@ import type { OrderResponse, ApiResponse, StockLog } from '@/types/api';
 import { extractApiArray } from '@/lib/api-utils';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
+import { StatCard } from '@/components/admin/StatCard';
 import { useAuthStore } from '@/store/useAuthStore';
 
 type TabType = 'sales' | 'profit_loss' | 'stock';
@@ -106,211 +109,233 @@ export default function ReportsPage() {
         </button>
     );
 
-    const SalesView = () => (
-        <div className="space-y-4 lg:space-y-6 animation-fade-in">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
-                <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 lg:p-6 rounded-xl lg:rounded-2xl">
-                    <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
-                        <div className="p-1.5 md:p-2 lg:p-3 rounded-lg lg:rounded-xl bg-red-100 text-red-700 dark:bg-primary/20 dark:text-red-500">
-                            <TrendingUp size={16} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] md:text-xs lg:text-sm text-gray-500 dark:text-gray-400">Total Pendapatan</p>
-                            <h3 className="text-sm md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                                {formatCurrency(totalRevenue)}
-                            </h3>
-                        </div>
-                    </div>
+    const SalesView = () => {
+        const salesColumns: Column<OrderResponse>[] = [
+            {
+                header: 'Invoice',
+                accessor: (item) => <span className="font-medium text-gray-900 dark:text-white">{item.invoice_number}</span>
+            },
+            {
+                header: 'Waktu',
+                accessor: (item) => <span className="text-gray-500">{formatDate(item.created_at)}</span>
+            },
+            {
+                header: 'Total',
+                accessor: (item) => <span className="font-mono">{formatCurrency(item.total_amount)}</span>
+            },
+            {
+                header: 'Status',
+                accessor: (item) => (
+                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.status === 'PAID' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                        item.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                            'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                        }`}>
+                        {item.status_display}
+                    </span>
+                )
+            }
+        ];
+
+        return (
+            <div className="space-y-4 lg:space-y-6 animation-fade-in">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
+                    <StatCard
+                        title="Total Pendapatan"
+                        value={formatCurrency(totalRevenue)}
+                        icon={TrendingUp}
+                        color="bg-red-100 text-red-700 dark:bg-primary/20 dark:text-red-500"
+                    />
+                    <StatCard
+                        title="Total Transaksi"
+                        value={totalTransactions}
+                        icon={Receipt}
+                        color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"
+                    />
+                    <StatCard
+                        title="Rata-rata Order"
+                        value={formatCurrency(averageOrderValue)}
+                        icon={BarChart3}
+                        color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400"
+                    />
                 </div>
-                <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 lg:p-6 rounded-xl lg:rounded-2xl">
-                    <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
-                        <div className="p-1.5 md:p-2 lg:p-3 rounded-lg lg:rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
-                            <Receipt size={16} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] md:text-xs lg:text-sm text-gray-500 dark:text-gray-400">Total Transaksi</p>
-                            <h3 className="text-sm md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
-                                {totalTransactions}
-                            </h3>
+
+                {/* Transactions Table */}
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/10">
+                        <h3 className="font-bold text-sm md:text-base text-gray-900 dark:text-white">Riwayat Transaksi</h3>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                                <AdminSelect
+                                    value={salesFilterStatus}
+                                    onChange={(val) => { setSalesFilterStatus(val as string); setCurrentPage(1); }}
+                                    options={[
+                                        { value: 'all', label: 'Semua Status' },
+                                        { value: 'PAID', label: 'Lunas' },
+                                        { value: 'PENDING', label: 'Pending' },
+                                        { value: 'CANCELLED', label: 'Batal' },
+                                    ]}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <AdminSelect
+                                    value={salesFilterMethod}
+                                    onChange={(val) => { setSalesFilterMethod(val as string); setCurrentPage(1); }}
+                                    options={[
+                                        { value: 'all', label: 'Semua Metode' },
+                                        { value: 'CASH', label: 'Cash' },
+                                        { value: 'QRIS', label: 'QRIS' },
+                                        { value: 'TRANSFER', label: 'Transfer' },
+                                    ]}
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 lg:p-6 rounded-xl lg:rounded-2xl">
-                    <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
-                        <div className="p-1.5 md:p-2 lg:p-3 rounded-lg lg:rounded-xl bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400">
-                            <BarChart3 size={16} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] md:text-xs lg:text-sm text-gray-500 dark:text-gray-400">Rata-rata Order</p>
-                            <h3 className="text-sm md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white truncate">
-                                {formatCurrency(averageOrderValue)}
-                            </h3>
-                        </div>
-                    </div>
+
+                    <AdminDataTable
+                        data={filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize)}
+                        columns={salesColumns}
+                        isLoading={isLoading}
+                        emptyMessage="Tidak ada data transaksi."
+                        keyExtractor={(item) => item.id}
+                        mobileCardRender={(order) => (
+                            <div className="bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div className="font-bold text-gray-900 dark:text-white">{order.invoice_number}</div>
+                                        <div className="text-xs text-gray-500">{formatDate(order.created_at)}</div>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${order.status === 'PAID' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                                        order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                                            'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                        }`}>
+                                        {order.status_display}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-100 dark:border-white/5">
+                                    <span className="text-gray-500">Total</span>
+                                    <span className="font-bold font-mono">{formatCurrency(order.total_amount)}</span>
+                                </div>
+                            </div>
+                        )}
+                    />
+
+                    {filteredOrders.length > pageSize && (
+                        <AdminPagination currentPage={currentPage} totalItems={filteredOrders.length} pageSize={pageSize} onPageChange={setCurrentPage} />
+                    )}
                 </div>
             </div>
+        );
+    };
 
-            {/* Transactions Table */}
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="font-bold text-sm md:text-lg text-gray-900 dark:text-white">Riwayat Transaksi</h3>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Status</span>
-                            <AdminSelect
-                                value={salesFilterStatus}
-                                onChange={(val) => { setSalesFilterStatus(val as string); setCurrentPage(1); }}
-                                options={[
-                                    { value: 'all', label: 'Semua' },
-                                    { value: 'PAID', label: 'Lunas' },
-                                    { value: 'PENDING', label: 'Pending' },
-                                    { value: 'CANCELLED', label: 'Batal' },
-                                ]}
-                            />
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Metode</span>
-                            <AdminSelect
-                                value={salesFilterMethod}
-                                onChange={(val) => { setSalesFilterMethod(val as string); setCurrentPage(1); }}
-                                options={[
-                                    { value: 'all', label: 'Semua' },
-                                    { value: 'CASH', label: 'Cash' },
-                                    { value: 'QRIS', label: 'QRIS' },
-                                    { value: 'TRANSFER', label: 'Transfer' },
-                                ]}
-                            />
-                        </div>
-                        <AdminSelect
-                            value={pageSize}
-                            onChange={(val) => setPageSize(val as number)}
-                            options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
-                        />
-                    </div>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-xs lg:text-sm">
-                        <thead>
-                            <tr className="bg-primary/10 dark:bg-white/5 text-left">
-                                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Invoice</th>
-                                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Waktu</th>
-                                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Total</th>
-                                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-200">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                            {isLoading ? (
-                                <tr><td colSpan={4} className="p-6 text-center">Memuat...</td></tr>
-                            ) : filteredOrders.length === 0 ? (
-                                <tr><td colSpan={4} className="p-6 text-center text-gray-500">Tidak ada data transaksi.</td></tr>
-                            ) : filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => (
-                                <tr key={order.id} className="hover:bg-red-50 dark:hover:bg-white/5">
-                                    <td className="px-4 py-3 font-medium">{order.invoice_number}</td>
-                                    <td className="px-4 py-3 text-gray-500">{formatDate(order.created_at)}</td>
-                                    <td className="px-4 py-3">{formatCurrency(order.total_amount)}</td>
-                                    <td className="px-4 py-3">
-                                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                            {order.status_display}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <AdminPagination currentPage={currentPage} totalItems={filteredOrders.length} pageSize={pageSize} onPageChange={setCurrentPage} />
-        </div>
-    );
+    const StockView = () => {
+        const stockColumns: Column<StockLog>[] = [
+            {
+                header: 'Bahan / Produk',
+                accessor: (item) => <span className="font-medium text-gray-900 dark:text-white">{item.ingredient_name || item.product_name || '-'}</span>
+            },
+            {
+                header: 'Jenis',
+                accessor: (item) => (
+                    <span className={`px-2 py-1 rounded-xs font-bold text-[10px] ${item.movement_type === 'IN' ? 'text-green-600 bg-green-100 dark:bg-green-500/20 dark:text-green-400' :
+                        item.movement_type === 'OUT' ? 'text-blue-600 bg-blue-100 dark:bg-blue-500/20 dark:text-blue-400' :
+                            'text-red-600 bg-red-100 dark:bg-red-500/20 dark:text-red-400'
+                        }`}>
+                        {item.movement_type}
+                    </span>
+                )
+            },
+            {
+                header: 'Jumlah',
+                accessor: (item) => (
+                    <span className={`font-bold ${item.change_amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {item.change_amount > 0 ? '+' : ''}{item.change_amount}
+                    </span>
+                )
+            },
+            {
+                header: 'Stok Akhir',
+                accessor: (item) => <span className="font-mono text-gray-600 dark:text-gray-400">{item.final_stock}</span>
+            },
+            {
+                header: 'Waktu',
+                accessor: (item) => <span className="text-gray-500 text-xs">{formatDate(item.created_at)}</span>
+            }
+        ];
 
-    const StockView = () => (
-        <div className="space-y-6 animation-fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white/50 dark:bg-white/5 p-6 rounded-2xl border border-gray-200 dark:border-white/10">
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">Total Perpindahan Stok</h3>
-                    <p className="text-3xl font-bold text-primary">{stockLogs.length}</p>
-                    <p className="text-sm text-gray-500">Aktivitas tercatat</p>
+        return (
+            <div className="space-y-6 animation-fade-in">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <StatCard
+                        title="Total Perpindahan Stok"
+                        value={stockLogs.length}
+                        icon={Package}
+                        color="bg-primary/10 text-primary dark:text-white"
+                        trend="Aktivitas tercatat"
+                    />
+                    <StatCard
+                        title="Perubahan Terakhir"
+                        value={stockLogs.length > 0 ? formatDate(stockLogs[0].created_at) : '-'}
+                        icon={Clock}
+                        color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white"
+                    />
                 </div>
-                <div className="bg-white/50 dark:bg-white/5 p-6 rounded-2xl border border-gray-200 dark:border-white/10">
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">Perubahan Terakhir</h3>
-                    <p className="text-3xl font-bold text-green-600">
-                        {stockLogs.length > 0 ? formatDate(stockLogs[0].created_at) : '-'}
-                    </p>
-                </div>
-            </div>
 
-            <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="font-bold text-sm md:text-lg text-gray-900 dark:text-white">Riwayat Mutasi Stok</h3>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Jenis</span>
+                {/* Stock Table */}
+                <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 bg-white/50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/10">
+                        <h3 className="font-bold text-sm md:text-base text-gray-900 dark:text-white">Riwayat Mutasi Stok</h3>
+                        <div className="flex items-center gap-3">
                             <AdminSelect
                                 value={stockFilterType}
                                 onChange={(val) => { setStockFilterType(val as string); setCurrentPage(1); }}
                                 options={[
-                                    { value: 'all', label: 'Semua' },
+                                    { value: 'all', label: 'Semua Jenis' },
                                     { value: 'IN', label: 'Masuk' },
                                     { value: 'OUT', label: 'Keluar' },
                                     { value: 'ADJUSTMENT', label: 'Adjustment' },
                                 ]}
                             />
                         </div>
-                        <AdminSelect
-                            value={pageSize}
-                            onChange={(val) => setPageSize(val as number)}
-                            options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
-                        />
                     </div>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-xs lg:text-sm text-left">
-                        <thead className="bg-primary/10 dark:bg-white/5">
-                            <tr>
-                                <th className="px-4 py-3 font-semibold">Bahan / Produk</th>
-                                <th className="px-4 py-3 font-semibold">Jenis</th>
-                                <th className="px-4 py-3 font-semibold">Jumlah</th>
-                                <th className="px-4 py-3 font-semibold">Stok Akhir</th>
-                                <th className="px-4 py-3 font-semibold">Waktu</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                            {isLoading ? (
-                                <tr><td colSpan={5} className="p-6 text-center">Memuat...</td></tr>
-                            ) : filteredStockLogs.length === 0 ? (
-                                <tr><td colSpan={5} className="p-6 text-center text-gray-500">Belum ada data mutasi.</td></tr>
-                            ) : (
-                                filteredStockLogs.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((log) => (
-                                    <tr key={log.id} className="hover:bg-red-50 dark:hover:bg-white/5">
-                                        <td className="px-4 py-3 font-medium">
-                                            {log.ingredient_name || log.product_name || '-'}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <span className={`px-2 py-1 rounded-xs font-bold text-xs ${log.movement_type === 'IN' ? 'text-green-600 bg-green-100' :
-                                                log.movement_type === 'OUT' ? 'text-blue-600 bg-blue-100' :
-                                                    'text-red-600 bg-red-100'
-                                                }`}>
-                                                {log.movement_type}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <span className={log.change_amount > 0 ? 'text-green-600' : 'text-red-600'}>
-                                                {log.change_amount > 0 ? '+' : ''}{log.change_amount}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 font-mono">{log.final_stock}</td>
-                                        <td className="px-4 py-3 text-gray-500">{formatDate(log.created_at)}</td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+
+                    <AdminDataTable
+                        data={filteredStockLogs.slice((currentPage - 1) * pageSize, currentPage * pageSize)}
+                        columns={stockColumns}
+                        isLoading={isLoading}
+                        emptyMessage="Belum ada data mutasi."
+                        keyExtractor={(item) => item.id}
+                        mobileCardRender={(log) => (
+                            <div className="bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div className="font-bold text-gray-900 dark:text-white">{log.ingredient_name || log.product_name || '-'}</div>
+                                        <div className="text-xs text-gray-500">{formatDate(log.created_at)}</div>
+                                    </div>
+                                    <span className={`px-2 py-0.5 rounded-xs font-bold text-[10px] ${log.movement_type === 'IN' ? 'text-green-600 bg-green-100' :
+                                        log.movement_type === 'OUT' ? 'text-blue-600 bg-blue-100' :
+                                            'text-red-600 bg-red-100'
+                                        }`}>
+                                        {log.movement_type}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm pt-2">
+                                    <span className={`${log.change_amount > 0 ? 'text-green-600' : 'text-red-600'} font-bold`}>
+                                        {log.change_amount > 0 ? '+' : ''}{log.change_amount}
+                                    </span>
+                                    <span className="text-gray-500 text-xs">Sisa: {log.final_stock}</span>
+                                </div>
+                            </div>
+                        )}
+                    />
+
+                    {filteredStockLogs.length > pageSize && (
+                        <AdminPagination currentPage={currentPage} totalItems={filteredStockLogs.length} pageSize={pageSize} onPageChange={setCurrentPage} />
+                    )}
                 </div>
             </div>
-            <AdminPagination currentPage={currentPage} totalItems={filteredStockLogs.length} pageSize={pageSize} onPageChange={setCurrentPage} />
-        </div>
-    );
+        );
+    };
 
     const ProfitLossView = () => {
         const [plData, setPlData] = useState<{
@@ -403,17 +428,17 @@ export default function ReportsPage() {
                     {/* Revenue */}
                     <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 rounded-xl">
                         <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Pendapatan</p>
-                        <p className="text-sm md:text-lg font-bold text-gray-900 dark:text-white mt-1 truncate">{formatCurrency(plData.revenue)}</p>
+                        <p className="text-sm md:text-base lg:text-lg font-bold text-gray-900 dark:text-white mt-1 truncate">{formatCurrency(plData.revenue)}</p>
                     </div>
                     {/* COGS */}
                     <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 rounded-xl">
                         <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">HPP (Bahan)</p>
-                        <p className="text-sm md:text-lg font-bold text-red-600 dark:text-red-400 mt-1 truncate">- {formatCurrency(plData.cogs)}</p>
+                        <p className="text-sm md:text-base lg:text-lg font-bold text-red-600 dark:text-red-400 mt-1 truncate">- {formatCurrency(plData.cogs)}</p>
                     </div>
                     {/* Gross Profit */}
                     <div className={`backdrop-blur-xl border p-3 md:p-4 rounded-xl ${isGrossProfit ? 'bg-green-50/50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20' : 'bg-red-50/50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20'}`}>
                         <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Laba Kotor</p>
-                        <p className={`text-sm md:text-lg font-bold mt-1 truncate ${isGrossProfit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <p className={`text-sm md:text-base lg:text-lg font-bold mt-1 truncate ${isGrossProfit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                             {formatCurrency(plData.gross_profit)}
                             <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal ml-1">({plData.gross_margin}%)</span>
                         </p>
@@ -421,12 +446,12 @@ export default function ReportsPage() {
                     {/* Expenses */}
                     <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 p-3 md:p-4 rounded-xl">
                         <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Pengeluaran</p>
-                        <p className="text-sm md:text-lg font-bold text-orange-600 dark:text-orange-400 mt-1 truncate">- {formatCurrency(plData.expenses)}</p>
+                        <p className="text-sm md:text-base lg:text-lg font-bold text-orange-600 dark:text-orange-400 mt-1 truncate">- {formatCurrency(plData.expenses)}</p>
                     </div>
                     {/* Net Profit */}
                     <div className={`col-span-2 md:col-span-1 backdrop-blur-xl border p-3 md:p-4 rounded-xl ${isProfit ? 'bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20' : 'bg-red-50/50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20'}`}>
                         <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Laba Bersih</p>
-                        <p className={`text-sm md:text-xl font-bold mt-1 ${isProfit ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                        <p className={`text-sm md:text-base lg:text-xl font-bold mt-1 ${isProfit ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                             {formatCurrency(plData.net_profit)}
                             <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal ml-1">({plData.net_margin}%)</span>
                         </p>
