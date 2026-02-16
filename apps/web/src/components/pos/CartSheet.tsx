@@ -10,6 +10,7 @@ import { CheckoutModal, CheckoutSuccessModal } from './CheckoutModal';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ReceiptPrint } from './ReceiptPrint';
 import { useToast } from '@/components/ToastContext';
+import { useShiftStore } from '@/store/useShiftStore';
 import type { OrderResponse } from '@/types/api';
 
 // Primary color constant (Red)
@@ -22,6 +23,7 @@ interface CartSheetProps {
 export function CartSheet({ onClose }: CartSheetProps) {
     const { items, updateQuantity, clearCart, getTotalPrice, removeItem } = useCartStore();
     const { success, warning } = useToast();
+    const { activeShift } = useShiftStore();
     const total = getTotalPrice();
 
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -161,6 +163,16 @@ export function CartSheet({ onClose }: CartSheetProps) {
                         )}
                     </div>
                 </div>
+
+                {/* Shift Info */}
+                {activeShift && (
+                    <div className="flex items-center justify-between px-4 py-1.5 bg-blue-50 dark:bg-blue-900/10 border-b border-blue-100 dark:border-blue-900/20 shrink-0">
+                        <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400">Modal Awal</span>
+                        <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300">
+                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(activeShift.initial_cash)}
+                        </span>
+                    </div>
+                )}
 
                 {/* Cart Items */}
                 <div className="flex-1 overflow-y-auto p-3">

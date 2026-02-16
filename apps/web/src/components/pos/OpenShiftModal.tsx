@@ -2,11 +2,16 @@
 
 import { useState } from 'react';
 import { useShiftStore } from '@/store/useShiftStore';
+import { useToast } from '@/components/ToastContext';
 import { Loader2 } from 'lucide-react';
 
 export function OpenShiftModal() {
     const { openShift, isLoading, error } = useShiftStore();
+    const { success } = useToast();
     const [initialCash, setInitialCash] = useState<string>('');
+
+    const formatCurrency = (amount: number) =>
+        new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -15,7 +20,8 @@ export function OpenShiftModal() {
 
         try {
             await openShift(cash);
-        } catch (err) {
+            success(`Shift berhasil dibuka! Modal awal: ${formatCurrency(cash)}`);
+        } catch {
             // Error handled in store
         }
     };
