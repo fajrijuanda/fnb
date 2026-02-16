@@ -23,6 +23,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useInactivityLogout } from '@/hooks/useInactivityLogout';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
 import { AIChatWidget } from '@/components/admin/ai/AIChatWidget';
+import { LoadingScreen } from '@/components/LoadingScreen';
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -62,6 +63,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const navItems = user?.role === 'superadmin' ? superadminNav : mitraNav;
     const roleLabel = user?.role === 'superadmin' ? 'SUPER ADMIN' : 'MITRA';
 
+    // Route Protection: Redirect unauthenticated users to login
+    useEffect(() => {
+        if (_hasHydrated && !isAuthenticated) {
+            router.replace('/login');
+        }
+    }, [_hasHydrated, isAuthenticated, router]);
+
     // Route Protection: Redirect Cashier to /cashier
     useEffect(() => {
         if (_hasHydrated && isAuthenticated && user?.role === 'cashier') {
@@ -79,6 +87,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Show loading screen while auth store is hydrating
+    if (!_hasHydrated) {
+        return <LoadingScreen />;
+    }
+
+    // Don't render layout until authenticated (will redirect via useEffect)
+    if (!isAuthenticated) {
+        return <LoadingScreen />;
+    }
 
     return (
         <div className="flex min-h-screen bg-white dark:bg-[#050505] transition-colors duration-500 relative overflow-hidden font-sans">
