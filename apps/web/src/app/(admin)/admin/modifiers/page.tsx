@@ -223,7 +223,7 @@ export default function ModifiersPage() {
 
     return (
         <div className="space-y-6">
-            <AdminHeader title="Topping / Modifier" description="Kelola topping dan varian tambahan" />
+            <AdminHeader title="Varian" description="Kelola varian dan topping tambahan untuk produk Anda" />
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <StatCard title="Total Topping" value={modifiers.length} icon={Layers} color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white" />

@@ -25,6 +25,7 @@ import { useInactivityLogout } from '@/hooks/useInactivityLogout';
 import { AdminNavbar } from '@/components/admin/AdminNavbar';
 // import { AIChatWidget } from '@/components/admin/ai/AIChatWidget';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { GoogleTranslate } from '@/components/GoogleTranslate';
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -43,14 +44,13 @@ const superadminNav = [
 const mitraNav = [
     { href: '/admin', label: 'Dasbor', icon: LayoutDashboard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
-    // Categories managed by Admin only
-    { href: '/admin/modifiers', label: 'Topping / Modifier', icon: Layers },
+    { href: '/admin/modifiers', label: 'Varian', icon: Layers },
     { href: '/admin/inventory', label: 'Inventori', icon: Package },
     { href: '/admin/orders', label: 'Pesanan', icon: Receipt },
-    { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
     { href: '/admin/finance', label: 'Keuangan', icon: CreditCard },
     { href: '/admin/cashiers', label: 'Kasir', icon: Users },
-    { href: '/admin/billing', label: 'Billing / Langganan', icon: FileText },
+    { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
+    { href: '/admin/billing', label: 'Langganan', icon: FileText },
     { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 
@@ -241,6 +241,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
             </div>
             {/* <AIChatWidget /> */}
+            <GoogleTranslate />
         </div >
     );
 }

@@ -26,12 +26,12 @@ import { FormSelect } from '@/components/admin/FormSelect';
 
 
 export default function SettingsPage() {
-    const { user, updateProfile } = useAuthStore();
+    const { user, updateProfile, language, setLanguage } = useAuthStore();
     const { success, error: showToastError } = useToast();
     const [name, setName] = useState(user?.username || '');
     const [email, setEmail] = useState(user?.email || '');
     const [notifications, setNotifications] = useState(true);
-    const [language, setLanguage] = useState('id');
+    // const [language, setLanguage] = useState('id'); // Now using store
 
     // Avatar state
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -360,13 +360,13 @@ export default function SettingsPage() {
                                 <Globe size={20} />
                             </div>
                             <div>
-                                <h3 className="font-medium text-gray-900 dark:text-white">Bahasa / Language</h3>
+                                <h3 className="font-medium text-gray-900 dark:text-white">Bahasa</h3>
                                 <p className="text-xs text-gray-500">Bahasa utama aplikasi</p>
                             </div>
                         </div>
                         <FormSelect
                             value={language}
-                            onChange={setLanguage}
+                            onChange={(val) => setLanguage(val as 'id' | 'en')}
                             options={[
                                 { value: 'id', label: 'Indonesia' },
                                 { value: 'en', label: 'English' },

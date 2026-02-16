@@ -17,6 +17,8 @@ interface AuthState {
   setHasHydrated: (state: boolean) => void;
   lastActivity: number;
   updateActivity: () => void;
+  language: "id" | "en";
+  setLanguage: (lang: "id" | "en") => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -62,6 +64,8 @@ export const useAuthStore = create<AuthState>()(
       setHasHydrated: (state) => {
         set({ _hasHydrated: state });
       },
+      language: "id",
+      setLanguage: (lang: "id" | "en") => set({ language: lang }),
     }),
     {
       name: "auth-storage",

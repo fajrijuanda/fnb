@@ -93,7 +93,7 @@ export default function BillingPage() {
         <div className="space-y-6 pb-6 animation-fade-in">
             {/* Header */}
             <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Billing &amp; Langganan</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Langganan</h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Detail paket, status langganan, dan riwayat tagihan.</p>
             </div>
 
