@@ -294,6 +294,7 @@ export interface Shift {
   start_time: string;
   end_time: string | null;
   initial_cash: number;
+  current_cash: number;
   final_cash_system: number;
   final_cash_actual: number;
   difference: number;

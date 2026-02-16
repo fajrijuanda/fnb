@@ -112,203 +112,239 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
             <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 
-            <div className="relative w-full sm:max-w-lg max-h-[90vh] flex flex-col bg-white dark:bg-[#1a1a1a] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
+            <div className="relative w-full sm:max-w-md max-h-[90vh] flex flex-col bg-white dark:bg-[#1a1a1a] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 font-sans">
 
-                {/* Drag Handle (Mobile) */}
-                <div className="flex justify-center pt-2 pb-1 sm:hidden shrink-0">
-                    <div className="h-1.5 w-10 rounded-full bg-gray-300 dark:bg-white/20" />
-                </div>
-
-                {/* Product Image & Info Header */}
-                <div className="relative shrink-0">
-                    {product.image_url ? (
-                        <div className="h-40 sm:h-48 w-full bg-gray-100 dark:bg-white/5 overflow-hidden">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                {/* Header */}
+                <div className="flex items-start gap-4 p-5 shrink-0 border-b border-gray-100 dark:border-white/5 relative">
+                    {/* Thumbnail */}
+                    <div className="h-20 w-20 shrink-0 rounded-2xl bg-gray-100 dark:bg-white/5 overflow-hidden border border-gray-100 dark:border-white/10">
+                        {product.image_url ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
                             <img
                                 src={product.image_url}
                                 alt={product.name}
                                 className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                        </div>
-                    ) : (
-                        <div className="h-32 w-full bg-gray-100 dark:bg-white/5 flex items-center justify-center">
-                            <ImageOff className="h-10 w-10 text-gray-300 dark:text-white/20" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                        </div>
-                    )}
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <ImageOff size={24} />
+                            </div>
+                        )}
+                    </div>
 
-                    {/* Close Button */}
-                    <button
-                        onClick={onClose}
-                        className="absolute top-3 right-3 p-1.5 rounded-full bg-black/30 backdrop-blur-md hover:bg-black/50 transition-colors"
-                    >
-                        <X className="h-4 w-4 text-white" />
-                    </button>
-
-                    {/* Product Name & Description overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h2 className="text-lg font-bold text-white drop-shadow-lg line-clamp-1">
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 pt-1">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
                             {product.name}
                         </h2>
+                        <p className="text-primary font-bold text-base mt-1">
+                            {formatRupiah(product.price)}
+                        </p>
                         {product.description && (
-                            <p className="text-xs text-white/80 mt-0.5 line-clamp-2 drop-shadow">
+                            <p className="text-[10px] text-gray-500 mt-1 line-clamp-2 leading-relaxed">
                                 {product.description}
                             </p>
                         )}
-                        <p className="text-sm font-bold text-white mt-1 drop-shadow-lg">
-                            {formatRupiah(product.price)}
-                        </p>
                     </div>
+
+                    {/* Close */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors text-gray-500 dark:text-gray-400"
+                    >
+                        <X size={18} />
+                    </button>
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-5">
+                <div className="flex-1 overflow-y-auto p-5 space-y-6">
 
-                    {/* Variants Section */}
+                    {/* Quantity Selector */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Jumlah Paket
+                        </label>
+                        <div className="flex items-center justify-between bg-gray-50 dark:bg-white/5 rounded-2xl p-2 border border-gray-100 dark:border-white/5">
+                            <button
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                disabled={quantity <= 1}
+                                className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-white dark:hover:bg-white/10 hover:shadow-sm disabled:opacity-30 transition-all font-bold text-lg"
+                            >
+                                <Minus size={18} />
+                            </button>
+                            <span className="text-lg font-bold text-gray-900 dark:text-white min-w-[3ch] text-center">
+                                {quantity}
+                            </span>
+                            <button
+                                onClick={() => setQuantity(quantity + 1)}
+                                className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all"
+                            >
+                                <Plus size={18} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Variants (Existing Logic, New Style) */}
                     {hasVariants && (
-                        <div className="space-y-2">
-                            <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-                                Pilih Varian <span className="text-red-500">*</span>
-                            </h3>
-                            <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    Pilih Varian
+                                </label>
+                                <span className="text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-full">
+                                    Wajib
+                                </span>
+                            </div>
+                            <div className="space-y-2">
                                 {product.variants?.map(variant => (
                                     <button
                                         key={variant.id}
                                         onClick={() => handleVariantSelect(variant.id)}
                                         className={cn(
-                                            "relative flex flex-col items-start p-2.5 rounded-xl border text-left transition-all",
+                                            "w-full flex items-center justify-between p-3 rounded-xl border transition-all text-sm",
                                             selectedVariantId === variant.id
-                                                ? "border-primary bg-primary/5 dark:bg-primary/20 ring-1 ring-primary"
-                                                : "border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20"
+                                                ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
+                                                : "border-gray-100 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-600"
                                         )}
                                     >
-                                        <span className="text-xs font-medium text-gray-900 dark:text-white">
+                                        <span className={cn("font-medium", selectedVariantId === variant.id ? "text-primary" : "text-gray-700 dark:text-gray-300")}>
                                             {variant.name}
                                         </span>
-                                        {variant.price_adjustment !== 0 && (
-                                            <span className="text-[10px] text-primary dark:text-red-400 mt-0.5 font-medium">
-                                                {variant.price_adjustment > 0 ? '+' : ''}{formatRupiah(variant.price_adjustment)}
-                                            </span>
-                                        )}
-                                        {selectedVariantId === variant.id && (
-                                            <div className="absolute top-2 right-2 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
-                                                <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />
+                                        <div className="flex items-center gap-2">
+                                            {variant.price_adjustment !== 0 && (
+                                                <span className="text-xs text-gray-500">
+                                                    +{formatRupiah(variant.price_adjustment)}
+                                                </span>
+                                            )}
+                                            <div className={cn(
+                                                "w-5 h-5 rounded-full border flex items-center justify-center",
+                                                selectedVariantId === variant.id ? "border-primary bg-primary text-white" : "border-gray-300 dark:border-gray-600"
+                                            )}>
+                                                {selectedVariantId === variant.id && <Check size={12} strokeWidth={3} />}
                                             </div>
-                                        )}
+                                        </div>
                                     </button>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    {/* Toppings / Modifiers Section */}
+                    {/* Toppings / Modifiers */}
                     {hasModifiers && (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-                                    Pilih Topping
-                                </h3>
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 font-medium">
-                                    {selectedModifierIds.length}/{MAX_TOPPINGS}
+                                <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    Pilih Varian Topping
+                                </label>
+                                <span className={cn(
+                                    "text-xs font-bold px-2 py-0.5 rounded-full",
+                                    selectedModifierIds.length >= MAX_TOPPINGS ? "text-red-500 bg-red-50" : "text-gray-500 bg-gray-100 dark:bg-white/10"
+                                )}>
+                                    {selectedModifierIds.length}/{MAX_TOPPINGS} Pcs
                                 </span>
                             </div>
-                            <div className="space-y-1.5">
+
+                            <div className="divide-y divide-gray-100 dark:divide-white/5 border-t border-b border-gray-100 dark:border-white/5">
                                 {allModifierOptions.map(({ option }) => {
                                     const isSelected = selectedModifierIds.includes(option.id);
                                     const isDisabled = option.mitra_availability === false;
                                     const isMaxed = !isSelected && selectedModifierIds.length >= MAX_TOPPINGS;
+
                                     return (
-                                        <button
-                                            key={option.id}
-                                            onClick={() => handleModifierToggle(option.id)}
-                                            className={cn(
-                                                "w-full flex items-center justify-between p-2.5 rounded-xl border transition-all",
-                                                isSelected
-                                                    ? "border-primary bg-primary/5 dark:bg-primary/20"
-                                                    : "border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5",
-                                                isDisabled && "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-white/5",
-                                                isMaxed && !isDisabled && "opacity-40 cursor-not-allowed"
-                                            )}
-                                            disabled={isDisabled || isMaxed}
-                                        >
-                                            <div className="flex items-center gap-2.5">
-                                                <div className={cn(
-                                                    "h-4 w-4 rounded flex items-center justify-center border transition-colors shrink-0",
-                                                    isSelected ? "bg-primary border-primary" : "border-gray-300 dark:border-gray-600"
+                                        <div key={option.id} className="flex items-center justify-between py-3">
+                                            <div className="flex flex-col">
+                                                <span className={cn(
+                                                    "text-sm font-medium",
+                                                    isDisabled ? "text-gray-400" : "text-gray-900 dark:text-white"
                                                 )}>
-                                                    {isSelected && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
-                                                </div>
-                                                <span className="text-xs text-gray-700 dark:text-gray-200">{option.name}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                {option.price_adjustment !== 0 && (
-                                                    <span className="text-[10px] font-medium text-primary dark:text-red-400">
+                                                    {option.name}
+                                                </span>
+                                                {option.price_adjustment > 0 && (
+                                                    <span className="text-[10px] text-gray-500">
                                                         +{formatRupiah(option.price_adjustment)}
                                                     </span>
                                                 )}
-                                                {isDisabled && (
-                                                    <span className="text-[10px] font-bold text-red-500">HABIS</span>
+                                            </div>
+
+                                            {/* Quantity Control UI for Modifiers */}
+                                            <div className="flex items-center gap-3">
+                                                {isSelected ? (
+                                                    <>
+                                                        {/* Ideally we would deduct quantity here if we supported multiple. 
+                                                          For boolean toggle, MINUS deselects it. */}
+                                                        <button
+                                                            onClick={() => handleModifierToggle(option.id)}
+                                                            className="w-7 h-7 rounded-lg border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                                                        >
+                                                            <Minus size={14} />
+                                                        </button>
+                                                        <span className="text-sm font-bold w-4 text-center">1</span>
+                                                        <button
+                                                            onClick={() => {/* If we supported > 1, we'd add here. For now, max 1 implies disabled or no-op */ }}
+                                                            disabled
+                                                            className="w-7 h-7 rounded-lg bg-red-100 text-red-500 flex items-center justify-center opacity-50 cursor-not-allowed"
+                                                        >
+                                                            <Plus size={14} />
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="text-sm font-medium text-gray-400 w-4 text-center">0</span>
+                                                        <button
+                                                            onClick={() => handleModifierToggle(option.id)}
+                                                            disabled={isDisabled || isMaxed}
+                                                            className="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 hover:scale-105 transition-all disabled:opacity-30 disabled:hover:scale-100 disabled:hover:bg-red-50"
+                                                        >
+                                                            <Plus size={14} />
+                                                        </button>
+                                                    </>
                                                 )}
                                             </div>
-                                        </button>
+                                        </div>
                                     );
                                 })}
                             </div>
                         </div>
                     )}
 
-                    {/* Quantity & Note */}
-                    <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-white/5">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-gray-900 dark:text-white">Jumlah</span>
-                            <div className="flex items-center gap-3 bg-gray-100 dark:bg-white/5 rounded-full p-0.5">
-                                <button
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="h-7 w-7 rounded-full bg-white dark:bg-white/10 flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
-                                    disabled={quantity <= 1}
-                                >
-                                    <Minus className="h-3.5 w-3.5" />
-                                </button>
-                                <span className="font-bold text-sm text-gray-900 dark:text-white w-5 text-center">{quantity}</span>
-                                <button
-                                    onClick={() => setQuantity(quantity + 1)}
-                                    className="h-7 w-7 rounded-full bg-white dark:bg-white/10 flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-all"
-                                >
-                                    <Plus className="h-3.5 w-3.5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-900 dark:text-white">
-                                Catatan (Opsional)
-                            </label>
-                            <textarea
-                                value={note}
-                                onChange={(e) => setNote(e.target.value)}
-                                placeholder="Contoh: Kurangi es, cabe dipisah..."
-                                className="w-full rounded-xl bg-gray-50 dark:bg-white/5 p-3 text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all border border-gray-100 dark:border-white/10 resize-none h-16"
-                            />
-                        </div>
+                    {/* Notes */}
+                    <div className="space-y-2">
+                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                            <span className="w-5 h-5 rounded bg-gray-100 dark:bg-white/10 flex items-center justify-center">
+                                {/* Message icon substitute */}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                            </span>
+                            Catatan (Opsional)
+                        </label>
+                        <textarea
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            placeholder="Contoh: Jangan terlalu pedas, es sedikit..."
+                            className="w-full rounded-xl bg-gray-50 dark:bg-white/5 p-3 text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary transition-all border border-gray-100 dark:border-white/10 resize-none h-24"
+                        />
                     </div>
                 </div>
 
-                {/* Footer Actions */}
-                <div className="p-4 border-t border-gray-100 dark:border-white/5 bg-white dark:bg-[#1a1a1a] shrink-0">
+                {/* Footer */}
+                <div className="p-5 border-t border-gray-100 dark:border-white/5 bg-white dark:bg-[#1a1a1a] shrink-0">
+                    <div className="flex items-center justify-between mb-3 text-sm">
+                        <span className="text-gray-500">Total Harga</span>
+                        <span className="font-bold text-gray-900 dark:text-white text-lg">
+                            {formatRupiah(calculateTotal())}
+                        </span>
+                    </div>
                     <button
                         onClick={handleSubmit}
                         disabled={!isValid()}
-                        className="w-full flex items-center justify-between px-5 py-3 rounded-2xl bg-gradient-to-r from-primary to-red-600 text-white font-bold shadow-lg shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] transition-all"
+                        className="w-full h-12 rounded-xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/30 hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <span className="text-sm">Tambah ke Pesanan</span>
-                        <span className="text-sm">{formatRupiah(calculateTotal())}</span>
+                        Tambah Pesanan
                     </button>
                 </div>
 

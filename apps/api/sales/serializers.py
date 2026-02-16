@@ -183,7 +183,7 @@ class ShiftSerializer(serializers.ModelSerializer):
     """
     cashier_name = serializers.CharField(source='cashier.username', read_only=True)
     difference = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    current_cash = serializers.SerializerMethodField()
 
     class Meta:
         model = Shift
@@ -194,6 +194,7 @@ class ShiftSerializer(serializers.ModelSerializer):
             'start_time',
             'end_time',
             'initial_cash',
+            'current_cash',
             'final_cash_system',
             'final_cash_actual',
             'difference',
@@ -202,3 +203,14 @@ class ShiftSerializer(serializers.ModelSerializer):
             'notes'
         ]
         read_only_fields = ['id', 'cashier', 'start_time', 'end_time', 'final_cash_system', 'status']
+
+    def get_current_cash(self, obj):
+        """
+        Calculate current cash in drawer (Initial + Cash Sales).
+        """
+        from django.db.models import Sum
+        cash_sales = obj.orders.filter(
+            payment_method='CASH', 
+            status='PAID'
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        return obj.initial_cash + cash_sales

@@ -23,7 +23,7 @@ interface CartSheetProps {
 export function CartSheet({ onClose }: CartSheetProps) {
     const { items, updateQuantity, clearCart, getTotalPrice, removeItem } = useCartStore();
     const { success, warning } = useToast();
-    const { activeShift } = useShiftStore();
+    const { activeShift, fetchCurrentShift } = useShiftStore();
     const total = getTotalPrice();
 
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -108,6 +108,11 @@ export function CartSheet({ onClose }: CartSheetProps) {
         setIsCheckoutOpen(false);
         setCompletedOrder(order);
         setIsSuccessOpen(true);
+
+        // Refresh shift data if payment was CASH to update drawer total
+        if (order.payment_method === 'CASH') {
+            fetchCurrentShift();
+        }
     };
 
     const handleSuccessClose = () => {
@@ -167,9 +172,9 @@ export function CartSheet({ onClose }: CartSheetProps) {
                 {/* Shift Info */}
                 {activeShift && (
                     <div className="flex items-center justify-between px-4 py-1.5 bg-blue-50 dark:bg-blue-900/10 border-b border-blue-100 dark:border-blue-900/20 shrink-0">
-                        <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400">Modal Awal</span>
+                        <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400">Total Uang di Kasir</span>
                         <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300">
-                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(activeShift.initial_cash)}
+                            {formatRupiah(activeShift.current_cash || activeShift.initial_cash)}
                         </span>
                     </div>
                 )}
