@@ -98,7 +98,8 @@ def seed_inventory():
                 else:
                     print(f"WARNING: Ingredient {ing_name} not found for {product.name}")
 
-            print(f"WARNING: Product '{product_name}' not found. Skipping.")
+        except Product.DoesNotExist:
+             print(f"WARNING: Product '{product_name}' not found. Skipping.")
         except Product.MultipleObjectsReturned:
              print(f"WARNING: Multiple products found for '{product_name}'. Skipping.")
 
