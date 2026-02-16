@@ -7,6 +7,7 @@ import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
+import { StatCard } from '@/components/admin/StatCard';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import { extractApiArray } from '@/lib/api-utils';
@@ -140,63 +141,42 @@ export default function SubscriptionsPage() {
             />
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-[#1a1a1a] p-4 lg:p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center gap-3 lg:gap-4">
-                        <div className="p-2 lg:p-3 rounded-xl bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
-                            <Users size={24} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
-                        </div>
-                        <div>
-                            <h3 className="text-xs md:text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
-                                {isSuperAdmin ? 'Total Mitra Aktif' : 'Status Langganan'}
-                            </h3>
-                            <p className="text-lg md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
-                                {isLoading ? '...' : (isSuperAdmin ? subscriptions.filter(s => s.status === 'active').length : (subscriptions.length > 0 && subscriptions[0].status === 'active' ? 'Aktif' : 'Tidak Aktif'))}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#1a1a1a] p-4 lg:p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center gap-3 lg:gap-4">
-                        <div className="p-2 lg:p-3 rounded-xl bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400">
-                            <Activity size={24} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
-                        </div>
-                        <div>
-                            <h3 className="text-xs md:text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
-                                {isSuperAdmin ? 'Langganan Baru' : 'Sisa Durasi'}
-                            </h3>
-                            <p className="text-lg md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
-                                {isLoading ? '...' : (isSuperAdmin ? subscriptions.filter(s => {
-                                    const date = new Date(s.start_date);
-                                    const now = new Date();
-                                    const diffTime = Math.abs(now.getTime() - date.getTime());
-                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                    return diffDays <= 30;
-                                }).length : (subscriptions.length > 0 ? calculateDaysRemaining(subscriptions[0].end_date) : '-'))}
-                            </p>
-                            {isSuperAdmin && <span className="text-xs text-green-500">+ Bulan ini</span>}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#1a1a1a] p-4 lg:p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                    <div className="flex items-center gap-3 lg:gap-4">
-                        <div className="p-2 lg:p-3 rounded-xl bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
-                            <TrendingUp size={24} className="md:w-5 md:h-5 lg:w-6 lg:h-6" />
-                        </div>
-                        <div>
-                            <h3 className="text-xs md:text-xs lg:text-sm font-medium text-gray-500 dark:text-gray-400">
-                                {isSuperAdmin ? 'Estimasi Pendapatan' : 'Biaya Langganan'}
-                            </h3>
-                            <p className="text-lg md:text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
-                                {isLoading ? '...' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
-                                    isSuperAdmin ? 0 : 0
-                                )}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 lg:gap-4">
+                <StatCard
+                    title={isSuperAdmin ? 'Total Mitra Aktif' : 'Status Langganan'}
+                    value={isLoading ? '...' : (isSuperAdmin ? subscriptions.filter(s => s.status === 'active').length : (subscriptions.length > 0 && subscriptions[0].status === 'active' ? 'Aktif' : 'Tidak Aktif'))}
+                    icon={Users}
+                    color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white"
+                />
+                <StatCard
+                    title={isSuperAdmin ? 'Langganan Baru' : 'Sisa Durasi'}
+                    value={isLoading ? '...' : (isSuperAdmin ? subscriptions.filter(s => {
+                        const date = new Date(s.start_date);
+                        const now = new Date();
+                        const diffTime = Math.abs(now.getTime() - date.getTime());
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays <= 30;
+                    }).length : (subscriptions.length > 0 ? calculateDaysRemaining(subscriptions[0].end_date) : '-'))}
+                    icon={Activity}
+                    color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white"
+                />
+                <StatCard
+                    title={isSuperAdmin ? 'Estimasi Pendapatan' : 'Biaya Langganan'}
+                    value={isLoading ? '...' : (() => {
+                        // 2 tahun pertama gratis untuk setiap mitra
+                        // Setelah 2 tahun, biaya Rp 200.000/bulan
+                        const now = new Date();
+                        const twoYearsMs = 2 * 365.25 * 24 * 60 * 60 * 1000;
+                        const payingMitras = subscriptions.filter(s => {
+                            const startDate = new Date(s.start_date);
+                            return s.status === 'active' && (now.getTime() - startDate.getTime()) > twoYearsMs;
+                        }).length;
+                        const monthlyRevenue = payingMitras * 200000;
+                        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(monthlyRevenue);
+                    })()}
+                    icon={TrendingUp}
+                    color="bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-white"
+                />
             </div>
 
             {/* Search & Pagination Controls */}
