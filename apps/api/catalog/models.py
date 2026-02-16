@@ -136,6 +136,22 @@ class ModifierOption(models.Model):
     name = models.CharField(max_length=100)
     price_adjustment = models.IntegerField(default=0)
     
+    # Inventory Link
+    ingredient = models.ForeignKey(
+        'inventory.Ingredient',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='modifier_options',
+        help_text="Ingredient used for this modifier (e.g., Keju -> Keju Block)"
+    )
+    quantity_required = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        default=0,
+        help_text="Amount of ingredient used per selection"
+    )
+    
     def __str__(self):
         return self.name
 

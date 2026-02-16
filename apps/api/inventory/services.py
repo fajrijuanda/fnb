@@ -51,6 +51,28 @@ def deduct_stock_for_order(order) -> None:
                     notes=f"Order {order.invoice_number} (For {product.name})"
                 )
 
+        # Case C: Modifiers (Toppings)
+        # Check modifiers_snapshot for any ingredients to deduct
+        if item.modifiers_snapshot:
+            from catalog.models import ModifierOption
+            for mod_data in item.modifiers_snapshot:
+                mod_id = mod_data.get('id')
+                if mod_id:
+                    try:
+                        modifier = ModifierOption.objects.get(pk=mod_id)
+                        if modifier.ingredient:
+                            usage_qty = modifier.quantity_required * qty_sold
+                            modifier.ingredient.current_stock -= usage_qty
+                            modifier.ingredient.save()
+                            _log_stock_movement(
+                                ingredient=modifier.ingredient,
+                                qty=-usage_qty,
+                                reason='SALES',
+                                notes=f"Order {order.invoice_number} (Modifier: {modifier.name})"
+                            )
+                    except ModifierOption.DoesNotExist:
+                        pass # Modifier deleted, skip stock deduction
+
 
 def _log_stock_movement(product=None, ingredient=None, qty=0, reason='SALES', notes="") -> None:
     """
