@@ -227,10 +227,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         {/* Selective Feature Locking for Expired Mitra */}
                         {user?.role === 'mitra' && !user?.is_subscribed && [
                             '/admin/inventory',
-                            '/admin/orders',
-                            '/admin/finance',
                             '/admin/cashiers',
-                            '/admin/reports'
                         ].some(path => pathname.startsWith(path)) ? (
                             <PremiumLocked
                                 featureName="Fitur Premium Terkunci"
