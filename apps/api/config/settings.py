@@ -20,7 +20,7 @@ SECRET_KEY = 'django-insecure-@+(d9_u6!a%)(&k+jyjrkwx5%hq8*8f&b)e*nkspztbf2&z=ah
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -152,12 +152,12 @@ REST_FRAMEWORK = {
 # =============================================================================
 # CORS Configuration (for Next.js frontend)
 # =============================================================================
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:3000',
-#     'http://127.0.0.1:3000',
-#     'https://fnb-five.vercel.app',
-# ]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://fnb-five.vercel.app',
+]
+# CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
     'https://fnb-five.vercel.app',
