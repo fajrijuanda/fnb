@@ -13,8 +13,10 @@ sys.path.insert(0, BASE_DIR)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from inventory.models import Ingredient, Recipe, RecipeItem
-from catalog.models import Product
+from inventory.models import Ingredient, Recipe, RecipeItem, IngredientStock  # noqa: E402
+from catalog.models import Product, ModifierGroup, ModifierOption  # noqa: E402
+from users.models import Mitra  # noqa: E402
+from subscriptions.models import Subscription  # noqa: E402
 
 def seed_inventory():
     print("Seeding Inventory (Semi-finished Goods)...")
@@ -102,7 +104,6 @@ def seed_inventory():
 
     # 3. Seed Modifiers (Toppings)
     print("\nSeeding Modifiers...")
-    from catalog.models import ModifierGroup, ModifierOption
     
     # Create Group "Topping Tambahan"
     topping_group, created = ModifierGroup.objects.get_or_create(
@@ -151,10 +152,8 @@ def seed_inventory():
     # 4. Seed Mitra Stock (Based on Package)
     # Eksekutif: 450 total (150 Dimsum, 150 Gyoza, 150 Wonton)
     # Eksklusif: 900 total (300 Dimsum, 300 Gyoza, 300 Wonton)
+    # Eksklusif: 900 total (300 Dimsum, 300 Gyoza, 300 Wonton)
     print("\nSeeding Mitra Stock...")
-    from users.models import Mitra
-    from inventory.models import IngredientStock
-    from subscriptions.models import Subscription
 
     mitras = Mitra.objects.all()
     for mitra in mitras:

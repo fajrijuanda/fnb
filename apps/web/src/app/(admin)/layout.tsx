@@ -34,7 +34,7 @@ const superadminNav = [
     { href: '/admin/subscriptions', label: 'Langganan', icon: CreditCard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
     { href: '/admin/categories', label: 'Kategori', icon: Tags },
-    { href: '/admin/modifiers', label: 'Topping', icon: Layers },
+    { href: '/admin/modifiers', label: 'Topping / Modifier', icon: Layers },
     { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 
@@ -42,7 +42,7 @@ const mitraNav = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
     // Categories managed by Admin only
-    { href: '/admin/modifiers', label: 'Topping', icon: Layers },
+    { href: '/admin/modifiers', label: 'Topping / Modifier', icon: Layers },
     { href: '/admin/inventory', label: 'Inventori', icon: Package },
     { href: '/admin/orders', label: 'Pesanan', icon: Receipt },
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },

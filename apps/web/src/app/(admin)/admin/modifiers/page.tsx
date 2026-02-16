@@ -61,24 +61,7 @@ export default function ModifiersPage() {
         }
     };
 
-    const handleToggleAvailability = async (modifier: ModifierOption) => {
-        // Optimistic Update
-        const oldStatus = modifier.mitra_availability ?? true; // Default to true if undefined
-        const newStatus = !oldStatus;
-
-        setModifiers(prev => prev.map(m => m.id === modifier.id ? { ...m, mitra_availability: newStatus } : m));
-
-        try {
-            await api.post(`/catalog/modifier-options/${modifier.id}/toggle_availability/`, {
-                available: newStatus
-            });
-            success('Status diperbarui');
-        } catch {
-            showError('Gagal mengubah status');
-            // Revert
-            setModifiers(prev => prev.map(m => m.id === modifier.id ? { ...m, mitra_availability: oldStatus } : m));
-        }
-    };
+    // Toggle capability removed in favor of automated stock tracking
 
     const handleOpenModal = (item?: ModifierOption) => {
         if (item) {
@@ -207,30 +190,22 @@ export default function ModifiersPage() {
 
                 if (user?.role === 'mitra') {
                     return (
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={isAvailable}
-                                onChange={() => handleToggleAvailability(item)}
-                                className="sr-only peer"
-                            />
-                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-                            <span className="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300">
-                                {isAvailable ? 'Aktif' : 'Habis'}
-                            </span>
-                        </label>
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 ${isAvailable
+                                ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
+                                : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                            }`}>
+                            {isAvailable ? (
+                                <>
+                                    <CheckCircle2 size={12} />
+                                    <span>Tersedia</span>
+                                </>
+                            ) : (
+                                <span>Habis</span>
+                            )}
+                        </div>
                     );
                 } else {
-                    // SuperAdmin View
-                    // Just show 'Active' (manual toggle by Mitra, so global status?)
-                    // Actually Modifiers don't have global 'is_available' field in models.py?
-                    // Let's check model. No, only 'is_available' in Pivot.
-                    // So SuperAdmin sees ? Nothing? Or maybe we should add global availability?
-                    // Task says "Manual Topping Availability (Mitra)".
-                    // So Global is assumed always available unless Mitra toggles off?
-                    // Or assumes stock?
-                    // Let's just show "Available" or "-" for Admin.
-                    return <span className="text-xs text-gray-400">-</span>;
+                    return <span className="text-xs text-gray-400">Auto (Stock)</span>;
                 }
             }
         },
@@ -289,10 +264,9 @@ export default function ModifiersPage() {
                         </div>
                         <div>
                             {user?.role === 'mitra' ? (
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" checked={item.mitra_availability ?? true} onChange={() => handleToggleAvailability(item)} className="sr-only peer" />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-                                </label>
+                                <span className={`text-xs font-bold ${item.mitra_availability ? 'text-green-600' : 'text-red-600'}`}>
+                                    {item.mitra_availability ? 'Tersedia' : 'Habis'}
+                                </span>
                             ) : (
                                 user?.role === 'superadmin' && (
                                     <button onClick={() => handleOpenModal(item)} className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Pencil size={16} /></button>

@@ -53,11 +53,11 @@ class ProductViewSet(viewsets.ModelViewSet):
         queryset = Product.objects.select_related('category').all()
             
         # Availability Logic for Mitra
-        if hasattr(user, 'mitra'):
+        if hasattr(user, 'mitra_profile'):
             from django.db.models import OuterRef, Subquery, Case, When, F, BooleanField
             from .models import ProductAvailability
 
-            mitra = user.mitra
+            mitra = user.mitra_profile
             
             # Subquery to get specific availability from cached ProductAvailability pivot
             mitra_availability_subquery = ProductAvailability.objects.filter(
@@ -135,23 +135,26 @@ class ModifierOptionViewSet(viewsets.ModelViewSet):
         user = self.request.user
         queryset = ModifierOption.objects.select_related('group').all()
 
-        if hasattr(user, 'mitra'):
+        if hasattr(user, 'mitra_profile'):
             from django.db.models import OuterRef, Subquery, Case, When, F, Value, BooleanField
-            from .models import ModifierAvailability
+            from inventory.models import IngredientStock
 
-            mitra = user.mitra
+            mitra = user.mitra_profile
             
-            mitra_avail_subquery = ModifierAvailability.objects.filter(
-                modifier_option=OuterRef('pk'),
-                mitra=mitra
-            ).values('is_available')[:1]
+            # Subquery to get current stock of the ingredient linked to this modifier
+            stock_subquery = IngredientStock.objects.filter(
+                mitra=mitra,
+                ingredient=OuterRef('ingredient')
+            ).values('current_stock')[:1]
 
             queryset = queryset.annotate(
-                _mitra_avail = Subquery(mitra_avail_subquery)
+                _current_stock = Subquery(stock_subquery)
             ).annotate(
                 mitra_availability=Case(
-                    When(_mitra_avail__isnull=False, then=F('_mitra_avail')),
-                    default=Value(True), # Default True if not set
+                    When(ingredient__isnull=True, then=Value(True)), # No ingredient = Always available
+                    When(_current_stock__isnull=True, then=Value(False)), # No stock record = 0 = Unavailable
+                    When(_current_stock__gte=F('quantity_required'), then=Value(True)),
+                    default=Value(False),
                     output_field=BooleanField()
                 )
             )
@@ -160,24 +163,4 @@ class ModifierOptionViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def toggle_availability(self, request, pk=None):
-        if not hasattr(request.user, 'mitra'):
-            return Response({'error': 'Only Mitra can toggle modifier availability here.'}, status=403)
-        
-        modifier = self.get_object()
-        mitra = request.user.mitra
-        
-        from .models import ModifierAvailability
-        
-        obj, created = ModifierAvailability.objects.get_or_create(
-            mitra=mitra,
-            modifier_option=modifier
-        )
-        
-        target_status = request.data.get('available')
-        if target_status is not None:
-             obj.is_available = target_status
-        else:
-             obj.is_available = not obj.is_available
-        
-        obj.save()
-        return Response({'status': 'updated', 'is_available': obj.is_available})
+        return Response({'error': 'Availability is now automated based on stock.'}, status=400)
