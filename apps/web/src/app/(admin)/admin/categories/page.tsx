@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Pencil, Trash2, X, Loader2, Save, Search, Tag } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Save, Search } from 'lucide-react';
 import api from '@/lib/api';
 import type { Category, ApiResponse } from '@/types/api';
 import * as LucideIcons from 'lucide-react';
@@ -14,7 +14,7 @@ import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminSelect } from '@/components/admin/AdminSelect';
-import { StatCard } from '@/components/admin/StatCard';
+
 
 const COMMON_ICONS = [
     { name: 'Utensils', label: 'Makanan' },
@@ -267,15 +267,7 @@ export default function CategoriesPage() {
                 description="Kelola kategori produk untuk menu POS"
             />
 
-            {/* Stats Card */}
-            <div className="grid grid-cols-1 gap-2 lg:gap-4 max-w-xs">
-                <StatCard
-                    title="Total Kategori"
-                    value={categories.length}
-                    icon={Tag}
-                    color="bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-white"
-                />
-            </div>
+
 
             <AdminSearchHeader
                 searchQuery={searchQuery}

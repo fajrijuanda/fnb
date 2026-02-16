@@ -489,7 +489,7 @@ export default function ProductsPage() {
             />
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-4">
+            <div className={`grid grid-cols-2 ${user?.role === 'mitra' ? 'md:grid-cols-4' : 'md:grid-cols-2 max-w-lg'} gap-2 lg:gap-4`}>
                 <StatCard
                     title="Total Produk"
                     value={(Array.isArray(products) ? products : []).length}
@@ -613,7 +613,7 @@ export default function ProductsPage() {
                                     })()}
                                 </div>
                                 <p className="text-sm font-semibold text-red-700 dark:text-red-500 mt-1">{formatCurrency(product.price)}</p>
-                                {(() => {
+                                {user?.role === 'mitra' && (() => {
                                     const isAvailable = product.mitra_availability ?? (product.stock_status?.available ?? product.is_available);
                                     return (
                                         <span className={`inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${isAvailable
