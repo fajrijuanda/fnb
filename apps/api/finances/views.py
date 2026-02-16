@@ -39,7 +39,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             except Mitra.DoesNotExist:
                 # Cashier -> find their owner mitra
                 if hasattr(user, 'cashier_profile'):
-                    qs = qs.filter(mitra=user.cashier_profile.owner)
+                    qs = qs.filter(mitra=user.cashier_profile.mitra)
                 else:
                     return Expense.objects.none()
         else:
@@ -69,7 +69,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             mitra = Mitra.objects.get(user=user)
         except Mitra.DoesNotExist:
             if hasattr(user, 'cashier_profile'):
-                mitra = user.cashier_profile.owner
+                mitra = user.cashier_profile.mitra
             else:
                 raise Exception("User is not linked to a Mitra.")
         serializer.save(mitra=mitra)
