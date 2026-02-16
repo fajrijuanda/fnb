@@ -184,32 +184,27 @@ export default function ModifiersPage() {
             accessor: (item) => formatCurrency(item.price_adjustment),
             className: "text-gray-600 dark:text-gray-400 font-medium"
         },
-        {
+        ...(user?.role === 'mitra' ? [{
             header: "Status",
-            accessor: (item) => {
+            accessor: (item: ModifierOption) => {
                 const isAvailable = item.mitra_availability ?? true;
-
-                if (user?.role === 'mitra') {
-                    return (
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 ${isAvailable
-                            ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
-                            : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
-                            }`}>
-                            {isAvailable ? (
-                                <>
-                                    <CheckCircle2 size={12} />
-                                    <span>Tersedia</span>
-                                </>
-                            ) : (
-                                <span>Habis</span>
-                            )}
-                        </div>
-                    );
-                } else {
-                    return <span className="text-xs text-gray-400">Auto (Stock)</span>;
-                }
+                return (
+                    <div className={`px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 ${isAvailable
+                        ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
+                        : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                        }`}>
+                        {isAvailable ? (
+                            <>
+                                <CheckCircle2 size={12} />
+                                <span>Tersedia</span>
+                            </>
+                        ) : (
+                            <span>Habis</span>
+                        )}
+                    </div>
+                );
             }
-        },
+        } as Column<ModifierOption>] : []),
         ...(user?.role === 'superadmin' ? [{
             header: "Aksi",
             className: "text-right",
@@ -233,7 +228,12 @@ export default function ModifiersPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <StatCard title="Total Topping" value={modifiers.length} icon={Layers} color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white" />
                 <StatCard title="Grup" value={groups.length} icon={Tags} color="bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-white" />
-                <StatCard title="Aktif (Mitra)" value={modifiers.filter(m => m.mitra_availability).length} icon={CheckCircle2} color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white" />
+                <StatCard
+                    title={user?.role === 'mitra' ? 'Tersedia' : 'Berbayar'}
+                    value={user?.role === 'mitra' ? modifiers.filter(m => m.mitra_availability).length : modifiers.filter(m => m.price_adjustment > 0).length}
+                    icon={CheckCircle2}
+                    color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white"
+                />
             </div>
 
             <AdminSearchHeader

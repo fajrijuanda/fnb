@@ -21,7 +21,7 @@ class ModifierOptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ModifierOption
-        fields = ['id', 'name', 'price_adjustment', 'mitra_availability']
+        fields = ['id', 'name', 'group', 'price_adjustment', 'mitra_availability']
 
 
 class ModifierGroupSerializer(serializers.ModelSerializer):
