@@ -92,6 +92,7 @@ Thumbs.db
 .pytest_cache/
 .nyc_output/
 coverage/
+tests/
 
 # Documentation
 Rencana_Anggaran_Biaya*

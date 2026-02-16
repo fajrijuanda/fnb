@@ -232,11 +232,11 @@ export default function SettingsPage() {
 
             <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
                 {/* Sidebar Tabs */}
-                <div className="w-full lg:w-64 flex-shrink-0">
+                <div className="w-full lg:w-56 flex-shrink-0 transition-all duration-300">
                     <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden sticky top-24">
-                        <div className="p-4 bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
+                        <div className="p-3 bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
                             <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#C5161D] to-[#800f13] flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#C5161D] to-[#800f13] flex items-center justify-center text-white font-bold text-base shadow-md">
                                     {avatarPreview ? (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img src={avatarPreview} alt="User" className="w-full h-full object-cover rounded-full" />
@@ -245,12 +245,12 @@ export default function SettingsPage() {
                                     )}
                                 </div>
                                 <div className="overflow-hidden">
-                                    <p className="font-bold text-gray-900 dark:text-white truncate">{user?.username || 'User'}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate capitalize">{user?.role || 'Member'}</p>
+                                    <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{user?.username || 'User'}</p>
+                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate capitalize">{user?.role || 'Member'}</p>
                                 </div>
                             </div>
                         </div>
-                        <nav className="p-2 space-y-1">
+                        <nav className="p-1.5 space-y-0.5">
                             {tabs.map(tab => {
                                 const Icon = tab.icon;
                                 const isActive = activeTab === tab.id;
@@ -258,14 +258,14 @@ export default function SettingsPage() {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id as Tab)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
+                                        className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
                                             ? 'bg-red-50 dark:bg-[#C5161D]/10 text-[#C5161D] dark:text-red-400 shadow-sm'
                                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
                                             }`}
                                     >
-                                        <Icon size={18} />
+                                        <Icon size={16} />
                                         <span>{tab.label}</span>
-                                        {isActive && <ChevronRight size={16} className="ml-auto opacity-50" />}
+                                        {isActive && <ChevronRight size={14} className="ml-auto opacity-50" />}
                                     </button>
                                 );
                             })}
@@ -342,7 +342,7 @@ export default function SettingsPage() {
                                                     <span className="animate-pulse">Menyimpan...</span>
                                                 ) : (
                                                     <>
-                                                        <Save size={18} /> Simpan Perubahan
+                                                        <Save size={18} /> Simpan
                                                     </>
                                                 )}
                                             </button>
@@ -561,7 +561,7 @@ export default function SettingsPage() {
                                         disabled={isSaving}
                                         className="flex items-center gap-2 px-8 py-3 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-xl font-bold shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                                     >
-                                        {isSaving ? 'Menyimpan...' : 'Simpan Pembayaran'}
+                                        {isSaving ? 'Menyimpan...' : 'Simpan'}
                                     </button>
                                 </div>
                             </div>
