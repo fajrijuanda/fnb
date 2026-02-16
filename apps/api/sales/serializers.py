@@ -208,9 +208,13 @@ class ShiftSerializer(serializers.ModelSerializer):
         """
         Calculate current cash in drawer (Initial + Cash Sales).
         """
-        from django.db.models import Sum
-        cash_sales = obj.orders.filter(
-            payment_method='CASH', 
-            status='PAID'
-        ).aggregate(total=Sum('total_amount'))['total'] or 0
-        return obj.initial_cash + cash_sales
+        try:
+            from django.db.models import Sum
+            cash_sales = obj.orders.filter(
+                payment_method=Order.PaymentMethod.CASH, 
+                status=Order.Status.PAID
+            ).aggregate(total=Sum('total_amount'))['total'] or 0
+            return obj.initial_cash + cash_sales
+        except Exception as e:
+            print(f"Error calculating current cash: {e}")
+            return obj.initial_cash
