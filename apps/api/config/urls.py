@@ -38,7 +38,7 @@ urlpatterns = [
     path('api/v1/users/', include('users.urls')),
     path('api/v1/inventory/', include('inventory.urls')),
     path('api/v1/ai/', include('ai_assistant.urls')),
-    # path('api/v1/notifications/', include('notifications.urls')),  # Disabled temporarily
+    path('api/v1/notifications/', include('notifications.urls')),
     path('api/v1/subscriptions/', include('subscriptions.urls')),
     path('api/v1/settings/store/', StoreSettingsView.as_view(), name='store-settings'),
     path('api/v1/settings/qris-dynamic/', DynamicQRISView.as_view(), name='qris-dynamic'),
