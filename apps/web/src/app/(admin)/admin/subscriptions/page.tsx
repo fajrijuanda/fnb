@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Users, MoreHorizontal, CheckCircle, X as XIcon, Activity, TrendingUp } from 'lucide-react';
+import { Users, CheckCircle, X as XIcon, Activity, TrendingUp, UserCircle } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
+import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
+import { AdminPagination } from '@/components/admin/AdminPagination';
+import { AdminSelect } from '@/components/admin/AdminSelect';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import { extractApiArray } from '@/lib/api-utils';
@@ -14,6 +18,11 @@ export default function SubscriptionsPage() {
 
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [filterStatus, setFilterStatus] = useState<string>('all');
+    const [filterPlan, setFilterPlan] = useState<string>('all');
 
     const fetchSubscriptions = useCallback(async () => {
         try {
@@ -40,9 +49,91 @@ export default function SubscriptionsPage() {
         return `${diffDays} Hari lagi`;
     };
 
-    // Generic View for both Admin and Mitra (API handles filtering)
+    const formatDate = (dateStr: string) => {
+        return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+
+    const filteredSubscriptions = subscriptions.filter(item => {
+        const username = item.user_details?.username || '';
+        const location = item.user_details?.location || '';
+        const plan = item.plan_name || '';
+        const q = searchQuery.toLowerCase();
+
+        // Status filter
+        if (filterStatus !== 'all' && item.status !== filterStatus) return false;
+
+        // Plan filter
+        if (filterPlan !== 'all' && item.plan_name !== filterPlan) return false;
+
+        return username.toLowerCase().includes(q) || location.toLowerCase().includes(q) || plan.toLowerCase().includes(q);
+    });
+
+    const paginatedSubscriptions = filteredSubscriptions.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, pageSize, filterStatus, filterPlan]);
+
+    const columns: Column<Subscription>[] = [
+        {
+            header: "Mitra",
+            accessor: (item) => (
+                <div className="flex items-center gap-2 lg:gap-3">
+                    <div className="h-7 w-7 lg:h-8 lg:w-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-white/10 dark:to-white/5 flex items-center justify-center text-gray-500 dark:text-white/70">
+                        <UserCircle size={18} className="lg:w-5 lg:h-5" />
+                    </div>
+                    <div className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px] lg:max-w-none">
+                        {item.user_details?.username || `User #${item.user}`}
+                    </div>
+                </div>
+            )
+        },
+        {
+            header: "Lokasi",
+            accessor: (item) => item.user_details?.location || '-'
+        },
+        {
+            header: "Paket",
+            accessor: (item) => (
+                <span className={`px-2 py-0.5 rounded text-[10px] font-medium border ${item.plan_name === 'Eksklusif'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800'
+                    : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800'
+                    }`}>
+                    {item.plan_name}
+                </span>
+            )
+        },
+        {
+            header: "Status",
+            accessor: (item) => (
+                <div className="flex items-center gap-1.5">
+                    {item.status === 'active' && <CheckCircle size={14} className="text-green-500" />}
+                    {item.status === 'expired' && <XIcon size={14} className="text-red-500" />}
+                    <span className={item.status === 'active' ? 'text-green-600' : 'text-red-500'}>
+                        {item.status === 'active' ? 'Aktif' : 'Expired'}
+                    </span>
+                </div>
+            )
+        },
+        {
+            header: "Berakhir",
+            accessor: (item) => calculateDaysRemaining(item.end_date)
+        },
+        {
+            header: "Periode",
+            accessor: (item) => (
+                <span className="whitespace-nowrap">
+                    {formatDate(item.start_date)} — {formatDate(item.end_date)}
+                </span>
+            )
+        }
+    ];
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
             <AdminHeader
                 title={isSuperAdmin ? "Manajemen Langganan" : "Langganan Saya"}
                 description={isSuperAdmin ? "Pantau dan kelola langganan mitra" : "Informasi paket langganan Anda"}
@@ -111,82 +202,96 @@ export default function SubscriptionsPage() {
                 </div>
             </div>
 
+            {/* Search & Pagination Controls */}
+            <AdminSearchHeader
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchPlaceholder="Cari mitra, lokasi, paket..."
+                extraActions={
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Status</span>
+                            <AdminSelect
+                                value={filterStatus}
+                                onChange={(val) => setFilterStatus(val as string)}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    { value: 'active', label: 'Aktif' },
+                                    { value: 'expired', label: 'Expired' },
+                                ]}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Paket</span>
+                            <AdminSelect
+                                value={filterPlan}
+                                onChange={(val) => setFilterPlan(val as string)}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    { value: 'Eksekutif', label: 'Eksekutif' },
+                                    { value: 'Eksklusif', label: 'Eksklusif' },
+                                ]}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <AdminSelect
+                                value={pageSize}
+                                onChange={(val) => setPageSize(val as number)}
+                                options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
+                            />
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Per Halaman</span>
+                        </div>
+                    </div>
+                }
+            />
+
             {/* Subscription Table */}
-            <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/5 overflow-hidden">
-                <div className="p-4 border-b border-gray-200 dark:border-white/5 flex items-center justify-between">
-                    <h3 className="font-bold text-gray-900 dark:text-white">Daftar Langganan</h3>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 font-medium">
-                            <tr>
-                                <th className="px-6 py-4">Mitra</th>
-                                <th className="px-6 py-4">Lokasi</th>
-                                <th className="px-6 py-4">Paket</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4">Berakhir</th>
-                                <th className="px-6 py-4">Periode</th>
-                                <th className="px-6 py-4"></th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                            {isLoading ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                                        Memuat data...
-                                    </td>
-                                </tr>
-                            ) : subscriptions.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                                        Belum ada data langganan.
-                                    </td>
-                                </tr>
-                            ) : (
-                                subscriptions.map((item, i) => (
-                                    <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                                            {item.user_details?.username || `User #${item.user}`}
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                                            {item.user_details?.profile?.location || '-'}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${item.plan_name === 'Eksklusif'
-                                                ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/20 dark:border-amber-900/30'
-                                                : 'bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-900/20 dark:border-blue-900/30'
-                                                }`}>
-                                                {item.plan_name}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-1.5">
-                                                {item.status === 'active' && <CheckCircle size={14} className="text-green-500" />}
-                                                {item.status === 'expired' && <XIcon size={14} className="text-red-500" />}
-                                                <span className={
-                                                    item.status === 'active' ? 'text-green-600' : 'text-red-500'
-                                                }>{item.status === 'active' ? 'Aktif' : 'Expired'}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-500">{calculateDaysRemaining(item.end_date)}</td>
-                                        <td className="px-6 py-4 font-medium text-gray-500">
-                                            {item.start_date} - {item.end_date}
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            {isSuperAdmin && (
-                                                <button className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 transition-colors">
-                                                    <MoreHorizontal size={16} />
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                )))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <AdminDataTable
+                data={paginatedSubscriptions}
+                columns={columns}
+                isLoading={isLoading}
+                emptyMessage="Belum ada data langganan."
+                keyExtractor={(item) => item.id}
+                mobileCardRender={(item) => (
+                    <div className="bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <UserCircle size={24} className="text-gray-400" />
+                                <div>
+                                    <h3 className="font-bold text-gray-900 dark:text-white text-sm">{item.user_details?.username || `User #${item.user}`}</h3>
+                                    <p className="text-[10px] text-gray-500">{item.user_details?.location || 'Tanpa lokasi'}</p>
+                                </div>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-medium border ${item.plan_name === 'Eksklusif'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800'
+                                : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800'
+                                }`}>
+                                {item.plan_name}
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs border-t border-gray-100 dark:border-white/5 pt-2">
+                            <div className="flex items-center gap-1.5">
+                                {item.status === 'active' && <CheckCircle size={12} className="text-green-500" />}
+                                {item.status === 'expired' && <XIcon size={12} className="text-red-500" />}
+                                <span className={item.status === 'active' ? 'text-green-600' : 'text-red-500'}>
+                                    {item.status === 'active' ? 'Aktif' : 'Expired'}
+                                </span>
+                            </div>
+                            <span className="text-gray-500">
+                                {formatDate(item.start_date)} — {formatDate(item.end_date)}
+                            </span>
+                        </div>
+                    </div>
+                )}
+            />
+
+            {/* Pagination */}
+            <AdminPagination
+                currentPage={currentPage}
+                totalItems={filteredSubscriptions.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+            />
         </div>
     );
 }
-
-

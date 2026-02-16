@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Pencil, Trash2, X, Loader2, Save, Users, Shield, UserCircle, Store } from 'lucide-react';
+import { Pencil, Trash2, X, Loader2, Save, Shield, UserCircle, Store } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -19,6 +19,7 @@ export default function UsersPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [filterRole, setFilterRole] = useState<string>('all');
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -160,6 +161,9 @@ export default function UsersPage() {
         // Hide Cashiers
         if (user.role === 'cashier') return false;
 
+        // Role filter
+        if (filterRole !== 'all' && user.role !== filterRole) return false;
+
         return user.username.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
@@ -171,7 +175,7 @@ export default function UsersPage() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, pageSize]);
+    }, [searchQuery, pageSize, filterRole]);
 
     const columns: Column<User>[] = [
         {
@@ -256,13 +260,27 @@ export default function UsersPage() {
                 addButtonLabel="Tambah"
                 onAddClick={() => handleOpenModal()}
                 extraActions={
-                    <div className="flex items-center gap-2">
-                        <AdminSelect
-                            value={pageSize}
-                            onChange={(val) => setPageSize(val as number)}
-                            options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
-                        />
-                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Per Halaman</span>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Role</span>
+                            <AdminSelect
+                                value={filterRole}
+                                onChange={(val) => setFilterRole(val as string)}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    { value: 'superadmin', label: 'Super Admin' },
+                                    { value: 'mitra', label: 'Mitra' },
+                                ]}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <AdminSelect
+                                value={pageSize}
+                                onChange={(val) => setPageSize(val as number)}
+                                options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
+                            />
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Per Halaman</span>
+                        </div>
                     </div>
                 }
             />

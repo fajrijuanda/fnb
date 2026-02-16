@@ -173,6 +173,8 @@ export default function ProductsPage() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [filterCategory, setFilterCategory] = useState<string>('all');
+    const [filterAvailability, setFilterAvailability] = useState<string>('all');
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -316,9 +318,22 @@ export default function ProductsPage() {
         }
     };
 
-    const filteredProducts = (Array.isArray(products) ? products : []).filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredProducts = (Array.isArray(products) ? products : []).filter(product => {
+        // Category filter
+        if (filterCategory !== 'all') {
+            const catId = typeof product.category === 'number' ? product.category : Number(product.category);
+            if (String(catId) !== filterCategory) return false;
+        }
+
+        // Availability filter
+        if (filterAvailability !== 'all') {
+            const isAvailable = product.stock_status?.available ?? product.is_available;
+            if (filterAvailability === 'available' && !isAvailable) return false;
+            if (filterAvailability === 'unavailable' && isAvailable) return false;
+        }
+
+        return product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    });
 
     // Pagination Logic
     const paginatedProducts = filteredProducts.slice(
@@ -328,7 +343,7 @@ export default function ProductsPage() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, pageSize]);
+    }, [searchQuery, pageSize, filterCategory, filterAvailability]);
 
     const getCategoryConfig = (product: Product) => {
         // If product.category is a number (ID), find in categories list
@@ -478,13 +493,38 @@ export default function ProductsPage() {
                 addButtonLabel={user?.role === 'superadmin' ? "Produk" : undefined}
                 onAddClick={user?.role === 'superadmin' ? () => handleOpenModal() : undefined}
                 extraActions={
-                    <div className="flex items-center gap-2">
-                        <AdminSelect
-                            value={pageSize}
-                            onChange={(val) => setPageSize(val as number)}
-                            options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
-                        />
-                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Per Halaman</span>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Kategori</span>
+                            <AdminSelect
+                                value={filterCategory}
+                                onChange={(val) => setFilterCategory(val as string)}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    ...categories.map(cat => ({ value: String(cat.id), label: cat.name }))
+                                ]}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Status</span>
+                            <AdminSelect
+                                value={filterAvailability}
+                                onChange={(val) => setFilterAvailability(val as string)}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    { value: 'available', label: 'Tersedia' },
+                                    { value: 'unavailable', label: 'Habis' },
+                                ]}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <AdminSelect
+                                value={pageSize}
+                                onChange={(val) => setPageSize(val as number)}
+                                options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
+                            />
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Per Halaman</span>
+                        </div>
                     </div>
                 }
             />

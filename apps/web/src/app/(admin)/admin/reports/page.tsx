@@ -35,6 +35,13 @@ export default function ReportsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
+    // Filter State — Sales
+    const [salesFilterStatus, setSalesFilterStatus] = useState<string>('all');
+    const [salesFilterMethod, setSalesFilterMethod] = useState<string>('all');
+
+    // Filter State — Stock
+    const [stockFilterType, setStockFilterType] = useState<string>('all');
+
     // Fetch Data based on Tab
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -60,9 +67,29 @@ export default function ReportsPage() {
         setCurrentPage(1);
     }, [fetchData, pageSize]);
 
+    // Reset filters and page when switching tabs
+    useEffect(() => {
+        setCurrentPage(1);
+        setSalesFilterStatus('all');
+        setSalesFilterMethod('all');
+        setStockFilterType('all');
+    }, [activeTab]);
+
+    // Filtered data
+    const filteredOrders = orders.filter(order => {
+        if (salesFilterStatus !== 'all' && order.status !== salesFilterStatus) return false;
+        if (salesFilterMethod !== 'all' && order.payment_method !== salesFilterMethod) return false;
+        return true;
+    });
+
+    const filteredStockLogs = stockLogs.filter(log => {
+        if (stockFilterType !== 'all' && log.movement_type !== stockFilterType) return false;
+        return true;
+    });
+
     // Summary Stats
-    const totalRevenue = orders.reduce((sum, order) => sum + order.total_amount, 0);
-    const totalTransactions = orders.length;
+    const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.total_amount, 0);
+    const totalTransactions = filteredOrders.length;
     const averageOrderValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
     // Components
@@ -126,9 +153,35 @@ export default function ReportsPage() {
 
             {/* Transactions Table */}
             <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
+                <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
                     <h3 className="font-bold text-sm md:text-lg text-gray-900 dark:text-white">Riwayat Transaksi</h3>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Status</span>
+                            <AdminSelect
+                                value={salesFilterStatus}
+                                onChange={(val) => { setSalesFilterStatus(val as string); setCurrentPage(1); }}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    { value: 'PAID', label: 'Lunas' },
+                                    { value: 'PENDING', label: 'Pending' },
+                                    { value: 'CANCELLED', label: 'Batal' },
+                                ]}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Metode</span>
+                            <AdminSelect
+                                value={salesFilterMethod}
+                                onChange={(val) => { setSalesFilterMethod(val as string); setCurrentPage(1); }}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    { value: 'CASH', label: 'Cash' },
+                                    { value: 'QRIS', label: 'QRIS' },
+                                    { value: 'TRANSFER', label: 'Transfer' },
+                                ]}
+                            />
+                        </div>
                         <AdminSelect
                             value={pageSize}
                             onChange={(val) => setPageSize(val as number)}
@@ -149,7 +202,9 @@ export default function ReportsPage() {
                         <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                             {isLoading ? (
                                 <tr><td colSpan={4} className="p-6 text-center">Memuat...</td></tr>
-                            ) : orders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => (
+                            ) : filteredOrders.length === 0 ? (
+                                <tr><td colSpan={4} className="p-6 text-center text-gray-500">Tidak ada data transaksi.</td></tr>
+                            ) : filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => (
                                 <tr key={order.id} className="hover:bg-red-50 dark:hover:bg-white/5">
                                     <td className="px-4 py-3 font-medium">{order.invoice_number}</td>
                                     <td className="px-4 py-3 text-gray-500">{formatDate(order.created_at)}</td>
@@ -165,7 +220,7 @@ export default function ReportsPage() {
                     </table>
                 </div>
             </div>
-            <AdminPagination currentPage={currentPage} totalItems={orders.length} pageSize={pageSize} onPageChange={setCurrentPage} />
+            <AdminPagination currentPage={currentPage} totalItems={filteredOrders.length} pageSize={pageSize} onPageChange={setCurrentPage} />
         </div>
     );
 
@@ -186,8 +241,28 @@ export default function ReportsPage() {
             </div>
 
             <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/10">
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">Riwayat Mutasi Stok</h3>
+                <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="font-bold text-sm md:text-lg text-gray-900 dark:text-white">Riwayat Mutasi Stok</h3>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Jenis</span>
+                            <AdminSelect
+                                value={stockFilterType}
+                                onChange={(val) => { setStockFilterType(val as string); setCurrentPage(1); }}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    { value: 'IN', label: 'Masuk' },
+                                    { value: 'OUT', label: 'Keluar' },
+                                    { value: 'ADJUSTMENT', label: 'Adjustment' },
+                                ]}
+                            />
+                        </div>
+                        <AdminSelect
+                            value={pageSize}
+                            onChange={(val) => setPageSize(val as number)}
+                            options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
+                        />
+                    </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-xs lg:text-sm text-left">
@@ -203,10 +278,10 @@ export default function ReportsPage() {
                         <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                             {isLoading ? (
                                 <tr><td colSpan={5} className="p-6 text-center">Memuat...</td></tr>
-                            ) : stockLogs.length === 0 ? (
+                            ) : filteredStockLogs.length === 0 ? (
                                 <tr><td colSpan={5} className="p-6 text-center text-gray-500">Belum ada data mutasi.</td></tr>
                             ) : (
-                                stockLogs.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((log) => (
+                                filteredStockLogs.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((log) => (
                                     <tr key={log.id} className="hover:bg-red-50 dark:hover:bg-white/5">
                                         <td className="px-4 py-3 font-medium">
                                             {log.ingredient_name || log.product_name || '-'}
@@ -233,7 +308,7 @@ export default function ReportsPage() {
                     </table>
                 </div>
             </div>
-            <AdminPagination currentPage={currentPage} totalItems={stockLogs.length} pageSize={pageSize} onPageChange={setCurrentPage} />
+            <AdminPagination currentPage={currentPage} totalItems={filteredStockLogs.length} pageSize={pageSize} onPageChange={setCurrentPage} />
         </div>
     );
 

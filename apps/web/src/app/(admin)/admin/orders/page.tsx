@@ -27,6 +27,8 @@ export default function OrdersPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
+    const [filterStatus, setFilterStatus] = useState<string>('all');
+    const [filterMethod, setFilterMethod] = useState<string>('all');
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -73,9 +75,15 @@ export default function OrdersPage() {
         }
     };
 
-    const filteredOrders = orders.filter(order =>
-        order.invoice_number.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredOrders = orders.filter(order => {
+        // Status filter
+        if (filterStatus !== 'all' && order.status !== filterStatus) return false;
+
+        // Payment method filter
+        if (filterMethod !== 'all' && order.payment_method !== filterMethod) return false;
+
+        return order.invoice_number.toLowerCase().includes(searchQuery.toLowerCase());
+    });
 
     // Pagination Logic
     const paginatedOrders = filteredOrders.slice(
@@ -85,7 +93,7 @@ export default function OrdersPage() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, pageSize]);
+    }, [searchQuery, pageSize, filterStatus, filterMethod]);
 
     const columns: Column<OrderResponse>[] = [
         {
@@ -160,13 +168,41 @@ export default function OrdersPage() {
                 onSearchChange={setSearchQuery}
                 searchPlaceholder="Cari No. Invoice..."
                 extraActions={
-                    <div className="flex items-center gap-2">
-                        <AdminSelect
-                            value={pageSize}
-                            onChange={(val) => setPageSize(val as number)}
-                            options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
-                        />
-                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Per Halaman</span>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Status</span>
+                            <AdminSelect
+                                value={filterStatus}
+                                onChange={(val) => setFilterStatus(val as string)}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    { value: 'PAID', label: 'Lunas' },
+                                    { value: 'PENDING', label: 'Pending' },
+                                    { value: 'CANCELLED', label: 'Batal' },
+                                ]}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Metode</span>
+                            <AdminSelect
+                                value={filterMethod}
+                                onChange={(val) => setFilterMethod(val as string)}
+                                options={[
+                                    { value: 'all', label: 'Semua' },
+                                    { value: 'CASH', label: 'Cash' },
+                                    { value: 'QRIS', label: 'QRIS' },
+                                    { value: 'TRANSFER', label: 'Transfer' },
+                                ]}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <AdminSelect
+                                value={pageSize}
+                                onChange={(val) => setPageSize(val as number)}
+                                options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
+                            />
+                            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Per Halaman</span>
+                        </div>
                     </div>
                 }
             />

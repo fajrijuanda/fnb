@@ -279,7 +279,7 @@ export default function CategoriesPage() {
                             onChange={(val) => setPageSize(val as number)}
                             options={[5, 10, 25, 50].map(size => ({ value: size, label: size.toString() }))}
                         />
-                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Per Halaman</span>
+                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:inline">Per Halaman</span>
                     </div>
                 }
             />
