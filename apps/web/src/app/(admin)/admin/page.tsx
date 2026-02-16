@@ -203,7 +203,7 @@ export default function AdminDashboard() {
         return (
             <div className="space-y-3 xl:space-y-4">
                 <AdminHeader
-                    title="Dashboard Superadmin"
+                    title="Dasbor Superadmin"
                     description="Ringkasan pertumbuhan pengguna dan langganan."
                 />
 
@@ -290,7 +290,7 @@ export default function AdminDashboard() {
     return (
         <div className="space-y-3 xl:space-y-4">
             <AdminHeader
-                title="Dashboard Overview"
+                title="Ringkasan Bisnis"
                 description="Ringkasan performa bisnis Anda hari ini."
             />
 

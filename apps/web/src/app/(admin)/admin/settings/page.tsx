@@ -10,14 +10,16 @@ import {
     Lock,
     Globe,
     Bell,
-    Shield,
-    Zap,
+    // Shield,
+    // Zap,
     TrendingUp,
     Store,
     Sparkles,
     Crown,
     CreditCard,
-    Wallet
+    Wallet,
+    Package,
+    Users
 } from 'lucide-react';
 import { DeviceManagement } from '@/components/settings/DeviceManagement';
 import { FormSelect } from '@/components/admin/FormSelect';
@@ -422,7 +424,7 @@ export default function SettingsPage() {
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Unlock Fitur Premium</h3>
                             <p className="text-gray-600 dark:text-gray-300 max-w-md text-center mb-6">
-                                Tingkatkan ke CloudPOS Pro untuk akses fitur analytics canggih, manajemen multi-cabang, dan white-labeling.
+                                Tingkatkan ke CloudPOS Pro untuk akses fitur laporan keuangan lengkap, manajemen stok lanjut, dan multi-outlet.
                             </p>
                             <button className="px-8 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105 transition-all flex items-center gap-2">
                                 <Crown size={20} />
@@ -441,39 +443,43 @@ export default function SettingsPage() {
                             <div className="h-12 w-12 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center text-violet-600 mb-4">
                                 <TrendingUp size={24} />
                             </div>
-                            <h3 className="font-bold text-lg mb-2">Smart Forecasting</h3>
-                            <p className="text-sm text-gray-500">Prediksi penjualan menggunakan AI untuk optimasi stok bahan baku.</p>
+                            <h3 className="font-bold text-lg mb-2">Laporan Keuangan</h3>
+                            <p className="text-sm text-gray-500">Akses laporan Laba Rugi otomatis untuk memantau profitabilitas bisnis Anda secara real-time.</p>
                             <div className="mt-4 h-20 bg-violet-50 dark:bg-violet-900/10 rounded-lg w-full flex items-center justify-center text-xs text-violet-400">
-                                AI Analysis Graph
+                                Live Profit Graph
                             </div>
                         </div>
 
                         {/* Feature 2 */}
                         <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 border border-violet-200 dark:border-violet-500/20 shadow-sm relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-3 opacity-10">
-                                <Store size={100} />
+                                <Users size={100} />
                             </div>
                             <div className="h-12 w-12 rounded-xl bg-fuchsia-100 dark:bg-fuchsia-500/10 flex items-center justify-center text-fuchsia-600 mb-4">
-                                <Store size={24} />
+                                <Users size={24} />
                             </div>
-                            <h3 className="font-bold text-lg mb-2">Multi-Outlet</h3>
-                            <p className="text-sm text-gray-500">Kelola hingga 100 cabang dalam satu dashboard terpusat.</p>
-                            <div className="mt-4 flex gap-2">
-                                <div className="h-2 w-full bg-gray-100 rounded"></div>
-                                <div className="h-2 w-2/3 bg-gray-100 rounded"></div>
+                            <h3 className="font-bold text-lg mb-2">Manajemen Karyawan</h3>
+                            <p className="text-sm text-gray-500">Tambahkan akun kasir tak terbatas untuk membantu operasional harian outlet Anda.</p>
+                            <div className="mt-4 flex gap-2 items-center">
+                                <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white dark:border-[#1a1a1a]"></div>
+                                <div className="h-8 w-8 rounded-full bg-gray-200 border-2 border-white dark:border-[#1a1a1a] -ml-3"></div>
+                                <div className="h-8 w-8 rounded-full bg-gray-300 border-2 border-white dark:border-[#1a1a1a] -ml-3"></div>
+                                <div className="h-8 w-8 rounded-full bg-gray-100 border-2 border-white dark:border-[#1a1a1a] -ml-3 flex items-center justify-center text-[10px] font-bold text-gray-500">
+                                    +5
+                                </div>
                             </div>
                         </div>
 
                         {/* Feature 3 */}
                         <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 border border-violet-200 dark:border-violet-500/20 shadow-sm relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-3 opacity-10">
-                                <Zap size={100} />
+                                <Package size={100} />
                             </div>
                             <div className="h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 mb-4">
-                                <Shield size={24} />
+                                <Package size={24} />
                             </div>
-                            <h3 className="font-bold text-lg mb-2">White Label</h3>
-                            <p className="text-sm text-gray-500">Gunakan domain sendiri dan hilangkan branding CloudPOS.</p>
+                            <h3 className="font-bold text-lg mb-2">Manajemen Stok</h3>
+                            <p className="text-sm text-gray-500">Pantau stok bahan baku dengan akurat dan dapatkan peringatan stok menipis otomatis.</p>
                             <div className="mt-4 flex gap-2">
                                 <div className="h-8 w-8 rounded-full bg-gray-100"></div>
                                 <div className="h-8 w-full bg-gray-100 rounded-lg"></div>

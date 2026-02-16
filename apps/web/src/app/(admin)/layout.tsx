@@ -31,7 +31,7 @@ interface AdminLayoutProps {
 }
 
 const superadminNav = [
-    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin', label: 'Dasbor', icon: LayoutDashboard },
     { href: '/admin/users', label: 'Pengguna', icon: Users },
     { href: '/admin/subscriptions', label: 'Langganan', icon: CreditCard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
@@ -41,7 +41,7 @@ const superadminNav = [
 ];
 
 const mitraNav = [
-    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin', label: 'Dasbor', icon: LayoutDashboard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
     // Categories managed by Admin only
     { href: '/admin/modifiers', label: 'Topping / Modifier', icon: Layers },
