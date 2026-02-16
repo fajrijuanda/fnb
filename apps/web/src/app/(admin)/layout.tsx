@@ -146,7 +146,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     {/* Close button for mobile */}
                     <button
                         onClick={() => mobileMenuOpen ? setMobileMenuOpen(false) : setCollapsed(!collapsed)}
-                        className={`p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 dark:text-white/70 transition-colors ${collapsed && !mobileMenuOpen ? 'mx-auto' : ''}`}
+                        className={`p-2 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-colors ${collapsed && !mobileMenuOpen ? 'mx-auto' : ''}`}
                     >
                         {mobileMenuOpen ? <X size={20} /> : (collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />)}
                     </button>
