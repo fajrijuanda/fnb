@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { InventoryPrediction } from '@/components/admin/ai/InventoryPrediction';
 import {
-    Lock, Phone, Plus, Search, AlertTriangle, CheckCircle, RefreshCw,
+    Lock, Phone, Plus, AlertTriangle, CheckCircle, RefreshCw,
     X, Pencil, Trash2, Loader2, Save, ShoppingCart,
     Package, ClipboardList, History, Truck, Clock, CheckCircle2, XCircle, CreditCard,
     Upload, Eye, Copy, Timer, ShieldCheck, ShieldAlert, ShieldX
@@ -15,6 +15,10 @@ import api from '@/lib/api';
 import { extractApiArray } from '@/lib/api-utils';
 import type { Ingredient, ApiResponse, RestockOrder, RestockOrderStatus, RestockPaymentMethod } from '@/types/api';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { AdminSearchHeader } from '@/components/admin/AdminSearchHeader';
+import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
+import { AdminPagination } from '@/components/admin/AdminPagination';
+import { StatCard } from '@/components/admin/StatCard';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -337,6 +341,8 @@ export default function InventoryPage() {
     const [ingredients, setIngredients] = useState<Ingredient[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const PAGE_SIZE = 10;
 
     // Ingredient CRUD Modal
     const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
@@ -397,6 +403,66 @@ export default function InventoryPage() {
     }, [activeTab, fetchOrders]);
 
     const filteredIngredients = ingredients.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const paginatedIngredients = filteredIngredients.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    const safeCount = ingredients.filter(i => i.status === 'SAFE').length;
+    const lowCount = ingredients.filter(i => i.status === 'LOW').length;
+    const criticalCount = ingredients.filter(i => i.status === 'CRITICAL').length;
+
+    // Reset page when search changes
+    useEffect(() => { setCurrentPage(1); }, [searchQuery]);
+
+    // Columns for AdminDataTable
+    const ingredientColumns: Column<Ingredient>[] = [
+        {
+            header: 'Nama Bahan',
+            accessor: (item: Ingredient) => (
+                <span className="font-semibold text-gray-900 dark:text-white">{item.name}</span>
+            ),
+        },
+        {
+            header: 'Stok',
+            accessor: (item: Ingredient) => (
+                <span className="font-mono text-gray-600 dark:text-gray-300">{item.current_stock} {item.unit}</span>
+            ),
+        },
+        {
+            header: 'Min. Alert',
+            accessor: (item: Ingredient) => (
+                <span className="font-mono text-gray-500">{item.low_stock_alert} {item.unit}</span>
+            ),
+        },
+        {
+            header: 'Status',
+            accessor: (item: Ingredient) => (
+                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${item.status === 'SAFE'
+                    ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400'
+                    : item.status === 'LOW'
+                        ? 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 dark:text-yellow-400'
+                        : 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400'
+                    }`}>
+                    {item.status === 'SAFE' ? <CheckCircle size={10} /> : <AlertTriangle size={10} />}
+                    {item.status === 'SAFE' ? 'Aman' : item.status === 'LOW' ? 'Menipis' : 'Kritis'}
+                </span>
+            ),
+        },
+        {
+            header: 'Aksi',
+            className: 'text-right',
+            accessor: (item: Ingredient) => (
+                <div className="flex items-center justify-end gap-1">
+                    <button onClick={() => handleOpenOrderModal(item)} className="p-1.5 rounded-lg hover:bg-green-50 text-green-600 dark:hover:bg-green-500/20 dark:text-green-400 transition-colors" title="Pesan Stok">
+                        <ShoppingCart size={14} />
+                    </button>
+                    <button onClick={() => handleOpenIngredientModal(item)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 dark:hover:bg-blue-500/20 dark:text-blue-400 transition-colors" title="Edit">
+                        <Pencil size={14} />
+                    </button>
+                    <button onClick={() => setDeleteId(item.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-600 dark:hover:bg-red-500/20 dark:text-red-400 transition-colors" title="Hapus">
+                        <Trash2 size={14} />
+                    </button>
+                </div>
+            ),
+        },
+    ];
 
     // ── Ingredient CRUD Handlers ──
     const handleOpenIngredientModal = (ingredient?: Ingredient) => {
@@ -559,99 +625,73 @@ export default function InventoryPage() {
                 {/* ═══ TAB: Bahan Baku ═══ */}
                 {activeTab === 'ingredients' && (
                     <>
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                            <div className="relative flex-1 max-w-md">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                                <input type="text" placeholder="Cari bahan baku..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-primary text-sm" />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button onClick={() => handleOpenOrderModal()} className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl shadow-lg hover:scale-105 transition-transform font-bold text-sm">
-                                    <ShoppingCart size={18} /> Pesan Restock
-                                </button>
-                                <button onClick={() => handleOpenIngredientModal()} className="flex items-center gap-2 bg-gradient-to-r from-primary to-red-700 text-white px-5 py-2.5 rounded-xl shadow-lg hover:scale-105 transition-transform font-bold text-sm">
-                                    <Plus size={18} /> Tambah Bahan
-                                </button>
-                                <button onClick={fetchIngredients} className="p-2.5 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:rotate-180 transition-all duration-500">
-                                    <RefreshCw size={18} />
-                                </button>
-                            </div>
+                        {/* Stat Cards */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-4 mb-4">
+                            <StatCard title="Total Bahan" value={ingredients.length} icon={Package} color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white" />
+                            <StatCard title="Aman" value={safeCount} icon={CheckCircle2} color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white" />
+                            <StatCard title="Menipis" value={lowCount} icon={AlertTriangle} color="bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-white" />
+                            <StatCard title="Kritis" value={criticalCount} icon={XCircle} color="bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-white" />
                         </div>
 
-                        {/* Desktop Table */}
-                        <div className="hidden md:block bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 font-medium">
-                                    <tr>
-                                        <th className="px-6 py-4">Nama Bahan</th>
-                                        <th className="px-6 py-4">Stok Saat Ini</th>
-                                        <th className="px-6 py-4">Min. Alert</th>
-                                        <th className="px-6 py-4">Satuan</th>
-                                        <th className="px-6 py-4">Status</th>
-                                        <th className="px-6 py-4 text-right">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                                    {isLoading ? (
-                                        <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500"><div className="flex items-center justify-center gap-2"><Loader2 size={20} className="animate-spin" /><span>Memuat...</span></div></td></tr>
-                                    ) : filteredIngredients.length === 0 ? (
-                                        <tr><td colSpan={6} className="px-6 py-12 text-center text-gray-500">Belum ada bahan baku.</td></tr>
-                                    ) : filteredIngredients.map(item => (
-                                        <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
-                                            <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">{item.name}</td>
-                                            <td className="px-6 py-4 text-gray-600 dark:text-gray-300 font-mono">{item.current_stock}</td>
-                                            <td className="px-6 py-4 text-gray-500 font-mono">{item.low_stock_alert}</td>
-                                            <td className="px-6 py-4 text-gray-500">{item.unit}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${item.status === 'SAFE' ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:border-green-900/30 dark:text-green-400' : item.status === 'LOW' ? 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 dark:text-yellow-400' : 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400'}`}>
-                                                    {item.status === 'SAFE' ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}
-                                                    {item.status === 'SAFE' ? 'Aman' : item.status === 'LOW' ? 'Menipis' : 'Kritis'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-1">
-                                                    <button onClick={() => handleOpenOrderModal(item)} className="p-1.5 rounded-lg hover:bg-green-50 text-green-600 dark:hover:bg-green-500/20 dark:text-green-400 transition-colors" title="Pesan Stok">
-                                                        <ShoppingCart size={14} />
-                                                    </button>
-                                                    <button onClick={() => handleOpenIngredientModal(item)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 dark:hover:bg-blue-500/20 dark:text-blue-400 transition-colors" title="Edit">
-                                                        <Pencil size={14} />
-                                                    </button>
-                                                    <button onClick={() => setDeleteId(item.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-600 dark:hover:bg-red-500/20 dark:text-red-400 transition-colors" title="Hapus">
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        {/* Search + Actions */}
+                        <AdminSearchHeader
+                            searchQuery={searchQuery}
+                            onSearchChange={setSearchQuery}
+                            searchPlaceholder="Cari bahan baku..."
+                            addButtonLabel="Tambah Bahan"
+                            onAddClick={() => handleOpenIngredientModal()}
+                            extraActions={
+                                <>
+                                    <button onClick={() => handleOpenOrderModal()} className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl shadow-lg transition-all font-bold text-sm active:scale-95">
+                                        <ShoppingCart size={16} /> Pesan Restock
+                                    </button>
+                                    <button onClick={fetchIngredients} className="p-2 rounded-xl bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:rotate-180 transition-all duration-500">
+                                        <RefreshCw size={16} />
+                                    </button>
+                                </>
+                            }
+                        />
 
-                        {/* Mobile Cards */}
-                        <div className="md:hidden space-y-3">
-                            {isLoading ? (
-                                <div className="flex items-center justify-center py-12 text-gray-500 gap-2"><Loader2 size={20} className="animate-spin" /><span>Memuat...</span></div>
-                            ) : filteredIngredients.length === 0 ? (
-                                <div className="text-center py-12 text-gray-500 text-sm">Belum ada bahan baku.</div>
-                            ) : filteredIngredients.map(item => (
-                                <div key={item.id} className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+                        {/* Table + Mobile Cards (via AdminDataTable) */}
+                        <AdminDataTable<Ingredient>
+                            data={paginatedIngredients}
+                            columns={ingredientColumns}
+                            isLoading={isLoading}
+                            emptyMessage="Belum ada bahan baku."
+                            keyExtractor={(item) => item.id}
+                            mobileCardRender={(item) => (
+                                <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1 min-w-0">
                                             <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate">{item.name}</h3>
-                                            <p className="text-xs text-gray-500 mt-1 font-mono">Stok: {item.current_stock} {item.unit} · Min: {item.low_stock_alert}</p>
-                                            <span className={`inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${item.status === 'SAFE' ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400' : item.status === 'LOW' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400' : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'}`}>
+                                            <p className="text-[10px] text-gray-500 mt-1 font-mono">Stok: {item.current_stock} {item.unit} · Min: {item.low_stock_alert}</p>
+                                            <span className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${item.status === 'SAFE' ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400'
+                                                : item.status === 'LOW' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400'
+                                                    : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'
+                                                }`}>
                                                 {item.status === 'SAFE' ? <CheckCircle size={10} /> : <AlertTriangle size={10} />}
                                                 {item.status === 'SAFE' ? 'Aman' : item.status === 'LOW' ? 'Menipis' : 'Kritis'}
                                             </span>
                                         </div>
                                         <div className="flex flex-col gap-1 ml-2">
-                                            <button onClick={() => handleOpenOrderModal(item)} className="p-2 rounded-lg bg-green-50 text-green-600 dark:bg-green-500/20 dark:text-green-400"><ShoppingCart size={14} /></button>
-                                            <button onClick={() => handleOpenIngredientModal(item)} className="p-2 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"><Pencil size={14} /></button>
-                                            <button onClick={() => setDeleteId(item.id)} className="p-2 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/20 dark:text-red-400"><Trash2 size={14} /></button>
+                                            <button onClick={() => handleOpenOrderModal(item)} className="p-1.5 rounded-lg bg-green-50 text-green-600 dark:bg-green-500/20 dark:text-green-400"><ShoppingCart size={14} /></button>
+                                            <button onClick={() => handleOpenIngredientModal(item)} className="p-1.5 rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"><Pencil size={14} /></button>
+                                            <button onClick={() => setDeleteId(item.id)} className="p-1.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/20 dark:text-red-400"><Trash2 size={14} /></button>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            )}
+                        />
+
+                        {/* Pagination */}
+                        {filteredIngredients.length > PAGE_SIZE && (
+                            <AdminPagination
+                                currentPage={currentPage}
+                                totalItems={filteredIngredients.length}
+                                pageSize={PAGE_SIZE}
+                                onPageChange={setCurrentPage}
+                            />
+                        )}
                     </>
                 )}
 
