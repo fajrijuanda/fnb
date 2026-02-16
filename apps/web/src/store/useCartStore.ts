@@ -139,7 +139,7 @@ export const useCartStore = create<CartState>()(
         ),
     }),
     {
-      name: "cloudpos-cart",
+      name: "omden-cart",
     },
   ),
 );

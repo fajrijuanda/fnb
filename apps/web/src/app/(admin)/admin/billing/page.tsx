@@ -150,7 +150,7 @@ export default function BillingPage() {
 
                     <div className="flex justify-end">
                         <a
-                            href={`https://wa.me/628112835789?text=${encodeURIComponent(`Halo Admin OMDEN, saya pemilik akun *${user?.username}* ingin memperpanjang langganan dan melakukan pembayaran.`)}`}
+                            href={`https://wa.me/6285117784817?text=${encodeURIComponent(`Halo Admin OMDEN, saya pemilik akun *${user?.username}* ingin memperpanjang langganan dan melakukan pembayaran.`)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold shadow-lg shadow-green-900/20 transition-all hover:scale-105 active:scale-95"

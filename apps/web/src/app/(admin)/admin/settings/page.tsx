@@ -424,7 +424,7 @@ export default function SettingsPage() {
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Unlock Fitur Premium</h3>
                             <p className="text-gray-600 dark:text-gray-300 max-w-md text-center mb-6">
-                                Tingkatkan ke CloudPOS Pro untuk akses fitur laporan keuangan lengkap, manajemen stok lanjut, dan multi-outlet.
+                                Tingkatkan ke OMDEN Pro untuk akses fitur laporan keuangan lengkap, manajemen stok lanjut, dan multi-outlet.
                             </p>
                             <button className="px-8 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl font-bold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-105 transition-all flex items-center gap-2">
                                 <Crown size={20} />

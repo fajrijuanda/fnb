@@ -78,7 +78,7 @@ export function AdminNavbar({ onMenuClick }: AdminNavbarProps) {
                             <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-2 shadow-xl z-50 animation-scale-in origin-top-right">
                                 <div className="px-2 py-1.5 mb-1">
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">Akun Saya</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.username || 'admin@cloudpos.id'}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.username || 'admin@omden.id'}</p>
                                 </div>
                                 <div className="h-px bg-gray-100 dark:bg-white/5 my-1" />
 
