@@ -10,7 +10,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onSelect }: ProductCardProps) {
-    const isAvailable = product.stock_status?.available !== false;
+    const isAvailable = product.mitra_availability ?? (product.stock_status?.available ?? product.is_available);
 
     const handleClick = () => {
         if (isAvailable) {

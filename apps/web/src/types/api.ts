@@ -23,6 +23,7 @@ export interface Product {
   stock_status?: StockStatus;
   variants?: ProductVariant[];
   modifier_groups?: ModifierGroup[];
+  mitra_availability?: boolean;
 }
 
 export interface Category {
@@ -44,6 +45,8 @@ export interface ModifierOption {
   id: number;
   name: string;
   price_adjustment: number;
+  mitra_availability?: boolean;
+  group?: number;
 }
 
 export interface ModifierGroup {

@@ -200,8 +200,10 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                                                 "w-full flex items-center justify-between p-3 rounded-xl border transition-all",
                                                 isSelected
                                                     ? "border-primary bg-primary/5 dark:bg-primary/20"
-                                                    : "border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5"
+                                                    : "border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5",
+                                                (option.mitra_availability === false) && "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-white/5"
                                             )}
+                                            disabled={option.mitra_availability === false}
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className={cn(
@@ -216,6 +218,9 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                                                 <span className="text-xs font-medium text-primary dark:text-red-400">
                                                     +{formatRupiah(option.price_adjustment)}
                                                 </span>
+                                            )}
+                                            {option.mitra_availability === false && (
+                                                <span className="text-[10px] font-bold text-red-500 ml-2">HABIS</span>
                                             )}
                                         </button>
                                     );

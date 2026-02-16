@@ -139,3 +139,41 @@ class ModifierOption(models.Model):
     def __str__(self):
         return self.name
 
+
+class ProductAvailability(models.Model):
+    """
+    Pivot table for per-Mitra product availability.
+    Status is CACHED and updated automatically via signals from IngredientStock.
+    """
+    mitra = models.ForeignKey('users.Mitra', on_delete=models.CASCADE, related_name='product_availabilities')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='mitra_availabilities')
+    is_available = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('mitra', 'product')
+        verbose_name_plural = "Product Availabilities"
+
+    def __str__(self):
+        status = "Available" if self.is_available else "Unavailable"
+        return f"{self.product.name} ({self.mitra.user.username}): {status}"
+
+
+class ModifierAvailability(models.Model):
+    """
+    Pivot table for per-Mitra modifier option availability.
+    Status is MANUALLY toggled by Mitra.
+    """
+    mitra = models.ForeignKey('users.Mitra', on_delete=models.CASCADE, related_name='modifier_availabilities')
+    modifier_option = models.ForeignKey(ModifierOption, on_delete=models.CASCADE, related_name='mitra_availabilities')
+    is_available = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('mitra', 'modifier_option')
+        verbose_name_plural = "Modifier Availabilities"
+
+    def __str__(self):
+        status = "Available" if self.is_available else "Unavailable"
+        return f"{self.modifier_option.name} ({self.mitra.user.username}): {status}"
+

@@ -17,9 +17,11 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 
 class ModifierOptionSerializer(serializers.ModelSerializer):
+    mitra_availability = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = ModifierOption
-        fields = ['id', 'name', 'price_adjustment']
+        fields = ['id', 'name', 'price_adjustment', 'mitra_availability']
 
 
 class ModifierGroupSerializer(serializers.ModelSerializer):
@@ -43,6 +45,7 @@ class ProductSerializer(serializers.ModelSerializer):
     stock_status = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     stock = serializers.IntegerField(source='current_stock', required=False)
+    mitra_availability = serializers.BooleanField(read_only=True)
     
     variants = ProductVariantSerializer(many=True, read_only=True)
     modifier_groups = ModifierGroupSerializer(many=True, read_only=True)
@@ -60,6 +63,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'category_details',
             'stock_status',
             'is_available',
+            'mitra_availability',
             'stock',
             'track_inventory',
             'variants',

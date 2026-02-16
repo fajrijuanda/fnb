@@ -33,6 +33,36 @@ class Ingredient(models.Model):
         return f"{self.name} ({self.current_stock} {self.unit})"
 
 
+class IngredientStock(models.Model):
+    """
+    Per-Mitra stock for ingredients.
+    This replaces the global 'current_stock' in Ingredient for Mitras.
+    HQ might still use Ingredient.current_stock or also have an entry here?
+    For now, let's assume this is for Mitra inventory.
+    """
+    mitra = models.ForeignKey('users.Mitra', on_delete=models.CASCADE, related_name='ingredient_stocks')
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='mitra_stocks')
+    current_stock = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0,
+        help_text="Current stock for this Mitra"
+    )
+    min_stock_alert = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0,
+        help_text="Alert threshold for this Mitra"
+    )
+
+    class Meta:
+        unique_together = ('mitra', 'ingredient')
+        verbose_name_plural = "Ingredient Stocks"
+
+    def __str__(self):
+        return f"{self.ingredient.name} @ {self.mitra.user.username}: {self.current_stock} {self.ingredient.unit}"
+
+
 class Recipe(models.Model):
     """Links a Product to its Ingredients."""
     product = models.OneToOneField(
@@ -93,6 +123,14 @@ class StockLog(models.Model):
         null=True, 
         blank=True,
         related_name='stock_logs'
+    )
+    mitra = models.ForeignKey(
+        'users.Mitra',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='stock_logs',
+        help_text="Mitra who owns this stock movement. Null for HQ/Global."
     )
     
     change_amount = models.DecimalField(max_digits=10, decimal_places=2)
