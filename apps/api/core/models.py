@@ -22,6 +22,9 @@ class StoreSettings(models.Model):
         help_text="Raw QRIS EMVCo data string for dynamic QR generation. "
                   "Get this by scanning your static QRIS with any QR reader."
     )
+
+    # External Links
+    spreadsheet_url = models.URLField(blank=True, null=True, help_text="Link to external summary spreadsheet")
     
     updated_at = models.DateTimeField(auto_now=True)
     

@@ -8,5 +8,5 @@ class StoreSettingsSerializer(serializers.ModelSerializer):
             'id', 
             'bank_name', 'bank_account', 'bank_holder',
             'dana_number', 'gopay_number', 'shopeepay_number', 'ovo_number',
-            'qris_image', 'qris_data', 'updated_at'
+            'qris_image', 'qris_data', 'spreadsheet_url', 'updated_at'
         ]

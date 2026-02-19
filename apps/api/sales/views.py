@@ -261,7 +261,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                     'message': 'Invalid date format. Use YYYY-MM-DD.'
                 }, status=status.HTTP_400_BAD_REQUEST)
         
-        data = get_analytics_summary(start_date, end_date)
+        mitra_id = request.query_params.get('mitra_id')
+        data = get_analytics_summary(start_date, end_date, mitra_id=mitra_id)
         
         return Response({
             'status': 'success',

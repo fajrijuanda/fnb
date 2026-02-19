@@ -68,6 +68,7 @@ export interface StoreSettings {
   ovo_number: string;
   qris_image: string | null;
   qris_data: string;
+  spreadsheet_url?: string | null;
   updated_at: string;
 }
 

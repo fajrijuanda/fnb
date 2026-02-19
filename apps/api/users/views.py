@@ -24,8 +24,19 @@ class UserViewSet(viewsets.ModelViewSet):
         base_qs = User.objects.select_related(
             'mitra_profile', 'cashier_profile', 'cashier_profile__mitra', 'profile'
         )
+
+        # 1. Apply Filtering (allowed for everyone within their scope)
+        role = self.request.query_params.get('role')
+        if role == 'mitra':
+            base_qs = base_qs.filter(mitra_profile__isnull=False)
+        elif role == 'cashier':
+             base_qs = base_qs.filter(cashier_profile__isnull=False)
+        elif role == 'superadmin':
+             base_qs = base_qs.filter(is_superuser=True)
+
+        # 2. Apply Permission/Scope Restrictions
         if user.is_superuser:
-            return base_qs.all().order_by('-date_joined')
+            return base_qs.order_by('-date_joined')
         
         # Mitra can only see their own employees (cashiers) and themselves
         if hasattr(user, 'mitra_profile'):

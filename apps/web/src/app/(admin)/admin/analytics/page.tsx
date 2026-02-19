@@ -7,11 +7,13 @@ import {
     TrendingUp,
     PieChart,
     CreditCard,
-    ShoppingBag
+    ShoppingBag,
+    Filter
 } from 'lucide-react';
 import api from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { StatCard } from '@/components/admin/StatCard';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
     AreaChart,
     Area,
@@ -32,12 +34,27 @@ import {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function AnalyticsPage() {
+    const { user } = useAuthStore();
     const [dateRange, setDateRange] = useState('30'); // '7', '30', 'this_month', 'last_month'
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+
+    // Mitra Filter State
+    const [mitraId, setMitraId] = useState<string>('');
+    const [mitraList, setMitraList] = useState<{ id: number; username: string }[]>([]);
+
+    // Fetch Mitra List (Superadmin Only)
+    useEffect(() => {
+        if (user?.role === 'superadmin') {
+            api.get('/users/?role=mitra').then(res => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setMitraList((res.data as any).results || []);
+            }).catch(console.error);
+        }
+    }, [user]);
 
     // Calculate dates based on range
     const getDates = useCallback(() => {
@@ -70,14 +87,19 @@ export default function AnalyticsPage() {
             const { start, end } = getDates();
             if (!start || !end) return;
 
-            const res = await api.get(`/sales/orders/analytics-summary/?start=${start}&end=${end}`);
+            let url = `/sales/orders/analytics-summary/?start=${start}&end=${end}`;
+            if (mitraId) {
+                url += `&mitra_id=${mitraId}`;
+            }
+
+            const res = await api.get(url);
             setData(res.data.data);
         } catch (error) {
             console.error("Failed to fetch analytics:", error);
         } finally {
             setLoading(false);
         }
-    }, [getDates]);
+    }, [getDates, mitraId]);
 
     useEffect(() => {
         if (dateRange !== 'custom' || (customStart && customEnd)) {
@@ -102,33 +124,52 @@ export default function AnalyticsPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">Visualisasi performa bisnis Anda</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-white/5 p-1 rounded-lg border border-gray-200 dark:border-white/10">
-                    {['7', '30', 'this_month', 'last_month'].map((r) => (
-                        <button
-                            key={r}
-                            onClick={() => setDateRange(r)}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${dateRange === r
-                                ? 'bg-primary text-white shadow-sm'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
-                                }`}
-                        >
-                            {r === '7' ? '7 Hari' : r === '30' ? '30 Hari' : r === 'this_month' ? 'Bulan Ini' : 'Bulan Lalu'}
-                        </button>
-                    ))}
-                    <div className="h-4 w-[1px] bg-gray-300 dark:bg-white/20 mx-1"></div>
-                    <input
-                        type="date"
-                        value={customStart}
-                        onChange={(e) => { setCustomStart(e.target.value); setDateRange('custom'); }}
-                        className="bg-transparent text-xs outline-none text-gray-700 dark:text-gray-300"
-                    />
-                    <span className="text-gray-400">-</span>
-                    <input
-                        type="date"
-                        value={customEnd}
-                        onChange={(e) => { setCustomEnd(e.target.value); setDateRange('custom'); }}
-                        className="bg-transparent text-xs outline-none text-gray-700 dark:text-gray-300"
-                    />
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Mitra Filter (Superadmin Only) */}
+                    {user?.role === 'superadmin' && (
+                        <div className="relative">
+                            <select
+                                value={mitraId}
+                                onChange={(e) => setMitraId(e.target.value)}
+                                className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 text-xs rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-primary/50 appearance-none pr-8 cursor-pointer"
+                            >
+                                <option value="">Semua Mitra</option>
+                                {mitraList.map(mitra => (
+                                    <option key={mitra.id} value={mitra.id}>{mitra.username}</option>
+                                ))}
+                            </select>
+                            <Filter className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+                        </div>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-white/5 p-1 rounded-lg border border-gray-200 dark:border-white/10">
+                        {['7', '30', 'this_month', 'last_month'].map((r) => (
+                            <button
+                                key={r}
+                                onClick={() => setDateRange(r)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${dateRange === r
+                                    ? 'bg-primary text-white shadow-sm'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
+                                    }`}
+                            >
+                                {r === '7' ? '7 Hari' : r === '30' ? '30 Hari' : r === 'this_month' ? 'Bulan Ini' : 'Bulan Lalu'}
+                            </button>
+                        ))}
+                        <div className="h-4 w-[1px] bg-gray-300 dark:bg-white/20 mx-1"></div>
+                        <input
+                            type="date"
+                            value={customStart}
+                            onChange={(e) => { setCustomStart(e.target.value); setDateRange('custom'); }}
+                            className="bg-transparent text-xs outline-none text-gray-700 dark:text-gray-300"
+                        />
+                        <span className="text-gray-400">-</span>
+                        <input
+                            type="date"
+                            value={customEnd}
+                            onChange={(e) => { setCustomEnd(e.target.value); setDateRange('custom'); }}
+                            className="bg-transparent text-xs outline-none text-gray-700 dark:text-gray-300"
+                        />
+                    </div>
                 </div>
             </div>
 

@@ -73,7 +73,7 @@ def get_sales_by_date_range(start_date, end_date):
     return list(daily_data)
 
 
-def get_analytics_summary(start_date, end_date):
+def get_analytics_summary(start_date, end_date, mitra_id=None):
     """
     Get aggregated data for analytics dashboard.
     """
@@ -82,6 +82,13 @@ def get_analytics_summary(start_date, end_date):
         created_at__date__lte=end_date,
         status=Order.Status.PAID
     )
+
+    if mitra_id:
+        from django.db.models import Q
+        orders = orders.filter(
+            Q(cashier__cashier_profile__mitra__user__id=mitra_id) | 
+            Q(cashier__id=mitra_id)
+        )
 
     # 1. Total Summary
     total_revenue = orders.aggregate(total=Sum('total_amount'))['total'] or 0

@@ -20,7 +20,7 @@ import {
     Store,
     Wallet,
     Bell,
-
+    FileSpreadsheet,
 } from 'lucide-react';
 import { DeviceManagement } from '@/components/settings/DeviceManagement';
 import { FormSelect } from '@/components/admin/FormSelect';
@@ -28,7 +28,7 @@ import { FormSelect } from '@/components/admin/FormSelect';
 type Tab = 'profile' | 'security' | 'payment' | 'preferences' | 'devices';
 
 export default function SettingsPage() {
-    const { user, updateProfile, language, setLanguage, logout } = useAuthStore();
+    const { user, updateProfile, logout } = useAuthStore();
     const { success, error: showToastError } = useToast();
     const router = useRouter();
 
@@ -59,6 +59,7 @@ export default function SettingsPage() {
 
     // Preferences State
     const [notifications, setNotifications] = useState(true);
+    const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
 
     // Initial Load
     useEffect(() => {
@@ -92,6 +93,17 @@ export default function SettingsPage() {
                     }
                 }).catch(err => console.error("Failed to fetch user details", err));
             }
+
+            // Fetch Store Settings
+            if (user.role === 'superadmin') {
+                api.get('/settings/store/').then(res => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const data = res.data as any;
+                    if (data) {
+                        setSpreadsheetUrl(data.spreadsheet_url || '');
+                    }
+                }).catch(console.error);
+            }
         }
     }, [user, updateProfile]);
 
@@ -112,7 +124,6 @@ export default function SettingsPage() {
             formData.append('username', name);
             formData.append('email', email);
             if (avatarFile) {
-                // Modified to send 'avatar' as simple key, expecting backend to handle it
                 formData.append('avatar', avatarFile);
             }
 
@@ -187,6 +198,19 @@ export default function SettingsPage() {
         } catch (err) {
             console.error(err);
             showToastError('Gagal menyimpan metode pembayaran');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleSaveStoreSettings = async () => {
+        setIsSaving(true);
+        try {
+            await api.patch('/settings/store/', { spreadsheet_url: spreadsheetUrl });
+            success('Pengaturan toko disimpan');
+        } catch (err) {
+            console.error(err);
+            showToastError('Gagal menyimpan pengaturan');
         } finally {
             setIsSaving(false);
         }
@@ -346,12 +370,6 @@ export default function SettingsPage() {
                                 </h2>
 
                                 <div className="space-y-5 max-w-2xl">
-                                    {/* Only show 'current password' if user wants to change (Optional, usually good for verification, but keeping simple as per request 'new + confirm') 
-                                        Actually standardized is: Current, New, Confirm. 
-                                        Let's stick to New and Confirm as requested, but commonly Current is needed for API. 
-                                        My previous implementation didn't require current. I'll stick to New + Confirm. 
-                                    */}
-
                                     <div className="grid gap-2">
                                         <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Password Baru</label>
                                         <div className="relative">
@@ -555,30 +573,41 @@ export default function SettingsPage() {
                     {activeTab === 'preferences' && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm divide-y divide-gray-100 dark:divide-white/5">
-                                <div className="p-5 lg:p-6 flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                                            <Globe className="w-5 h-5 lg:w-6 lg:h-6" />
+
+                                {/* Spreadsheet URL Setting */}
+                                {user?.role === 'superadmin' && (
+                                    <div className="p-5 lg:p-6 flex flex-col gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-full bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-600 dark:text-green-400">
+                                                <FileSpreadsheet className="w-5 h-5 lg:w-6 lg:h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-base lg:text-lg text-gray-900 dark:text-white">Spreadsheet Laporan</h3>
+                                                <p className="text-xs lg:text-sm text-gray-500">Shortcut ke spreadsheet laporan eksternal</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-base lg:text-lg text-gray-900 dark:text-white">Bahasa Aplikasi</h3>
-                                            <p className="text-xs lg:text-sm text-gray-500">Pilih bahasa antarmuka yang Anda inginkan</p>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="url"
+                                                value={spreadsheetUrl}
+                                                onChange={(e) => setSpreadsheetUrl(e.target.value)}
+                                                placeholder="https://docs.google.com/spreadsheets/..."
+                                                className="flex-1 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 px-4 py-2 outline-none focus:ring-2 focus:ring-[#C5161D]/50 transition-all text-sm"
+                                            />
+                                            <button
+                                                onClick={handleSaveStoreSettings}
+                                                disabled={isSaving}
+                                                className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                                            >
+                                                {isSaving ? '...' : 'Simpan'}
+                                            </button>
                                         </div>
                                     </div>
-                                    <FormSelect
-                                        value={language}
-                                        onChange={(val) => setLanguage(val as 'id' | 'en')}
-                                        options={[
-                                            { value: 'id', label: '🇮🇩 Indonesia' },
-                                            { value: 'en', label: '🇬🇧 English' },
-                                        ]}
-                                        className="w-40"
-                                    />
-                                </div>
+                                )}
 
                                 <div className="p-5 lg:p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors" onClick={() => setNotifications(!notifications)}>
                                     <div className="flex items-center gap-4">
-                                        <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-full flex items-center justify-center transition-colors ${notifications ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
+                                        <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-full flex items-center justify-center transition-colors ${notifications ? 'bg-red-50 dark:bg-red-500/10 text-[#C5161D] dark:text-red-400' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
                                             <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
                                         </div>
                                         <div>
@@ -586,7 +615,7 @@ export default function SettingsPage() {
                                             <p className="text-xs lg:text-sm text-gray-500">Putar suara notifikasi saat ada pesanan baru masuk</p>
                                         </div>
                                     </div>
-                                    <div className={`w-14 h-8 rounded-full p-1 transition-colors relative ${notifications ? 'bg-green-500' : 'bg-gray-200 dark:bg-white/10'}`}>
+                                    <div className={`w-14 h-8 rounded-full p-1 transition-colors relative ${notifications ? 'bg-[#C5161D]' : 'bg-gray-200 dark:bg-white/10'}`}>
                                         <div className={`h-6 w-6 bg-white rounded-full shadow-md absolute top-1 transition-all ${notifications ? 'left-[calc(100%-28px)]' : 'left-1'}`} />
                                     </div>
                                 </div>

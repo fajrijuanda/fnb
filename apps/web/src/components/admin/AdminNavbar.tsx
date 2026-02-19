@@ -1,17 +1,31 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Settings, LogOut, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuthStore } from '@/store/useAuthStore';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
 import { NotificationDropdown } from './NotificationDropdown';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 export function AdminNavbar() {
     const { user } = useAuthStore();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [spreadsheetUrl, setSpreadsheetUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (user) {
+            api.get('/settings/store/').then(res => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const data = res.data as any;
+                if (data && data.spreadsheet_url) {
+                    setSpreadsheetUrl(data.spreadsheet_url);
+                }
+            }).catch(() => { });
+        }
+    }, [user]);
 
     const handleLogout = () => {
         const { logout } = useAuthStore.getState();
@@ -38,6 +52,20 @@ export function AdminNavbar() {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-2 lg:gap-4">
+                {/* Spreadsheet Shortcut */}
+                {spreadsheetUrl && (
+                    <a
+                        href={spreadsheetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-500/20 transition-all font-medium text-xs border border-green-200 dark:border-green-500/20"
+                        title="Buka Spreadsheet Laporan"
+                    >
+                        <FileSpreadsheet size={16} />
+                        <span className="hidden lg:inline">Laporan</span>
+                    </a>
+                )}
+
                 <ThemeToggle dropdownAlign="bottom" dropdownSide="right" />
 
                 <NotificationDropdown />
