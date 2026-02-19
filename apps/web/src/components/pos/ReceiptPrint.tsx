@@ -3,6 +3,7 @@
 import { forwardRef } from 'react';
 import { formatRupiah, formatDate } from '@/lib/utils';
 import type { OrderResponse } from '@/types/api';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface ReceiptPrintProps {
     order: OrderResponse;
@@ -80,7 +81,16 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptPrintProps>(
                 {/* Footer */}
                 <div className="text-center text-[9px]">
                     <p className="mb-1">Terima kasih!</p>
-                    <p className="text-[8px] text-gray-500">Selamat menikmati</p>
+                    <p className="text-[8px] text-gray-500 mb-2">Selamat menikmati</p>
+
+                    {/* QRIS Code */}
+                    {order.qris_data && (
+                        <div className="flex flex-col items-center justify-center pt-2 border-t border-dashed border-gray-400">
+                            <p className="mb-1 font-bold">SCAN QRIS</p>
+                            <QRCodeSVG value={order.qris_data} size={100} level="M" />
+                            <p className="mt-1 text-[8px]">{order.payment_method_display}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         );

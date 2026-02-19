@@ -152,6 +152,7 @@ export interface OrderResponse {
   payment_method_display: string;
   notes: string | null;
   items: OrderItemResponse[];
+  qris_data?: string;
 }
 
 // Inventory

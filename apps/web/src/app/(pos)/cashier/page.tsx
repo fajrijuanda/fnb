@@ -2,17 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown, CreditCard } from 'lucide-react';
+import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown, CreditCard, Printer } from 'lucide-react';
 import { ProductGrid } from '@/components/pos/ProductGrid';
 import { CartSheet } from '@/components/pos/CartSheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
 import { PaymentSettingsModal } from '@/components/pos/PaymentSettingsModal';
 import { CashierProfileModal } from '@/components/pos/CashierProfileModal';
+import { PrinterSettingsModal } from '@/components/pos/PrinterSettingsModal';
 import { CloseShiftModal } from '@/components/pos/CloseShiftModal';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCartStore } from '@/store';
 import { useAuthStore } from '@/store/useAuthStore';
+import { usePrinter } from '@/hooks/usePrinter';
 import { cn } from '@/lib/utils';
 import { useRef, useEffect } from 'react';
 
@@ -28,8 +30,15 @@ export default function CashierPage() {
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
     const [showPaymentSettingsModal, setShowPaymentSettingsModal] = useState(false);
+    const [showPrinterSettingsModal, setShowPrinterSettingsModal] = useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const { autoConnect } = usePrinter();
+
+    // Auto-connect printer on mount
+    useEffect(() => {
+        autoConnect();
+    }, [autoConnect]);
 
     // Close dropdown on click outside
     useEffect(() => {
@@ -179,6 +188,19 @@ export default function CashierPage() {
 
                                         <div className="my-1 border-t border-gray-100 dark:border-white/5" />
 
+                                        <button
+                                            onClick={() => {
+                                                setShowPrinterSettingsModal(true);
+                                                setIsProfileDropdownOpen(false);
+                                            }}
+                                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                        >
+                                            <Printer className="h-4 w-4" />
+                                            Pengaturan Printer
+                                        </button>
+
+                                        <div className="my-1 border-t border-gray-100 dark:border-white/5" />
+
                                         {/* Payment Settings - Only for Superadmin/Mitra */}
                                         {(user?.role === 'superadmin' || user?.role === 'mitra') && (
                                             <button
@@ -284,6 +306,11 @@ export default function CashierPage() {
             <PaymentSettingsModal
                 isOpen={showPaymentSettingsModal}
                 onClose={() => setShowPaymentSettingsModal(false)}
+            />
+
+            <PrinterSettingsModal
+                isOpen={showPrinterSettingsModal}
+                onClose={() => setShowPrinterSettingsModal(false)}
             />
 
             <CloseShiftModal
