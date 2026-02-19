@@ -40,3 +40,13 @@ class StoreSettings(models.Model):
         
     def __str__(self):
         return "Store Payment Settings"
+
+
+class SeederLog(models.Model):
+    """Tracks executed seed scripts to prevent re-running without changes."""
+    name = models.CharField(max_length=255, unique=True)
+    checksum = models.CharField(max_length=64, help_text="SHA256 checksum of the seed file")
+    executed_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.executed_at})"
