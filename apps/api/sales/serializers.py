@@ -183,6 +183,7 @@ class ShiftSerializer(serializers.ModelSerializer):
     """
     cashier_name = serializers.CharField(source='cashier.username', read_only=True)
     difference = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
     current_cash = serializers.SerializerMethodField()
 
     class Meta:
