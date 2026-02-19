@@ -20,7 +20,7 @@ import {
     Store,
     Wallet,
     Bell,
-    ChevronRight
+
 } from 'lucide-react';
 import { DeviceManagement } from '@/components/settings/DeviceManagement';
 import { FormSelect } from '@/components/admin/FormSelect';
@@ -226,52 +226,35 @@ export default function SettingsPage() {
         <div className="max-w-6xl mx-auto pb-10">
             {/* Header */}
             <div className="mb-6 lg:mb-8">
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Pengaturan</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">Kelola akun dan preferensi aplikasi OMDEN Anda here.</p>
+                <h1 className="text-xl lg:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Pengaturan</h1>
+                <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">Kelola akun dan preferensi aplikasi OMDEN Anda here.</p>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-                {/* Sidebar Tabs */}
-                <div className="w-full lg:w-56 flex-shrink-0 transition-all duration-300">
-                    <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden sticky top-24">
-                        <div className="p-3 bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#C5161D] to-[#800f13] flex items-center justify-center text-white font-bold text-base shadow-md">
-                                    {avatarPreview ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={avatarPreview} alt="User" className="w-full h-full object-cover rounded-full" />
-                                    ) : (
-                                        user?.username?.charAt(0).toUpperCase() || 'U'
-                                    )}
-                                </div>
-                                <div className="overflow-hidden">
-                                    <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{user?.username || 'User'}</p>
-                                    <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate capitalize">{user?.role || 'Member'}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <nav className="p-1.5 space-y-0.5">
-                            {tabs.map(tab => {
-                                const Icon = tab.icon;
-                                const isActive = activeTab === tab.id;
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id as Tab)}
-                                        className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
-                                            ? 'bg-red-50 dark:bg-[#C5161D]/10 text-[#C5161D] dark:text-red-400 shadow-sm'
-                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
-                                            }`}
-                                    >
-                                        <Icon size={16} />
-                                        <span>{tab.label}</span>
-                                        {isActive && <ChevronRight size={14} className="ml-auto opacity-50" />}
-                                    </button>
-                                );
-                            })}
-                        </nav>
+            <div className="flex flex-col gap-6">
+                {/* Universal Horizontal Tab Bar */}
+                <div className="px-1 overflow-x-auto no-scrollbar mb-2 sticky top-[60px] z-20 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md py-2 border-b border-gray-100 dark:border-white/5">
+                    <div className="flex items-center gap-2 min-w-max">
+                        {tabs.map(tab => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id as Tab)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap ${isActive
+                                        ? 'bg-[#C5161D] text-white shadow-md shadow-red-500/20'
+                                        : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10'
+                                        }`}
+                                >
+                                    <Icon size={14} />
+                                    <span>{tab.label}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
+
+
 
                 {/* Content Area */}
                 <div className="flex-1 min-w-0">
@@ -279,9 +262,9 @@ export default function SettingsPage() {
                     {/* PROFILE TAB */}
                     {activeTab === 'profile' && (
                         <div className="space-y-6 animate-fade-in">
-                            <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm p-6 lg:p-8">
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                    <User className="text-[#C5161D]" />
+                            <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm p-5 lg:p-8">
+                                <h2 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                    <User className="text-[#C5161D]" size={20} />
                                     Informasi Profil
                                 </h2>
 
@@ -356,9 +339,9 @@ export default function SettingsPage() {
                     {/* SECURITY TAB */}
                     {activeTab === 'security' && (
                         <div className="space-y-6 animate-fade-in">
-                            <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm p-6 lg:p-8">
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                    <Lock className="text-[#C5161D]" />
+                            <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm p-5 lg:p-8">
+                                <h2 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                    <Lock className="text-[#C5161D]" size={20} />
                                     Ubah Password
                                 </h2>
 
@@ -428,9 +411,9 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Danger Zone */}
-                            <div className="bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-500/20 p-6 lg:p-8">
-                                <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2 flex items-center gap-2">
-                                    <AlertTriangle className="text-red-500" />
+                            <div className="bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-500/20 p-5 lg:p-8">
+                                <h2 className="text-lg lg:text-xl font-bold text-red-600 dark:text-red-400 mb-2 flex items-center gap-2">
+                                    <AlertTriangle className="text-red-500" size={20} />
                                     Zona Bahaya
                                 </h2>
                                 <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
@@ -471,9 +454,9 @@ export default function SettingsPage() {
                     {/* PAYMENT TAB */}
                     {activeTab === 'payment' && (
                         <div className="space-y-6 animate-fade-in">
-                            <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm p-6 lg:p-8">
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                    <CreditCard className="text-[#C5161D]" />
+                            <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm p-5 lg:p-8">
+                                <h2 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                    <CreditCard className="text-[#C5161D]" size={20} />
                                     Metode Pembayaran
                                 </h2>
 
@@ -572,14 +555,14 @@ export default function SettingsPage() {
                     {activeTab === 'preferences' && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm divide-y divide-gray-100 dark:divide-white/5">
-                                <div className="p-6 flex items-center justify-between">
+                                <div className="p-5 lg:p-6 flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                                            <Globe size={24} />
+                                        <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                            <Globe className="w-5 h-5 lg:w-6 lg:h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white">Bahasa Aplikasi</h3>
-                                            <p className="text-sm text-gray-500">Pilih bahasa antarmuka yang Anda inginkan</p>
+                                            <h3 className="font-bold text-base lg:text-lg text-gray-900 dark:text-white">Bahasa Aplikasi</h3>
+                                            <p className="text-xs lg:text-sm text-gray-500">Pilih bahasa antarmuka yang Anda inginkan</p>
                                         </div>
                                     </div>
                                     <FormSelect
@@ -593,14 +576,14 @@ export default function SettingsPage() {
                                     />
                                 </div>
 
-                                <div className="p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors" onClick={() => setNotifications(!notifications)}>
+                                <div className="p-5 lg:p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors" onClick={() => setNotifications(!notifications)}>
                                     <div className="flex items-center gap-4">
-                                        <div className={`h-12 w-12 rounded-full flex items-center justify-center transition-colors ${notifications ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
-                                            <Bell size={24} />
+                                        <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-full flex items-center justify-center transition-colors ${notifications ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
+                                            <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900 dark:text-white">Notifikasi Suara</h3>
-                                            <p className="text-sm text-gray-500">Putar suara notifikasi saat ada pesanan baru masuk</p>
+                                            <h3 className="font-bold text-base lg:text-lg text-gray-900 dark:text-white">Notifikasi Suara</h3>
+                                            <p className="text-xs lg:text-sm text-gray-500">Putar suara notifikasi saat ada pesanan baru masuk</p>
                                         </div>
                                     </div>
                                     <div className={`w-14 h-8 rounded-full p-1 transition-colors relative ${notifications ? 'bg-green-500' : 'bg-gray-200 dark:bg-white/10'}`}>
@@ -620,6 +603,6 @@ export default function SettingsPage() {
 
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

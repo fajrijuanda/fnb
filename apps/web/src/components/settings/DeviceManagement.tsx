@@ -78,12 +78,12 @@ export function DeviceManagement() {
 
     return (
         <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center gap-3">
+            <div className="p-5 lg:p-6 border-b border-gray-100 dark:border-white/5 flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
                     <Shield size={20} />
                 </div>
                 <div>
-                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">Perangkat Terpercaya</h3>
+                    <h3 className="font-bold text-lg lg:text-xl text-gray-900 dark:text-white">Perangkat Terpercaya</h3>
                     <p className="text-sm text-gray-500">Kelola perangkat yang memiliki akses ke akun ini.</p>
                 </div>
             </div>
