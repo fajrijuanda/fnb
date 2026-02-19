@@ -240,9 +240,25 @@ export default function ProductsPage() {
     const handleOpenModal = (product?: Product) => {
         if (product) {
             setEditingProduct(product);
+
+            // Fix: Resolve category name to ID if needed
+            let initialCategory = '';
+            if (typeof product.category === 'number') {
+                initialCategory = String(product.category);
+            } else if (typeof product.category === 'string') {
+                // If specific category is string name, find its ID
+                const catByName = categories.find(c => c.name === product.category);
+                if (catByName) {
+                    initialCategory = String(catByName.id);
+                } else {
+                    // Fallback if it's already a string ID
+                    initialCategory = product.category;
+                }
+            }
+
             setFormData({
                 name: product.name,
-                category: typeof product.category === 'string' ? product.category : String(product.category),
+                category: initialCategory,
                 price: String(product.price),
                 stock: String(product.stock || 0),
                 description: product.description || '',
@@ -687,7 +703,7 @@ export default function ProductsPage() {
                                             placeholder="Pilih kategori..."
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Harga (Rp)</label>
                                             <input
@@ -698,16 +714,7 @@ export default function ProductsPage() {
                                                 placeholder="0"
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1.5 ml-1">Stok</label>
-                                            <input
-                                                type="number"
-                                                value={formData.stock}
-                                                onChange={e => setFormData({ ...formData, stock: e.target.value })}
-                                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-primary text-sm font-bold"
-                                                placeholder="0"
-                                            />
-                                        </div>
+                                        {/* Stock input hidden as requested */}
                                     </div>
                                     {user?.role === 'mitra' && (
                                         <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
