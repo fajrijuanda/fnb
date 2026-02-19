@@ -56,12 +56,15 @@ class Product(models.Model):
     # Availability
     is_available = models.BooleanField(default=True)
     
+    # Ordering
+    order = models.PositiveIntegerField(default=0, help_text="Order within category")
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['category__order', 'name']
+        ordering = ['category__order', 'order', 'name']
 
     def save(self, *args, **kwargs):
         # Compress image if it's new or changed (though hard to detect change easily without fetching)

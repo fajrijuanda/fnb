@@ -59,21 +59,24 @@ def seed_products():
             'name': 'Dimsum - Paket Single',
             'description': '3 Pcs. Dimsum Mix Rasa',
             'price': 10000,
-            'track_inventory': False
+            'track_inventory': False,
+            'order': 1
         },
         {
             'category': 'Dimsum',
             'name': 'Dimsum - Paket Bareng',
             'description': '7 Pcs. Dimsum Mix Rasa (Best Seller)',
             'price': 20000,
-            'track_inventory': False
+            'track_inventory': False,
+            'order': 2
         },
         {
             'category': 'Dimsum',
             'name': 'Dimsum Mentai',
             'description': '6 Pcs. Dimsum Mix Rasa + Saus Mentai Special',
             'price': 30000,
-            'track_inventory': False
+            'track_inventory': False,
+            'order': 3
         },
         # GYOZA
         {
@@ -81,35 +84,40 @@ def seed_products():
             'name': 'Gyoza Kukus - Paket Single',
             'description': '4 Pcs. Gyoza Kukus',
             'price': 10000,
-            'track_inventory': False
-        },
-        {
-            'category': 'Gyoza',
-            'name': 'Gyoza Goreng - Paket Single',
-            'description': '4 Pcs. Gyoza Goreng',
-            'price': 10000,
-            'track_inventory': False
+            'track_inventory': False,
+            'order': 1
         },
         {
             'category': 'Gyoza',
             'name': 'Gyoza Kukus - Paket Bareng',
             'description': '10 Pcs. Gyoza Kukus',
             'price': 20000,
-            'track_inventory': False
+            'track_inventory': False,
+            'order': 2
+        },
+        {
+            'category': 'Gyoza',
+            'name': 'Gyoza Mentai',
+            'description': '7 Pcs. Gyoza Kukus + Saus Mentai Special',
+            'price': 25000,
+            'track_inventory': False,
+            'order': 3
+        },
+        {
+            'category': 'Gyoza',
+            'name': 'Gyoza Goreng - Paket Single',
+            'description': '4 Pcs. Gyoza Goreng',
+            'price': 10000,
+            'track_inventory': False,
+            'order': 4
         },
         {
             'category': 'Gyoza',
             'name': 'Gyoza Goreng - Paket Bareng',
             'description': '10 Pcs. Gyoza Goreng',
             'price': 20000,
-            'track_inventory': False
-        },
-         {
-            'category': 'Gyoza',
-            'name': 'Gyoza Mentai',
-            'description': '7 Pcs. Gyoza Kukus + Saus Mentai Special',
-            'price': 25000,
-            'track_inventory': False
+            'track_inventory': False,
+            'order': 5
         },
         # WONTON
         {
@@ -117,14 +125,16 @@ def seed_products():
             'name': 'Wonton Kuah',
             'description': '8 Pcs. Wonton Kuah',
             'price': 10000,
-            'track_inventory': False
+            'track_inventory': False,
+            'order': 1
         },
         {
             'category': 'Wonton',
             'name': 'Wonton Goreng',
             'description': '8 Pcs. Wonton Goreng',
             'price': 10000,
-            'track_inventory': False
+            'track_inventory': False,
+            'order': 2
         },
     ]
 
@@ -137,12 +147,14 @@ def seed_products():
                 'description': prod_data['description'],
                 'price': prod_data['price'],
                 'track_inventory': prod_data['track_inventory'],
-                'is_available': True
+                'is_available': True,
+                'order': prod_data['order']
             }
         )
         if not created:
             product.description = prod_data['description']
             product.price = prod_data['price']
+            product.order = prod_data['order']
             product.save()
             print(f"Updated product: {product.name}")
         else:
