@@ -26,9 +26,20 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """
     API endpoint for categories.
     """
-    queryset = Category.objects.filter(is_active=True)
+    # queryset = Category.objects.filter(is_active=True) # Replaced by get_queryset
     serializer_class = CategorySerializer
     permission_classes = [IsSuperUserOrReadOnly]
+
+    def get_queryset(self):
+        from django.db.models import Case, When, Value, IntegerField
+        
+        return Category.objects.filter(is_active=True).annotate(
+            custom_order=Case(
+                When(name__icontains="Paket Single", then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        ).order_by('custom_order', 'order', 'name')
 
 
 class ProductViewSet(viewsets.ModelViewSet):
