@@ -7,9 +7,9 @@ import {
     TrendingUp,
     PieChart,
     CreditCard,
-    ShoppingBag,
-    Filter
+    ShoppingBag
 } from 'lucide-react';
+import { FormSelect } from '@/components/admin/FormSelect';
 import api from '@/lib/api';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { StatCard } from '@/components/admin/StatCard';
@@ -125,20 +125,19 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
+
                     {/* Mitra Filter (Superadmin Only) */}
                     {user?.role === 'superadmin' && (
-                        <div className="relative">
-                            <select
+                        <div className="w-[200px]">
+                            <FormSelect
                                 value={mitraId}
-                                onChange={(e) => setMitraId(e.target.value)}
-                                className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 text-xs rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-primary/50 appearance-none pr-8 cursor-pointer"
-                            >
-                                <option value="">Semua Mitra</option>
-                                {mitraList.map(mitra => (
-                                    <option key={mitra.id} value={mitra.id}>{mitra.username}</option>
-                                ))}
-                            </select>
-                            <Filter className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={12} />
+                                onChange={(val) => setMitraId(val)}
+                                options={[
+                                    { value: '', label: 'Semua Mitra' },
+                                    ...mitraList.map(m => ({ value: m.id, label: m.username }))
+                                ]}
+                                placeholder="Pilih Mitra"
+                            />
                         </div>
                     )}
 
