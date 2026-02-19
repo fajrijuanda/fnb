@@ -63,12 +63,17 @@ class ProductViewSet(viewsets.ModelViewSet):
         user = self.request.user
         queryset = Product.objects.select_related('category').all()
             
-        # Availability Logic for Mitra
+        # Determine the Mitra context (either direct Mitra or via Cashier)
+        mitra = None
         if hasattr(user, 'mitra_profile'):
+            mitra = user.mitra_profile
+        elif hasattr(user, 'cashier_profile'):
+            mitra = user.cashier_profile.mitra
+
+        # Availability Logic for Mitra/Cashier
+        if mitra:
             from django.db.models import OuterRef, Subquery, Case, When, F, BooleanField
             from .models import ProductAvailability
-
-            mitra = user.mitra_profile
             
             # Subquery to get specific availability from cached ProductAvailability pivot
             mitra_availability_subquery = ProductAvailability.objects.filter(
@@ -97,6 +102,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         elif not (user.is_staff or user.is_superuser):
              # For public/anonymous, show only globally available
              queryset = queryset.filter(is_available=True)
+
+        return queryset
 
         return queryset
     
@@ -146,11 +153,16 @@ class ModifierOptionViewSet(viewsets.ModelViewSet):
         user = self.request.user
         queryset = ModifierOption.objects.select_related('group').all()
 
+        # Determine Mitra context
+        mitra = None
         if hasattr(user, 'mitra_profile'):
+            mitra = user.mitra_profile
+        elif hasattr(user, 'cashier_profile'):
+            mitra = user.cashier_profile.mitra
+
+        if mitra:
             from django.db.models import OuterRef, Subquery, Case, When, F, Value, BooleanField
             from inventory.models import IngredientStock
-
-            mitra = user.mitra_profile
             
             # Subquery to get current stock of the ingredient linked to this modifier
             stock_subquery = IngredientStock.objects.filter(
