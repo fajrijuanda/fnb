@@ -200,7 +200,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                 <div
                     className={`transition-[left] duration-300 ease-in-out will-change-[left] transform-gpu
-                    fixed top-2 bottom-[80px] right-2 left-2
+                    fixed top-2 bottom-2 right-2 left-2
                     lg:top-4 lg:bottom-4 lg:right-4
                     ${collapsed ? 'lg:left-[100px]' : 'lg:left-[236px] xl:left-[268px]'}
                     rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl 
@@ -210,7 +210,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 >
                     <div className="absolute inset-0 overflow-auto flex flex-col">
                         <AdminNavbar />
-                        <main className="flex-1 p-4 lg:p-6">
+                        <main className="flex-1 p-4 lg:p-6 pb-32 lg:pb-6">
                             {/* Feature Locks */}
                             {user?.role === 'mitra' && pathname.startsWith('/admin/inventory') ? (
                                 <PremiumLocked
