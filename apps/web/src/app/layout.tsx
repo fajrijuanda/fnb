@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/ToastContext";
 import { SecurityPuller } from "@/components/security/SecurityPuller";
+import { NotificationProvider } from "@/context/NotificationContext";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -20,7 +21,6 @@ export const metadata: Metadata = {
     apple: "/logo.png",
   },
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,8 +31,10 @@ export default function RootLayout({
       <body className={`${plusJakarta.variable} font-sans antialiased`}>
         <ThemeProvider>
           <ToastProvider>
-            <SecurityPuller />
-            {children}
+            <NotificationProvider>
+              <SecurityPuller />
+              {children}
+            </NotificationProvider>
           </ToastProvider>
         </ThemeProvider>
       </body>

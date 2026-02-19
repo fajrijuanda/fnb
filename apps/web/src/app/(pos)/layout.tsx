@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 };
 
 import { ShiftManager } from '@/components/pos/ShiftManager';
-import { NotificationProvider } from '@/context/NotificationContext';
 
 export default function POSLayout({
     children,
@@ -17,11 +16,9 @@ export default function POSLayout({
     children: React.ReactNode;
 }) {
     return (
-        <NotificationProvider>
-            <div className="min-h-screen bg-background">
-                <ShiftManager />
-                {children}
-            </div>
-        </NotificationProvider>
+        <div className="min-h-screen bg-background">
+            <ShiftManager />
+            {children}
+        </div>
     );
 }
