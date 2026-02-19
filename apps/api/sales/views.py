@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django_filters.rest_framework import DjangoFilterBackend
 from django.db import transaction
 from datetime import datetime
 from .models import Order
@@ -14,7 +15,8 @@ from .selectors import (
     get_daily_sales_summary, 
     get_sales_by_date_range,
     get_orders_for_export,
-    get_profit_loss_report
+    get_profit_loss_report,
+    get_analytics_summary
 )
 import pandas as pd
 import io
@@ -233,6 +235,39 @@ class OrderViewSet(viewsets.ModelViewSet):
         else:
             return Response({'error': 'Invalid format'}, status=400)
 
+    @action(detail=False, methods=['get'], url_path='analytics-summary')
+    def analytics_summary(self, request):
+        """
+        Get analytics summary for dashboard.
+        GET /api/v1/sales/orders/analytics-summary/?start=YYYY-MM-DD&end=YYYY-MM-DD
+        """
+        start_str = request.query_params.get('start')
+        end_str = request.query_params.get('end')
+        
+        if not start_str:
+             # Default: Last 30 days
+             from django.utils import timezone
+             from datetime import timedelta
+             today = timezone.now().date()
+             start_date = today - timedelta(days=30)
+             end_date = today
+        else:
+            try:
+                start_date = datetime.strptime(start_str, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_str, '%Y-%m-%d').date() if end_str else start_date
+            except ValueError:
+                return Response({
+                    'status': 'error',
+                    'message': 'Invalid date format. Use YYYY-MM-DD.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        data = get_analytics_summary(start_date, end_date)
+        
+        return Response({
+            'status': 'success',
+            'data': data
+        })
+
     def _export_to_excel(self, orders, start_date, end_date):
         data = []
         for o in orders:
@@ -356,6 +391,8 @@ class ShiftViewSet(viewsets.ModelViewSet):
     
     queryset = Shift.objects.all()
     serializer_class = ShiftSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['cashier__cashier_profile__mitra', 'status', 'start_time']
     
     def get_queryset(self):
         user = self.request.user

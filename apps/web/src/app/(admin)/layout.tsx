@@ -20,7 +20,9 @@ import {
     CreditCard,
     Tags,
     Layers,
-    FileText
+    FileText,
+    PieChart,
+    Clock
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useInactivityLogout } from '@/hooks/useInactivityLogout';
@@ -35,6 +37,7 @@ interface AdminLayoutProps {
 
 const superadminNav = [
     { href: '/admin', label: 'Dasbor', icon: LayoutDashboard },
+    { href: '/admin/analytics', label: 'Analitik', icon: PieChart },
     { href: '/admin/users', label: 'Pengguna', icon: Users },
     { href: '/admin/subscriptions', label: 'Langganan', icon: CreditCard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
@@ -45,6 +48,8 @@ const superadminNav = [
 
 const mitraNav = [
     { href: '/admin', label: 'Dasbor', icon: LayoutDashboard },
+    { href: '/admin/analytics', label: 'Analitik', icon: PieChart },
+    { href: '/admin/shifts', label: 'Shift Outlet', icon: Clock },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
     { href: '/admin/modifiers', label: 'Varian', icon: Layers },
     { href: '/admin/inventory', label: 'Inventori', icon: Package },

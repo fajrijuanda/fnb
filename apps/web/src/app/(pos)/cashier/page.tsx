@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
 import { PaymentSettingsModal } from '@/components/pos/PaymentSettingsModal';
 import { CashierProfileModal } from '@/components/pos/CashierProfileModal';
+import { CloseShiftModal } from '@/components/pos/CloseShiftModal';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCartStore } from '@/store';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -25,6 +26,7 @@ export default function CashierPage() {
 
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
     const [showPaymentSettingsModal, setShowPaymentSettingsModal] = useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -193,6 +195,19 @@ export default function CashierPage() {
 
                                         <div className="my-1 border-t border-gray-100 dark:border-white/5" />
 
+                                        <div className="my-1 border-t border-gray-100 dark:border-white/5" />
+
+                                        <button
+                                            onClick={() => {
+                                                setShowCloseShiftModal(true);
+                                                setIsProfileDropdownOpen(false);
+                                            }}
+                                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                                        >
+                                            <LogOut className="h-4 w-4" />
+                                            Tutup Shift
+                                        </button>
+
                                         <button
                                             onClick={() => {
                                                 setShowLogoutConfirm(true);
@@ -269,6 +284,11 @@ export default function CashierPage() {
             <PaymentSettingsModal
                 isOpen={showPaymentSettingsModal}
                 onClose={() => setShowPaymentSettingsModal(false)}
+            />
+
+            <CloseShiftModal
+                isOpen={showCloseShiftModal}
+                onClose={() => setShowCloseShiftModal(false)}
             />
 
             <LogoutConfirmationModal

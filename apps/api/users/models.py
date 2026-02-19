@@ -33,8 +33,7 @@ class Mitra(models.Model):
     bank_account_holder = models.CharField(max_length=255, null=True, blank=True)
     ewallet_type = models.CharField(max_length=50, null=True, blank=True) # e.g. OVO, DANA, GOPAY
     ewallet_number = models.CharField(max_length=50, null=True, blank=True)
-    # Subscription info could be here or link to Subscription model.
-    # For now, let's keep is_subscribed logic derived or in Subscription model, but Mitra is the anchor.
+    google_sheet_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID of the Google Sheet for this Mitra's daily report")
     
     def __str__(self):
         return f'Mitra: {self.user.username}'

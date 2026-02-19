@@ -73,6 +73,56 @@ def get_sales_by_date_range(start_date, end_date):
     return list(daily_data)
 
 
+def get_analytics_summary(start_date, end_date):
+    """
+    Get aggregated data for analytics dashboard.
+    """
+    orders = Order.objects.filter(
+        created_at__date__gte=start_date,
+        created_at__date__lte=end_date,
+        status=Order.Status.PAID
+    )
+
+    # 1. Total Summary
+    total_revenue = orders.aggregate(total=Sum('total_amount'))['total'] or 0
+    total_orders = orders.count()
+    average_order_value = total_revenue / total_orders if total_orders > 0 else 0
+
+    # 2. Daily Sales Trend
+    daily_sales = list(orders.annotate(
+        date=TruncDate('created_at')
+    ).values('date').annotate(
+        total_sales=Sum('total_amount'),
+        total_orders=Count('id')
+    ).order_by('date'))
+
+    # 3. Payment Methods Distribution
+    payment_methods = list(orders.values('payment_method').annotate(
+        total=Sum('total_amount'),
+        count=Count('id')
+    ).order_by('-total'))
+
+    # 4. Top Selling Products
+    # We need to query OrderItem for this
+    top_products = list(OrderItem.objects.filter(
+        order__in=orders
+    ).values('product__name').annotate(
+        quantity=Sum('quantity'),
+        revenue=Sum('price_at_sale') # Approximate revenue from this product
+    ).order_by('-revenue')[:10])
+
+    return {
+        'summary': {
+            'total_revenue': total_revenue,
+            'total_orders': total_orders,
+            'average_order_value': average_order_value
+        },
+        'daily_sales': daily_sales,
+        'payment_methods': payment_methods,
+        'top_products': top_products
+    }
+
+
 def get_recent_orders(limit=10):
     """Get most recent orders."""
     return Order.objects.select_related().prefetch_related('items__product')[:limit]
