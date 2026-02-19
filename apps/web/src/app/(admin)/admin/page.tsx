@@ -114,7 +114,7 @@ export default function AdminDashboard() {
                     activeSubs,
                     monthlyRevenue
                 });
-                setRecentUsers(users.slice(0, 2));
+                setRecentUsers(users.slice(0, 10));
             } else {
                 // Fetch Sales/Products for Mitra
                 const [ordersRes, productsRes] = await Promise.all([
@@ -257,28 +257,30 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Recent Users List */}
-                    <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-100 dark:border-white/5 p-4 xl:p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
+                    <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-100 dark:border-white/5 p-4 xl:p-6 shadow-sm flex flex-col h-[250px] xl:h-[340px]">
+                        <div className="flex items-center justify-between mb-4 shrink-0">
                             <h3 className="font-bold text-gray-900 dark:text-white">Pengguna Terbaru</h3>
                             <a href="/admin/users" className="text-xs font-medium text-primary hover:underline">Lihat Semua</a>
                         </div>
-                        <div className="space-y-3">
-                            {recentUsers.slice(0, 2).map(u => (
-                                <div key={u.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5">
+                        <div className="space-y-3 overflow-y-auto flex-1 pr-1 custom-scrollbar">
+                            {recentUsers.map(u => (
+                                <div key={u.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 transition-colors hover:bg-gray-100 dark:hover:bg-white/10">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
                                             {u.username.substring(0, 2).toUpperCase()}
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-sm text-gray-900 dark:text-white">{u.username}</p>
-                                            <p className="text-xs text-gray-500">{u.role}</p>
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{u.username}</p>
+                                            <p className="text-xs text-gray-500 truncate">{u.role}</p>
                                         </div>
                                     </div>
-                                    <span className="text-[10px] text-gray-400">Baru saja</span>
+                                    <span className="text-[10px] text-gray-400 shrink-0">Baru saja</span>
                                 </div>
                             ))}
                             {recentUsers.length === 0 && (
-                                <p className="text-center text-gray-500 text-sm py-4">Belum ada pengguna.</p>
+                                <div className="h-full flex items-center justify-center">
+                                    <p className="text-center text-gray-500 text-sm">Belum ada pengguna.</p>
+                                </div>
                             )}
                         </div>
                     </div>

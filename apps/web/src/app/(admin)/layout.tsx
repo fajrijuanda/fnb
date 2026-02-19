@@ -42,7 +42,7 @@ const superadminNav = [
     { href: '/admin/subscriptions', label: 'Langganan', icon: CreditCard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
     { href: '/admin/categories', label: 'Kategori', icon: Tags },
-    { href: '/admin/modifiers', label: 'Topping / Modifier', icon: Layers },
+    { href: '/admin/modifiers', label: 'Topping', icon: Layers },
     { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 
