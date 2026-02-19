@@ -20,7 +20,7 @@ export const AdminSearchHeader = ({
     extraActions
 }: AdminSearchHeaderProps) => {
     return (
-        <div className="flex flex-col md:flex-row gap-3 justify-between mb-4">
+        <div className="flex flex-col md:flex-row flex-wrap gap-3 justify-between mb-4">
             <div className="relative flex-1 group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={16} />
                 <input

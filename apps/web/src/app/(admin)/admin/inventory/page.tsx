@@ -626,7 +626,7 @@ export default function InventoryPage() {
                 {activeTab === 'ingredients' && (
                     <>
                         {/* Stat Cards */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-4 mb-4">
+                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4 mb-4">
                             <StatCard title="Total Bahan" value={ingredients.length} icon={Package} color="bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-white" />
                             <StatCard title="Aman" value={safeCount} icon={CheckCircle2} color="bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-white" />
                             <StatCard title="Menipis" value={lowCount} icon={AlertTriangle} color="bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-white" />

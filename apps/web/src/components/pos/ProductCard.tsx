@@ -22,7 +22,7 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
         <button
             onClick={handleClick}
             disabled={!isAvailable}
-            className={`group relative flex w-full h-[115px] overflow-hidden rounded-2xl text-left transition-all duration-300 
+            className={`group relative flex w-full h-[120px] md:h-[130px] overflow-hidden rounded-2xl text-left transition-all duration-300 
                 bg-white/80 dark:bg-white/10
                 backdrop-blur-xl
                 border border-black/5 dark:border-white/10
@@ -34,11 +34,11 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
             {/* Content Section - Left (Flex-1) */}
             <div className="flex flex-1 flex-col justify-between p-3 pr-1 min-w-0">
                 <div>
-                    <h3 className="line-clamp-2 text-sm font-bold text-gray-900 dark:text-white leading-tight tracking-tight">
+                    <h3 className="line-clamp-2 text-sm md:text-base font-bold text-gray-900 dark:text-white leading-tight tracking-tight">
                         {product.name}
                     </h3>
                     {product.description && (
-                        <p className="mt-1 line-clamp-2 text-[10px] text-gray-600 dark:text-white/60 leading-relaxed">
+                        <p className="mt-1 line-clamp-2 text-[10px] md:text-xs text-gray-600 dark:text-white/60 leading-relaxed">
                             {product.description}
                         </p>
                     )}
@@ -52,7 +52,7 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
 
             {/* Image Section - Right (Square Centered) */}
             <div className="relative h-full w-[100px] flex items-center justify-center shrink-0">
-                <div className="h-[80px] w-[80px] overflow-hidden rounded-xl bg-gray-100 dark:bg-white/10 shadow-inner">
+                <div className="h-[80px] w-[80px] md:h-[90px] md:w-[90px] overflow-hidden rounded-xl bg-gray-100 dark:bg-white/10 shadow-inner">
                     {product.image_url ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img

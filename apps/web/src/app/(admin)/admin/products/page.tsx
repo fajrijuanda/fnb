@@ -489,7 +489,7 @@ export default function ProductsPage() {
             />
 
             {/* Stats Cards */}
-            <div className={`grid grid-cols-2 ${user?.role === 'mitra' ? 'md:grid-cols-4' : 'md:grid-cols-2 max-w-lg'} gap-2 lg:gap-4`}>
+            <div className={`grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4`}>
                 <StatCard
                     title="Total Produk"
                     value={(Array.isArray(products) ? products : []).length}

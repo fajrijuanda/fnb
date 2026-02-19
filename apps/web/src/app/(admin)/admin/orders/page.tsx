@@ -167,7 +167,7 @@ export default function OrdersPage() {
             />
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 lg:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
                 <StatCard
                     title="Total Pesanan"
                     value={orders.length}

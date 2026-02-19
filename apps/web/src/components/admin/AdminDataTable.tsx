@@ -29,8 +29,8 @@ export function AdminDataTable<T>({
 }: AdminDataTableProps<T>) {
     return (
         <>
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-hidden bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl shadow-sm">
+            {/* Desktop Table (Scrollable on Tablet) */}
+            <div className="hidden md:block overflow-x-auto bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-xl shadow-sm">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="border-b border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5">

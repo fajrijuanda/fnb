@@ -257,7 +257,7 @@ export default function CashierPage() {
                 </main>
 
                 {/* Right Panel: Cart */}
-                <aside className="hidden md:flex flex-col w-[260px] lg:w-[300px] xl:w-[340px] shrink-0 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl bg-white/90 dark:bg-gray-900/40 backdrop-blur-md border border-white/20 dark:border-white/5 h-full">
+                <aside className="hidden md:flex flex-col w-[300px] lg:w-[320px] xl:w-[360px] shrink-0 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl bg-white/90 dark:bg-gray-900/40 backdrop-blur-md border border-white/20 dark:border-white/5 h-full">
                     <CartSheet />
                 </aside>
             </div>

@@ -211,7 +211,7 @@ export default function AdminDashboard() {
                 {/* <AIInsightsCard /> */}
 
                 {/* Superadmin Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 xl:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 xl:gap-4">
                     <StatCard
                         title="Total Pengguna"
                         value={adminStats.totalUsers}
@@ -298,7 +298,7 @@ export default function AdminDashboard() {
             {/* <AIInsightsCard /> */}
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 xl:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 xl:gap-4">
                 <StatCard
                     title="Total Pendapatan"
                     value={formatCurrency(stats.totalRevenue)}
