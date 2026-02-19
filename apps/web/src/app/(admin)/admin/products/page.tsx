@@ -718,7 +718,7 @@ export default function ProductsPage() {
                                         </div>
                                         {/* Stock input hidden as requested */}
                                     </div>
-                                    {user?.role === 'mitra' && (
+                                    {user?.role === 'mitra' ? (
                                         <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                                             <div className="flex-1">
                                                 <span className="text-sm font-bold text-gray-700 dark:text-gray-300 block">Status Tersedia</span>
@@ -727,6 +727,22 @@ export default function ProductsPage() {
                                             <div className="px-2 py-1 bg-gray-200 dark:bg-white/10 rounded text-[10px] font-bold text-gray-500">
                                                 AUTO
                                             </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+                                            <div>
+                                                <span className="text-sm font-bold text-gray-700 dark:text-gray-300 block">Status Tersedia</span>
+                                                <span className="text-[10px] text-gray-500 block mt-0.5">Atur ketersediaan produk secara manual</span>
+                                            </div>
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only peer"
+                                                    checked={formData.is_available}
+                                                    onChange={e => setFormData({ ...formData, is_available: e.target.checked })}
+                                                />
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 dark:peer-focus:ring-primary/80 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                                            </label>
                                         </div>
                                     )}
                                 </div>
