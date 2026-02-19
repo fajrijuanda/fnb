@@ -63,7 +63,7 @@ def seed_products():
             'price': 10000,
             'track_inventory': False,
             'order': 1,
-            'image': 'products/dimsum-single.png', 
+            'image': 'products/dimsum-single.jpg', 
         },
         {
             'category': 'Dimsum',
@@ -72,7 +72,7 @@ def seed_products():
             'price': 20000,
             'track_inventory': False,
             'order': 2,
-            'image': 'products/dimsum-bareng.png',
+            'image': 'products/dimsum-bareng.jpg',
         },
         {
             'category': 'Dimsum',
@@ -81,7 +81,7 @@ def seed_products():
             'price': 30000,
             'track_inventory': False,
             'order': 3,
-            'image': 'products/dimsum-mentai.png',
+            'image': 'products/dimsum-mentai.jpg',
         },
         # GYOZA
         {
@@ -91,7 +91,7 @@ def seed_products():
             'price': 10000,
             'track_inventory': False,
             'order': 1,
-            'image': 'products/gyoza-kukus-single.png',
+            'image': 'products/gyoza-kukus-single.jpg',
         },
         {
             'category': 'Gyoza',
@@ -100,7 +100,7 @@ def seed_products():
             'price': 20000,
             'track_inventory': False,
             'order': 2,
-            'image': 'products/gyoza-kukus-bareng.png',
+            'image': 'products/gyoza-kukus-bareng.jpg',
         },
         {
             'category': 'Gyoza',
@@ -109,7 +109,7 @@ def seed_products():
             'price': 25000,
             'track_inventory': False,
             'order': 3,
-            'image': 'products/gyoza-mentai.png',
+            'image': 'products/gyoza-mentai.jpg',
         },
         {
             'category': 'Gyoza',
@@ -118,7 +118,7 @@ def seed_products():
             'price': 10000,
             'track_inventory': False,
             'order': 4,
-            'image': 'products/gyoza-goreng-single.png',
+            'image': 'products/gyoza-goreng-single.jpg',
         },
         {
             'category': 'Gyoza',
@@ -127,7 +127,7 @@ def seed_products():
             'price': 20000,
             'track_inventory': False,
             'order': 5,
-            'image': 'products/gyoza-goreng-bareng.png',
+            'image': 'products/gyoza-goreng-bareng.jpg',
         },
         # WONTON
         {
@@ -137,7 +137,7 @@ def seed_products():
             'price': 10000,
             'track_inventory': False,
             'order': 1,
-            'image': 'products/wonton-kuah.png',
+            'image': 'products/wonton-kuah.jpg',
         },
         {
             'category': 'Wonton',
@@ -146,7 +146,7 @@ def seed_products():
             'price': 10000,
             'track_inventory': False,
             'order': 2,
-            'image': 'products/wonton-goreng.png',
+            'image': 'products/wonton-goreng.jpg',
         }
     ]
 
