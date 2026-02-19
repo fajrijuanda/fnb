@@ -404,7 +404,7 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                                     value={status.note}
                                     onChange={(e) => setNote(index, e.target.value)}
                                     placeholder="Contoh: Jangan terlalu pedas, es sedikit..."
-                                    className="w-full rounded-xl bg-gray-50 dark:bg-white/5 p-3 text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary transition-all border border-gray-100 dark:border-white/10 resize-none h-20"
+                                    className="w-full rounded-xl bg-gray-50 dark:bg-white/5 p-3 text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary transition-all border border-gray-100 dark:border-white/10 resize-none h-14"
                                 />
                             </div>
 

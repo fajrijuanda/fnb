@@ -212,7 +212,7 @@ export function AddToCartModal({ isOpen, onClose, product, onConfirm }: AddToCar
                         onChange={(e) => setNote(e.target.value)}
                         placeholder="Contoh: Jangan terlalu pedas, es sedikit..."
                         className="mt-2 text-card-foreground w-full resize-none rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                        rows={3}
+                        rows={2}
                     />
                 </div>
 
