@@ -193,7 +193,7 @@ export default function CashierPage() {
                                         </div>
 
                                         <button
-                                            onClick={() => openSettings('account')}
+                                            onClick={() => openSettings('shift')}
                                             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                                         >
                                             <Settings className="h-4 w-4" />

@@ -94,9 +94,15 @@ class ProductListSerializer(serializers.ModelSerializer):
     stock_status = serializers.SerializerMethodField()
     image_url = serializers.SerializerMethodField()
     
+    variants = ProductVariantSerializer(many=True, read_only=True)
+    modifier_groups = ModifierGroupSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'price', 'image_url', 'category', 'stock_status']
+        fields = [
+            'id', 'name', 'description', 'price', 'image_url', 'category', 
+            'stock_status', 'variants', 'modifier_groups'
+        ]
     
     def get_stock_status(self, obj) -> dict:
         return obj.stock_status
