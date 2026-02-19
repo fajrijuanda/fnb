@@ -68,32 +68,8 @@ export default function CashierPage() {
         return <LoadingScreen />;
     }
 
-    // Subscription Gate
-    if (!user?.is_subscribed) {
-        return (
-            <div className="h-screen w-full bg-white dark:bg-[#050505] flex items-center justify-center relative overflow-hidden font-sans transition-colors duration-500">
-                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-primary/10 dark:bg-primary/30 rounded-full blur-[120px] animate-pulse pointer-events-none z-0" />
-                <div className="flex flex-col items-center justify-center relative z-10 px-6">
-                    <div className="relative mb-6">
-                        <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl animate-pulse" />
-                        <div className="relative h-20 w-20 rounded-2xl bg-gradient-to-br from-primary to-red-700 flex items-center justify-center shadow-2xl shadow-primary/30">
-                            <ShoppingCart className="h-10 w-10 text-white" />
-                        </div>
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Langganan Diperlukan</h2>
-                    <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
-                        Akun Anda belum memiliki langganan aktif. Hubungi mitra atau admin Anda untuk mengaktifkan akses ke sistem kasir.
-                    </p>
-                    <button
-                        onClick={() => { logout(); router.replace('/login'); }}
-                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-red-600 text-white font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
-                    >
-                        Kembali ke Login
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    // Subscription Gate REMOVED as per user request
+    // if (!user?.is_subscribed) { ... }
 
     const handleLogout = () => {
         logout();
