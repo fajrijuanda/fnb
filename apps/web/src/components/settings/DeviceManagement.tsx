@@ -13,6 +13,34 @@ interface TrustedDevice {
     created_at: string;
 }
 
+function formatDeviceName(userAgent: string) {
+    if (!userAgent) return 'Unknown Device';
+
+    // Check if it looks like a user agent string
+    const isUserAgent = userAgent.includes('Mozilla') || userAgent.includes('AppleWebKit');
+    if (!isUserAgent && userAgent.length < 30) return userAgent;
+
+    let os = '';
+    if (userAgent.includes('Windows')) os = 'Windows';
+    else if (userAgent.includes('Macintosh')) os = 'macOS';
+    else if (userAgent.includes('Linux') && !userAgent.includes('Android')) os = 'Linux';
+    else if (userAgent.includes('Android')) os = 'Android';
+    else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) os = 'iOS';
+
+    let browser = '';
+    if (userAgent.includes('Edg/')) browser = 'Edge';
+    else if (userAgent.includes('OPR') || userAgent.includes('Opera')) browser = 'Opera';
+    else if (userAgent.includes('Chrome') && !userAgent.includes('Edg/') && !userAgent.includes('OPR') && !userAgent.includes('Opera')) browser = 'Chrome';
+    else if (userAgent.includes('Firefox')) browser = 'Firefox';
+    else if (userAgent.includes('Safari') && !userAgent.includes('Chrome') && !userAgent.includes('Edg/') && !userAgent.includes('OPR') && !userAgent.includes('Opera')) browser = 'Safari';
+
+    if (os && browser) return `${browser} on ${os}`;
+    if (os) return `${os} Device`;
+    if (browser) return `${browser} Browser`;
+
+    return userAgent;
+}
+
 export function DeviceManagement() {
     const [devices, setDevices] = useState<TrustedDevice[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -74,7 +102,7 @@ export function DeviceManagement() {
                                 </div>
                                 <div>
                                     <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                                        {device.device_name}
+                                        {formatDeviceName(device.device_name)}
                                         {currentDeviceId && device.device_name.includes('') /* We don't store Device ID in TrustedDevice model publicly exposed usually, but we can infer if we matched it? Currently ID is UUID. */}
                                         {/* Actually checking ID match is hard without exposing device_id in serializer. But we did expose 'id' which is TrustedDevice ID, not Device UUID. 
                                             Wait, Serializer exposes 'id' (TrustedDevice PK), 'device_name', 'ip_address'. 

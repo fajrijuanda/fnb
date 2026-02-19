@@ -2,14 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown, CreditCard, Printer } from 'lucide-react';
+import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown, CreditCard } from 'lucide-react';
 import { ProductGrid } from '@/components/pos/ProductGrid';
 import { CartSheet } from '@/components/pos/CartSheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
 import { PaymentSettingsModal } from '@/components/pos/PaymentSettingsModal';
-import { CashierProfileModal } from '@/components/pos/CashierProfileModal';
-import { PrinterSettingsModal } from '@/components/pos/PrinterSettingsModal';
+import { SettingsModal } from '@/components/pos/SettingsModal';
 import { CloseShiftModal } from '@/components/pos/CloseShiftModal';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCartStore } from '@/store';
@@ -27,10 +26,13 @@ export default function CashierPage() {
     const [searchQuery, setSearchQuery] = useState('');
 
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-    const [showProfileModal, setShowProfileModal] = useState(false);
+
+    // Settings Modal State
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [settingsInitialTab, setSettingsInitialTab] = useState<'shift' | 'device' | 'printer' | 'account'>('shift');
+
     const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
     const [showPaymentSettingsModal, setShowPaymentSettingsModal] = useState(false);
-    const [showPrinterSettingsModal, setShowPrinterSettingsModal] = useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const { autoConnect } = usePrinter();
@@ -94,6 +96,12 @@ export default function CashierPage() {
     const handleLogout = () => {
         logout();
         router.replace('/login');
+    };
+
+    const openSettings = (tab: 'shift' | 'device' | 'printer' | 'account') => {
+        setSettingsInitialTab(tab);
+        setShowSettingsModal(true);
+        setIsProfileDropdownOpen(false);
     };
 
     return (
@@ -176,27 +184,11 @@ export default function CashierPage() {
                                         </div>
 
                                         <button
-                                            onClick={() => {
-                                                setShowProfileModal(true);
-                                                setIsProfileDropdownOpen(false);
-                                            }}
+                                            onClick={() => openSettings('account')}
                                             className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                                         >
                                             <Settings className="h-4 w-4" />
-                                            Pengaturan Akun
-                                        </button>
-
-                                        <div className="my-1 border-t border-gray-100 dark:border-white/5" />
-
-                                        <button
-                                            onClick={() => {
-                                                setShowPrinterSettingsModal(true);
-                                                setIsProfileDropdownOpen(false);
-                                            }}
-                                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                                        >
-                                            <Printer className="h-4 w-4" />
-                                            Pengaturan Printer
+                                            Pengaturan
                                         </button>
 
                                         <div className="my-1 border-t border-gray-100 dark:border-white/5" />
@@ -216,10 +208,6 @@ export default function CashierPage() {
                                         )}
 
                                         <div className="my-1 border-t border-gray-100 dark:border-white/5" />
-
-                                        <div className="my-1 border-t border-gray-100 dark:border-white/5" />
-
-
 
                                         <button
                                             onClick={() => {
@@ -289,19 +277,15 @@ export default function CashierPage() {
                 </div>
             </div>
 
-            <CashierProfileModal
-                isOpen={showProfileModal}
-                onClose={() => setShowProfileModal(false)}
+            <SettingsModal
+                isOpen={showSettingsModal}
+                onClose={() => setShowSettingsModal(false)}
+                initialTab={settingsInitialTab}
             />
 
             <PaymentSettingsModal
                 isOpen={showPaymentSettingsModal}
                 onClose={() => setShowPaymentSettingsModal(false)}
-            />
-
-            <PrinterSettingsModal
-                isOpen={showPrinterSettingsModal}
-                onClose={() => setShowPrinterSettingsModal(false)}
             />
 
             <CloseShiftModal
