@@ -205,7 +205,7 @@ export function ProductGrid({ searchQuery = '' }: ProductGridProps) {
 
             {/* Render by Sections - Scrollable Area */}
             <div className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth" id="product-scroll-container">
-                <div className="p-4 space-y-8 pb-32">
+                <div className="p-4 space-y-8 pb-8">
                     {Object.entries(filteredGroupedProducts).map(([categorySlug, categoryProducts]) => {
                         if (categoryProducts.length === 0) return null;
 

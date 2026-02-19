@@ -29,6 +29,7 @@ import { AdminNavbar } from '@/components/admin/AdminNavbar';
 // import { AIChatWidget } from '@/components/admin/ai/AIChatWidget';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { GoogleTranslate } from '@/components/GoogleTranslate';
+import { NotificationProvider } from '@/context/NotificationContext';
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -103,15 +104,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
 
     return (
-        <div className="flex min-h-screen bg-white dark:bg-[#050505] transition-colors duration-500 relative overflow-hidden font-sans">
-            {/* Ambient Background Glows */}
-            <div className="absolute top-[-20%] left-[-10%] w-[400px] lg:w-[600px] h-[400px] lg:h-[600px] bg-red-700/10 rounded-full blur-[120px] animate-pulse pointer-events-none z-0" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[300px] lg:w-[500px] h-[300px] lg:h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none z-0" />
+        <NotificationProvider>
+            <div className="flex min-h-screen bg-white dark:bg-[#050505] transition-colors duration-500 relative overflow-hidden font-sans">
+                {/* Ambient Background Glows */}
+                <div className="absolute top-[-20%] left-[-10%] w-[400px] lg:w-[600px] h-[400px] lg:h-[600px] bg-red-700/10 rounded-full blur-[120px] animate-pulse pointer-events-none z-0" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[300px] lg:w-[500px] h-[300px] lg:h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none z-0" />
 
 
 
-            {/* Sidebar - Floating Dynamic Island */}
-            <aside className={`
+                {/* Sidebar - Floating Dynamic Island */}
+                <aside className={`
                 ${collapsed ? 'lg:w-[72px]' : 'lg:w-52 xl:w-60'} 
                 hidden lg:flex
                 fixed top-2 bottom-2 left-2 lg:top-4 lg:bottom-4 lg:left-4
@@ -121,83 +123,83 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 backdrop-blur-xl border border-white/10
                 rounded-2xl lg:rounded-3xl shadow-2xl
             `}>
-                <div className="h-16 lg:h-20 flex items-center justify-between px-4 shrink-0">
-                    {!collapsed && (
-                        <div className="flex items-center gap-3 pl-2">
-                            <div className="relative h-10 w-10 lg:h-12 lg:w-12">
-                                <Image
-                                    src="/logo.png"
-                                    alt="OMDEN Logo"
-                                    fill
-                                    className="object-contain"
-                                    priority
-                                />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="font-bold text-base lg:text-lg text-white leading-none tracking-tightCaps">OMDEN</span>
-                                <span className="text-[9px] lg:text-[10px] text-white/70 font-medium tracking-widest mt-0.5">{roleLabel}</span>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Collapse button */}
-                    <button
-                        onClick={() => setCollapsed(!collapsed)}
-                        className={`p-2 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-colors ${collapsed ? 'mx-auto' : ''}`}
-                    >
-                        {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                    </button>
-                </div>
-
-                {/* Nav Items */}
-                <nav className="flex-1 px-3 space-y-1.5 lg:space-y-2 overflow-y-auto scrollbar-hide py-2">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
-                        const showText = !collapsed;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={`flex items-center gap-3 transition-all duration-300 group relative ${!showText
-                                    ? 'justify-center p-3 w-12 h-12 rounded-xl mx-auto'
-                                    : 'px-3 py-2.5 lg:py-3 w-full rounded-xl lg:rounded-2xl'
-                                    } ${isActive
-                                        ? 'bg-white/20 text-yellow-300 shadow-lg shadow-black/20'
-                                        : 'text-white/70 hover:bg-white/10 hover:text-white'
-                                    }`}
-                            >
-                                <div className={`relative ${isActive ? '' : 'group-hover:scale-110 transition-transform'}`}>
-                                    <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} className="lg:w-[22px] lg:h-[22px]" />
-                                    {isActive && <div className="absolute inset-0 bg-yellow-400/20 blur-sm rounded-full" />}
+                    <div className="h-16 lg:h-20 flex items-center justify-between px-4 shrink-0">
+                        {!collapsed && (
+                            <div className="flex items-center gap-3 pl-2">
+                                <div className="relative h-10 w-10 lg:h-12 lg:w-12">
+                                    <Image
+                                        src="/logo.png"
+                                        alt="OMDEN Logo"
+                                        fill
+                                        className="object-contain"
+                                        priority
+                                    />
                                 </div>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-base lg:text-lg text-white leading-none tracking-tightCaps">OMDEN</span>
+                                    <span className="text-[9px] lg:text-[10px] text-white/70 font-medium tracking-widest mt-0.5">{roleLabel}</span>
+                                </div>
+                            </div>
+                        )}
 
-                                {showText && <span className="font-medium lg:font-semibold text-sm tracking-wide">{item.label}</span>}
-
-                                {isActive && showText && (
-                                    <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
-                                )}
-                            </Link>
-                        );
-                    })}
-                </nav>
-
-                <div className="p-3 lg:p-4 mt-auto">
-                    <div className={`p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/10 border border-white/10 text-center transition-all ${collapsed ? 'opacity-0 scale-90 hidden' : 'opacity-100 block'}`}>
-                        <div className="w-7 lg:w-8 h-7 lg:h-8 rounded-full bg-white/20 text-white flex items-center justify-center mx-auto mb-2">
-                            <span className="text-[10px] lg:text-xs font-bold">V1</span>
-                        </div>
-                        <p className="text-[11px] lg:text-xs font-bold text-white">
-                            OMDEN Pro
-                        </p>
-                        <p className="text-[9px] lg:text-[10px] text-white/50 mt-0.5">
-                            © 2026 Build v1.0.0
-                        </p>
+                        {/* Collapse button */}
+                        <button
+                            onClick={() => setCollapsed(!collapsed)}
+                            className={`p-2 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-colors ${collapsed ? 'mx-auto' : ''}`}
+                        >
+                            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                        </button>
                     </div>
-                </div>
-            </aside>
 
-            <div
-                className={`transition-[left] duration-300 ease-in-out will-change-[left] transform-gpu
+                    {/* Nav Items */}
+                    <nav className="flex-1 px-3 space-y-1.5 lg:space-y-2 overflow-y-auto scrollbar-hide py-2">
+                        {navItems.map((item) => {
+                            const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+                            const showText = !collapsed;
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={`flex items-center gap-3 transition-all duration-300 group relative ${!showText
+                                        ? 'justify-center p-3 w-12 h-12 rounded-xl mx-auto'
+                                        : 'px-3 py-2.5 lg:py-3 w-full rounded-xl lg:rounded-2xl'
+                                        } ${isActive
+                                            ? 'bg-white/20 text-yellow-300 shadow-lg shadow-black/20'
+                                            : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                        }`}
+                                >
+                                    <div className={`relative ${isActive ? '' : 'group-hover:scale-110 transition-transform'}`}>
+                                        <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} className="lg:w-[22px] lg:h-[22px]" />
+                                        {isActive && <div className="absolute inset-0 bg-yellow-400/20 blur-sm rounded-full" />}
+                                    </div>
+
+                                    {showText && <span className="font-medium lg:font-semibold text-sm tracking-wide">{item.label}</span>}
+
+                                    {isActive && showText && (
+                                        <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                                    )}
+                                </Link>
+                            );
+                        })}
+                    </nav>
+
+                    <div className="p-3 lg:p-4 mt-auto">
+                        <div className={`p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/10 border border-white/10 text-center transition-all ${collapsed ? 'opacity-0 scale-90 hidden' : 'opacity-100 block'}`}>
+                            <div className="w-7 lg:w-8 h-7 lg:h-8 rounded-full bg-white/20 text-white flex items-center justify-center mx-auto mb-2">
+                                <span className="text-[10px] lg:text-xs font-bold">V1</span>
+                            </div>
+                            <p className="text-[11px] lg:text-xs font-bold text-white">
+                                OMDEN Pro
+                            </p>
+                            <p className="text-[9px] lg:text-[10px] text-white/50 mt-0.5">
+                                © 2026 Build v1.0.0
+                            </p>
+                        </div>
+                    </div>
+                </aside>
+
+                <div
+                    className={`transition-[left] duration-300 ease-in-out will-change-[left] transform-gpu
                     fixed top-2 bottom-[80px] right-2 left-2
                     lg:top-4 lg:bottom-4 lg:right-4
                     ${collapsed ? 'lg:left-[100px]' : 'lg:left-[236px] xl:left-[268px]'}
@@ -205,47 +207,48 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     bg-white/90 dark:bg-[#121212]/90 backdrop-blur-md 
                     border border-white/20 dark:border-white/5 flex flex-col z-10
                 `}
-            >
-                <div className="absolute inset-0 overflow-auto flex flex-col">
-                    <AdminNavbar />
-                    <main className="flex-1 p-4 lg:p-6">
-                        {/* Feature Locks */}
-                        {user?.role === 'mitra' && pathname.startsWith('/admin/inventory') ? (
-                            <PremiumLocked
-                                featureName="Segera Hadir"
-                                description="Fitur Manajemen Inventori sedang dalam tahap pengembangan akhir. Nantikan kehadirannya di pembaruan sistem selanjutnya!"
-                            />
-                        ) : (
-                            children
-                        )}
-                    </main>
-                </div>
+                >
+                    <div className="absolute inset-0 overflow-auto flex flex-col">
+                        <AdminNavbar />
+                        <main className="flex-1 p-4 lg:p-6">
+                            {/* Feature Locks */}
+                            {user?.role === 'mitra' && pathname.startsWith('/admin/inventory') ? (
+                                <PremiumLocked
+                                    featureName="Segera Hadir"
+                                    description="Fitur Manajemen Inventori sedang dalam tahap pengembangan akhir. Nantikan kehadirannya di pembaruan sistem selanjutnya!"
+                                />
+                            ) : (
+                                children
+                            )}
+                        </main>
+                    </div>
 
-            </div>
-            {/* <AIChatWidget /> */}
-            {/* Mobile Bottom Taskbar */}
-            <nav className="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-white/10 lg:hidden pb-safe">
-                <div className="flex items-center overflow-x-auto px-2 py-2 gap-1 no-scrollbar">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={`flex flex-col items-center justify-center min-w-[72px] p-2 rounded-xl transition-all flex-shrink-0 ${isActive
-                                    ? 'text-red-600 bg-red-50 dark:bg-white/5 dark:text-red-400'
-                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
-                                    }`}
-                            >
-                                <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                                <span className="text-[10px] font-medium mt-1 truncate max-w-[64px]">{item.label}</span>
-                            </Link>
-                        );
-                    })}
                 </div>
-            </nav>
+                {/* <AIChatWidget /> */}
+                {/* Mobile Bottom Taskbar */}
+                <nav className="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-white/10 lg:hidden pb-safe">
+                    <div className="flex items-center overflow-x-auto px-2 py-2 gap-1 no-scrollbar">
+                        {navItems.map((item) => {
+                            const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={`flex flex-col items-center justify-center min-w-[72px] p-2 rounded-xl transition-all flex-shrink-0 ${isActive
+                                        ? 'text-red-600 bg-red-50 dark:bg-white/5 dark:text-red-400'
+                                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
+                                        }`}
+                                >
+                                    <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                                    <span className="text-[10px] font-medium mt-1 truncate max-w-[64px]">{item.label}</span>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </nav>
 
-            <GoogleTranslate />
-        </div >
+                <GoogleTranslate />
+            </div >
+        </NotificationProvider>
     );
 }

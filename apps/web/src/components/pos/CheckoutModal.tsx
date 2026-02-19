@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Loader2, Banknote, QrCode, CreditCard, CheckCircle, Printer } from 'lucide-react';
 import { useCartStore } from '@/store';
+import { useNotification } from '@/context/NotificationContext';
 import { formatRupiah, cn } from '@/lib/utils';
 import api from '@/lib/api';
 import type { CreateOrderRequest, OrderResponse, WrappedResponse, StoreSettings } from '@/types/api';
@@ -19,6 +20,7 @@ interface CheckoutModalProps {
 
 export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps) {
     const { items, getTotalPrice, clearCart } = useCartStore();
+    const { addNotification } = useNotification();
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
     const [customerName, setCustomerName] = useState('');
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
@@ -122,12 +124,24 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
             if (response.data.status === 'success') {
                 clearCart();
-                onSuccess(response.data.data as OrderResponse);
+                const orderData = response.data.data as OrderResponse;
+                onSuccess(orderData);
+                addNotification({
+                    type: 'success',
+                    title: 'Pembayaran Berhasil',
+                    message: `Transaksi #${orderData.invoice_number} berhasil diproses via ${orderData.payment_method_display || orderData.payment_method}`,
+                    data: orderData
+                });
             }
         } catch (err: unknown) {
             console.error('Checkout failed:', err);
             const errorMessage = err instanceof Error ? err.message : 'Gagal memproses pembayaran. Silakan coba lagi.';
             setError(errorMessage);
+            addNotification({
+                type: 'error',
+                title: 'Pembayaran Gagal',
+                message: errorMessage
+            });
         } finally {
             setIsLoading(false);
         }
