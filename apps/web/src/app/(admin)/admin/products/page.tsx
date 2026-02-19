@@ -7,7 +7,7 @@ import { Pencil, Trash2, Loader2, ImageOff, X, ImagePlus, ShoppingBag, Tag, Chec
 import * as LucideIcons from 'lucide-react';
 import api from '@/lib/api';
 import type { Product, Category, ApiResponse } from '@/types/api';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getImageUrl } from '@/lib/utils';
 import { useToast } from '@/components/ToastContext';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -432,7 +432,7 @@ export default function ProductsPage() {
                     {product.image_url ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
-                            src={product.image_url}
+                            src={getImageUrl(product.image_url)}
                             alt={product.name}
                             className="w-full h-full object-cover"
                         />
@@ -591,7 +591,7 @@ export default function ProductsPage() {
                                 {product.image_url ? (
                                     /* eslint-disable-next-line @next/next/no-img-element */
                                     <img
-                                        src={product.image_url}
+                                        src={getImageUrl(product.image_url)}
                                         alt={product.name}
                                         className="w-full h-full object-cover"
                                     />
@@ -739,7 +739,7 @@ export default function ProductsPage() {
                                             {formData.image_url ? (
                                                 <>
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                                                    <img src={getImageUrl(formData.image_url)} alt="Preview" className="w-full h-full object-cover" />
                                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Pencil className="text-white" size={24} />
                                                     </div>

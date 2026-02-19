@@ -44,3 +44,26 @@ export function generateInvoiceNumber(): string {
   const random = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
   return `INV/${year}/${month}/${day}/${random}`;
 }
+
+/**
+ * Get full image URL from relative path
+ */
+export function getImageUrl(path: string | null | undefined): string {
+  if (!path) return "";
+  if (
+    path.startsWith("http") ||
+    path.startsWith("blob:") ||
+    path.startsWith("data:")
+  )
+    return path;
+
+  // Get API URL and strip /api/v1 to get root
+  const apiUrl =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, "");
+
+  // Ensure path starts with /
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  return `${baseUrl}${cleanPath}`;
+}

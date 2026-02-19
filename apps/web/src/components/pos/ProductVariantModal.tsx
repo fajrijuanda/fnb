@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Minus, Plus, Check, ImageOff, MessageSquare } from 'lucide-react';
-import { formatRupiah, cn } from '@/lib/utils';
+import { formatRupiah, cn, getImageUrl } from '@/lib/utils';
 import type { Product, ProductVariant, ModifierOption } from '@/types/api';
 
 interface ProductVariantModalProps {
@@ -220,7 +220,7 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                         {product.image_url ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img
-                                src={product.image_url}
+                                src={getImageUrl(product.image_url)}
                                 alt={product.name}
                                 className="w-full h-full object-cover"
                             />

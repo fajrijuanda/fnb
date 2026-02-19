@@ -1,7 +1,7 @@
 'use client';
 
 import { Plus, ImageOff } from 'lucide-react';
-import { formatRupiah } from '@/lib/utils';
+import { formatRupiah, getImageUrl } from '@/lib/utils';
 import type { Product } from '@/types/api';
 
 interface ProductCardProps {
@@ -56,7 +56,7 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
                     {product.image_url ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
-                            src={product.image_url}
+                            src={getImageUrl(product.image_url)}
                             alt={product.name}
                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />

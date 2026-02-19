@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Minus, Plus, ShoppingCart, MessageSquare, X } from 'lucide-react';
 import { Product } from '@/types/api';
-import { formatRupiah, cn } from '@/lib/utils';
+import { formatRupiah, cn, getImageUrl } from '@/lib/utils';
 import { TOPPING_OPTIONS, PRODUCT_VARIANT_MAP, MAX_TOPPINGS } from '@/lib/constants';
 
 interface AddToCartModalProps {
@@ -107,7 +107,7 @@ export function AddToCartModal({ isOpen, onClose, product, onConfirm }: AddToCar
                         {product.image_url ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                                src={product.image_url}
+                                src={getImageUrl(product.image_url)}
                                 alt={product.name}
                                 className="h-full w-full object-cover"
                             />
