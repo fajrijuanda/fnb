@@ -301,7 +301,9 @@ export default function ProductsPage() {
             data.append('stock', formData.stock);
             data.append('description', formData.description);
             // Handle availability as "true" or "false" string for FormData
-            data.append('is_available', formData.is_available ? 'true' : 'false');
+            // FIX: For Mitra, force is_available to true since the toggle is hidden
+            const isAvailablePayload = user?.role === 'mitra' ? true : formData.is_available;
+            data.append('is_available', isAvailablePayload ? 'true' : 'false');
 
             // Handle category
             const catVal = isNaN(Number(formData.category)) ? formData.category : String(formData.category);
