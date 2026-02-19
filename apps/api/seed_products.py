@@ -52,6 +52,8 @@ def seed_products():
         print(f"Category '{cat_data['name']}' ready.")
 
     # 2. Define Products
+    # TIP: For Cloudinary, you can use the path/public_id of the image if it's already uploaded.
+    # Example: 'image': 'products/dimsum_single.jpg'
     products_data = [
         # DIMSUM
         {
@@ -60,7 +62,8 @@ def seed_products():
             'description': '3 Pcs. Dimsum Mix Rasa',
             'price': 10000,
             'track_inventory': False,
-            'order': 1
+            'order': 1,
+            'image': 'products/dimsum-single.png', 
         },
         {
             'category': 'Dimsum',
@@ -68,7 +71,8 @@ def seed_products():
             'description': '7 Pcs. Dimsum Mix Rasa (Best Seller)',
             'price': 20000,
             'track_inventory': False,
-            'order': 2
+            'order': 2,
+            'image': 'products/dimsum-bareng.png',
         },
         {
             'category': 'Dimsum',
@@ -76,7 +80,8 @@ def seed_products():
             'description': '6 Pcs. Dimsum Mix Rasa + Saus Mentai Special',
             'price': 30000,
             'track_inventory': False,
-            'order': 3
+            'order': 3,
+            'image': 'products/dimsum-mentai.png',
         },
         # GYOZA
         {
@@ -85,7 +90,8 @@ def seed_products():
             'description': '4 Pcs. Gyoza Kukus',
             'price': 10000,
             'track_inventory': False,
-            'order': 1
+            'order': 1,
+            'image': 'products/gyoza-kukus-single.png',
         },
         {
             'category': 'Gyoza',
@@ -93,7 +99,8 @@ def seed_products():
             'description': '10 Pcs. Gyoza Kukus',
             'price': 20000,
             'track_inventory': False,
-            'order': 2
+            'order': 2,
+            'image': 'products/gyoza-kukus-bareng.png',
         },
         {
             'category': 'Gyoza',
@@ -101,7 +108,8 @@ def seed_products():
             'description': '7 Pcs. Gyoza Kukus + Saus Mentai Special',
             'price': 25000,
             'track_inventory': False,
-            'order': 3
+            'order': 3,
+            'image': 'products/gyoza-mentai.png',
         },
         {
             'category': 'Gyoza',
@@ -109,7 +117,8 @@ def seed_products():
             'description': '4 Pcs. Gyoza Goreng',
             'price': 10000,
             'track_inventory': False,
-            'order': 4
+            'order': 4,
+            'image': 'products/gyoza-goreng-single.png',
         },
         {
             'category': 'Gyoza',
@@ -117,7 +126,8 @@ def seed_products():
             'description': '10 Pcs. Gyoza Goreng',
             'price': 20000,
             'track_inventory': False,
-            'order': 5
+            'order': 5,
+            'image': 'products/gyoza-goreng-bareng.png',
         },
         # WONTON
         {
@@ -126,7 +136,8 @@ def seed_products():
             'description': '8 Pcs. Wonton Kuah',
             'price': 10000,
             'track_inventory': False,
-            'order': 1
+            'order': 1,
+            'image': 'products/wonton-kuah.png',
         },
         {
             'category': 'Wonton',
@@ -134,27 +145,41 @@ def seed_products():
             'description': '8 Pcs. Wonton Goreng',
             'price': 10000,
             'track_inventory': False,
-            'order': 2
-        },
+            'order': 2,
+            'image': 'products/wonton-goreng.png',
+        }
     ]
 
     for prod_data in products_data:
         category = categories[prod_data['category']]
+        # Prepare defaults
+        defaults = {
+            'description': prod_data['description'],
+            'price': prod_data['price'],
+            'track_inventory': prod_data['track_inventory'],
+            'is_available': True,
+            'order': prod_data['order']
+        }
+        
+        # Only set image in defaults if it is provided
+        if prod_data.get('image'):
+            defaults['image'] = prod_data['image']
+
         product, created = Product.objects.get_or_create(
             name=prod_data['name'],
             category=category,
-            defaults={
-                'description': prod_data['description'],
-                'price': prod_data['price'],
-                'track_inventory': prod_data['track_inventory'],
-                'is_available': True,
-                'order': prod_data['order']
-            }
+            defaults=defaults
         )
+        
         if not created:
             product.description = prod_data['description']
             product.price = prod_data['price']
             product.order = prod_data['order']
+            
+            # Update image if provided in seed data
+            if prod_data.get('image'):
+                product.image = prod_data['image']
+                
             product.save()
             print(f"Updated product: {product.name}")
         else:
