@@ -16,7 +16,6 @@ import {
     ShoppingBag,
     Users,
     Receipt,
-    X,
     CreditCard,
     Tags,
     Layers,
@@ -67,7 +66,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const { user, isAuthenticated, _hasHydrated } = useAuthStore();
     useInactivityLogout(); // Enable inactivity logout
     const [collapsed, setCollapsed] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const navItems = user?.role === 'superadmin' ? superadminNav : mitraNav;
     const roleLabel = user?.role === 'superadmin' ? 'SUPER ADMIN' : 'MITRA';
@@ -92,16 +90,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     // So we can remove the strict redirect logic or just keep it for non-admin pages if any.
     // For now, let's remove strict redirect to allow browsing allowed pages.
 
-    // Close mobile menu on resize to desktop
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth >= 1024) {
-                setMobileMenuOpen(false);
-            }
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+
 
     // Show loading screen while auth store is hydrating
     if (!_hasHydrated) {
@@ -119,28 +108,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div className="absolute top-[-20%] left-[-10%] w-[400px] lg:w-[600px] h-[400px] lg:h-[600px] bg-red-700/10 rounded-full blur-[120px] animate-pulse pointer-events-none z-0" />
             <div className="absolute bottom-[-20%] right-[-10%] w-[300px] lg:w-[500px] h-[300px] lg:h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none z-0" />
 
-            {/* Mobile Menu Overlay */}
-            {mobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
-                    onClick={() => setMobileMenuOpen(false)}
-                />
-            )}
+
 
             {/* Sidebar - Floating Dynamic Island */}
             <aside className={`
                 ${collapsed ? 'lg:w-[72px]' : 'lg:w-52 xl:w-60'} 
-                ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                hidden lg:flex
                 fixed top-2 bottom-2 left-2 lg:top-4 lg:bottom-4 lg:left-4
                 w-[280px]
-                z-50 flex flex-col transition-[width,transform] duration-300 ease-in-out transform-gpu
+                z-50 flex-col transition-[width,transform] duration-300 ease-in-out transform-gpu
                 bg-gradient-to-b from-[#dc2626] via-[#7f1d1d] to-[#2b0808]
                 backdrop-blur-xl border border-white/10
                 rounded-2xl lg:rounded-3xl shadow-2xl
             `}>
-                {/* Logo */}
                 <div className="h-16 lg:h-20 flex items-center justify-between px-4 shrink-0">
-                    {(!collapsed || mobileMenuOpen) && (
+                    {!collapsed && (
                         <div className="flex items-center gap-3 pl-2">
                             <div className="relative h-10 w-10 lg:h-12 lg:w-12">
                                 <Image
@@ -158,12 +140,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         </div>
                     )}
 
-                    {/* Close button for mobile */}
+                    {/* Collapse button */}
                     <button
-                        onClick={() => mobileMenuOpen ? setMobileMenuOpen(false) : setCollapsed(!collapsed)}
-                        className={`p-2 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-colors ${collapsed && !mobileMenuOpen ? 'mx-auto' : ''}`}
+                        onClick={() => setCollapsed(!collapsed)}
+                        className={`p-2 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-colors ${collapsed ? 'mx-auto' : ''}`}
                     >
-                        {mobileMenuOpen ? <X size={20} /> : (collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />)}
+                        {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
                     </button>
                 </div>
 
@@ -171,12 +153,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <nav className="flex-1 px-3 space-y-1.5 lg:space-y-2 overflow-y-auto scrollbar-hide py-2">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
-                        const showText = !collapsed || mobileMenuOpen;
+                        const showText = !collapsed;
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                onClick={() => setMobileMenuOpen(false)}
                                 className={`flex items-center gap-3 transition-all duration-300 group relative ${!showText
                                     ? 'justify-center p-3 w-12 h-12 rounded-xl mx-auto'
                                     : 'px-3 py-2.5 lg:py-3 w-full rounded-xl lg:rounded-2xl'
@@ -201,7 +182,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </nav>
 
                 <div className="p-3 lg:p-4 mt-auto">
-                    <div className={`p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/10 border border-white/10 text-center transition-all ${(collapsed && !mobileMenuOpen) ? 'opacity-0 scale-90 hidden' : 'opacity-100 block'}`}>
+                    <div className={`p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white/10 border border-white/10 text-center transition-all ${collapsed ? 'opacity-0 scale-90 hidden' : 'opacity-100 block'}`}>
                         <div className="w-7 lg:w-8 h-7 lg:h-8 rounded-full bg-white/20 text-white flex items-center justify-center mx-auto mb-2">
                             <span className="text-[10px] lg:text-xs font-bold">V1</span>
                         </div>
@@ -215,10 +196,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 </div>
             </aside>
 
-            {/* Main Content - Floating Card */}
             <div
                 className={`transition-[left] duration-300 ease-in-out will-change-[left] transform-gpu
-                    fixed top-2 bottom-2 right-2 left-2
+                    fixed top-2 bottom-[80px] right-2 left-2
                     lg:top-4 lg:bottom-4 lg:right-4
                     ${collapsed ? 'lg:left-[100px]' : 'lg:left-[236px] xl:left-[268px]'}
                     rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl 
@@ -227,16 +207,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 `}
             >
                 <div className="absolute inset-0 overflow-auto flex flex-col">
-                    <AdminNavbar onMenuClick={() => setMobileMenuOpen(true)} />
+                    <AdminNavbar />
                     <main className="flex-1 p-4 lg:p-6">
-                        {/* Selective Feature Locking for Expired Mitra */}
-                        {user?.role === 'mitra' && !user?.is_subscribed && [
-                            '/admin/inventory',
-                            '/admin/cashiers',
-                        ].some(path => pathname.startsWith(path)) ? (
+                        {/* Feature Locks */}
+                        {user?.role === 'mitra' && pathname.startsWith('/admin/inventory') ? (
                             <PremiumLocked
-                                featureName="Fitur Premium Terkunci"
-                                description="Maaf, fitur ini adalah fitur tambahan eksklusif. Fitur ini memungkinkan Anda melacak stok bahan baku, mengatur peringatan stok menipis, dan manajemen resep produk secara otomatis."
+                                featureName="Segera Hadir"
+                                description="Fitur Manajemen Inventori sedang dalam tahap pengembangan akhir. Nantikan kehadirannya di pembaruan sistem selanjutnya!"
                             />
                         ) : (
                             children
@@ -246,6 +223,28 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
             </div>
             {/* <AIChatWidget /> */}
+            {/* Mobile Bottom Taskbar */}
+            <nav className="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-[#1a1a1a] border-t border-gray-200 dark:border-white/10 lg:hidden pb-safe">
+                <div className="flex items-center overflow-x-auto px-2 py-2 gap-1 no-scrollbar">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`flex flex-col items-center justify-center min-w-[72px] p-2 rounded-xl transition-all flex-shrink-0 ${isActive
+                                    ? 'text-red-600 bg-red-50 dark:bg-white/5 dark:text-red-400'
+                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
+                                    }`}
+                            >
+                                <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className="text-[10px] font-medium mt-1 truncate max-w-[64px]">{item.label}</span>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </nav>
+
             <GoogleTranslate />
         </div >
     );

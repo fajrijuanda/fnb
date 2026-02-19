@@ -1,18 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Settings, LogOut, ChevronDown, Menu } from 'lucide-react';
+import { Search, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuthStore } from '@/store/useAuthStore';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
 import { NotificationDropdown } from './NotificationDropdown';
 import Link from 'next/link';
 
-interface AdminNavbarProps {
-    onMenuClick?: () => void;
-}
-
-export function AdminNavbar({ onMenuClick }: AdminNavbarProps) {
+export function AdminNavbar() {
     const { user } = useAuthStore();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -27,15 +23,7 @@ export function AdminNavbar({ onMenuClick }: AdminNavbarProps) {
         <header className="sticky top-0 z-30 flex h-14 lg:h-16 w-full items-center justify-between border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-black/80 backdrop-blur-xl px-3 lg:px-6 transition-all">
             {/* Left: Menu Button (Mobile) + Search */}
             <div className="flex items-center gap-2 lg:gap-4 flex-1">
-                {/* Hamburger Menu - Mobile Only */}
-                {onMenuClick && (
-                    <button
-                        onClick={onMenuClick}
-                        className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400 transition-colors"
-                    >
-                        <Menu size={20} />
-                    </button>
-                )}
+                {/* Hamburger Menu - Removed for Bottom Taskbar */}
 
                 {/* Search Bar */}
                 <div className="relative flex-1 max-w-xs lg:max-w-md">
