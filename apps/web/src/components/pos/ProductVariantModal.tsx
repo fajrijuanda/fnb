@@ -84,13 +84,13 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
             if (variant) total += variant.price_adjustment;
         }
 
-        // Modifiers
-        product.modifier_groups?.forEach(group => {
-            group.options.forEach(opt => {
-                const count = modifierCounts[opt.id] || 0;
-                total += opt.price_adjustment * count;
-            });
-        });
+        // Modifiers prices are for inventory tracking only, not added to total price
+        // product.modifier_groups?.forEach(group => {
+        //     group.options.forEach(opt => {
+        //         const count = modifierCounts[opt.id] || 0;
+        //         total += opt.price_adjustment * count;
+        //     });
+        // });
 
         return total * quantity;
     };
@@ -184,30 +184,7 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto p-5 space-y-6">
 
-                    {/* Quantity Selector */}
-                    <div className="space-y-3">
-                        <label className="text-sm font-semibold text-gray-900 dark:text-white">
-                            Jumlah Paket
-                        </label>
-                        <div className="flex items-center justify-between bg-gray-50 dark:bg-white/5 rounded-2xl p-2 border border-gray-100 dark:border-white/5">
-                            <button
-                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                disabled={quantity <= 1}
-                                className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-white dark:hover:bg-white/10 hover:shadow-sm disabled:opacity-30 transition-all font-bold text-lg"
-                            >
-                                <Minus size={18} />
-                            </button>
-                            <span className="text-lg font-bold text-gray-900 dark:text-white min-w-[3ch] text-center">
-                                {quantity}
-                            </span>
-                            <button
-                                onClick={() => setQuantity(quantity + 1)}
-                                className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all"
-                            >
-                                <Plus size={18} />
-                            </button>
-                        </div>
-                    </div>
+
 
                     {/* Variants */}
                     {hasVariants && (
@@ -289,11 +266,12 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                                                     )}>
                                                         {option.name}
                                                     </span>
-                                                    {option.price_adjustment > 0 && (
-                                                        <span className="text-[10px] text-gray-500">
-                                                            +{formatRupiah(option.price_adjustment)}
-                                                        </span>
-                                                    )}
+                                                    {/* Price hidden as per request (inventory only) */}
+                                                    {/* {option.price_adjustment > 0 && (
+                        <span className="text-[10px] text-gray-500">
+                            +{formatRupiah(option.price_adjustment)}
+                        </span>
+                    )} */}
                                                 </div>
 
                                                 <div className="flex items-center gap-3">
@@ -354,13 +332,35 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                 </div>
 
                 {/* Footer */}
-                <div className="p-5 border-t border-gray-100 dark:border-white/5 bg-white dark:bg-[#1a1a1a] shrink-0">
-                    <div className="flex items-center justify-between mb-3 text-sm">
-                        <span className="text-gray-500">Total Harga</span>
-                        <span className="font-bold text-gray-900 dark:text-white text-lg">
-                            {formatRupiah(calculateTotal())}
-                        </span>
+                <div className="p-5 border-t border-gray-100 dark:border-white/5 bg-white dark:bg-[#1a1a1a] shrink-0 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 bg-gray-50 dark:bg-white/5 rounded-xl p-1 border border-gray-100 dark:border-white/5">
+                            <button
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                disabled={quantity <= 1}
+                                className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:bg-white dark:hover:bg-white/10 hover:shadow-sm disabled:opacity-30 transition-all font-bold"
+                            >
+                                <Minus size={16} />
+                            </button>
+                            <span className="text-base font-bold text-gray-900 dark:text-white min-w-[2ch] text-center">
+                                {quantity}
+                            </span>
+                            <button
+                                onClick={() => setQuantity(quantity + 1)}
+                                className="w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center shadow-md shadow-primary/30 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all"
+                            >
+                                <Plus size={16} />
+                            </button>
+                        </div>
+
+                        <div className="flex flex-col items-end">
+                            <span className="text-xs text-gray-500">Total Harga</span>
+                            <span className="font-bold text-gray-900 dark:text-white text-xl">
+                                {formatRupiah(calculateTotal())}
+                            </span>
+                        </div>
                     </div>
+
                     <button
                         onClick={handleSubmit}
                         disabled={!isValid()}
