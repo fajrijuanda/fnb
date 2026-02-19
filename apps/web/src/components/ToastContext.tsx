@@ -91,10 +91,10 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
     return (
         <div
             className={cn(
-                "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border p-4 shadow-lg transition-all duration-500",
+                "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border p-4 shadow-lg transition-all duration-500 ease-in-out transform",
                 isExiting
-                    ? "animate-out fade-out slide-out-to-right"
-                    : "animate-in slide-in-from-right",
+                    ? "opacity-0 translate-x-full"
+                    : "opacity-100 translate-x-0",
                 "bg-white dark:bg-[#1a1a1a] dark:text-white",
                 borderColors[toast.type]
             )}
