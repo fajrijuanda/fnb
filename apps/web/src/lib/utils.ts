@@ -62,8 +62,14 @@ export function getImageUrl(path: string | null | undefined): string {
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
   const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, "");
 
-  // Ensure path starts with /
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  // Remove leading slash if present to avoid double slashes when joining
+  let cleanPath = path.startsWith("/") ? path.slice(1) : path;
 
-  return `${baseUrl}${cleanPath}`;
+  // If path doesn't start with media/, and it looks like a relative path (e.g. products/...), add media/
+  // We assume all user uploads are in media directory.
+  if (!cleanPath.startsWith("media/") && !cleanPath.startsWith("static/")) {
+    cleanPath = `media/${cleanPath}`;
+  }
+
+  return `${baseUrl}/${cleanPath}`;
 }
