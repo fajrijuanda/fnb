@@ -103,52 +103,52 @@ def seed_inventory():
         except Product.MultipleObjectsReturned:
              print(f"WARNING: Multiple products found for '{product_name}'. Skipping.")
 
-    # 3. Seed Modifiers (Toppings)
-    print("\nSeeding Modifiers...")
+    # 3. Seed Modifiers (Toppings) - REMOVED AS REQUESTED (No Extra Sauces)
+    # print("\nSeeding Modifiers...")
     
-    # Create Group "Topping Tambahan"
-    topping_group, created = ModifierGroup.objects.get_or_create(
-        name="Topping Tambahan",
-        defaults={'min_selection': 0, 'max_selection': 5}
-    )
+    # Create Group "Topping Tambahan" - REMOVED
+    # topping_group, created = ModifierGroup.objects.get_or_create(
+    #     name="Topping Tambahan",
+    #     defaults={'min_selection': 0, 'max_selection': 3}
+    # )
     
     # Link to All Dimsum/Gyoza/Wonton Products
-    products = Product.objects.filter(category__name__in=['Dimsum', 'Gyoza', 'Wonton'])
-    for p in products:
-        topping_group.products.add(p)
-    print(f"Linked 'Topping Tambahan' to {products.count()} products.")
+    # products = Product.objects.filter(category__name__in=['Dimsum', 'Gyoza', 'Wonton'])
+    # for p in products:
+    #     topping_group.products.add(p)
+    # print(f"Linked 'Topping Tambahan' to {products.count()} products.")
 
-    # Define Options and their Ingredient Links
-    modifier_data = [
-        {'name': 'Extra Saus Mentai', 'price': 3000, 'ingredient': 'Saus Mentai', 'qty': 20},
-        {'name': 'Extra Saus Keju', 'price': 3000, 'ingredient': 'Saus Keju', 'qty': 20},
-        {'name': 'Extra Chili Oil', 'price': 2000, 'ingredient': 'Chili Oil', 'qty': 15},
-        {'name': 'Extra Mayonnaise', 'price': 1000, 'ingredient': 'Mayonnaise', 'qty': 15},
-    ]
+    # Define Options and their Ingredient Links - REMOVED
+    # modifier_data = [
+    #     {'name': 'Extra Saus Mentai', 'price': 3000, 'ingredient': 'Saus Mentai', 'qty': 20},
+    #     {'name': 'Extra Saus Keju', 'price': 3000, 'ingredient': 'Saus Keju', 'qty': 20},
+    #     {'name': 'Extra Chili Oil', 'price': 2000, 'ingredient': 'Chili Oil', 'qty': 15},
+    #     {'name': 'Extra Mayonnaise', 'price': 1000, 'ingredient': 'Mayonnaise', 'qty': 15},
+    # ]
 
-    for mod in modifier_data:
-        ingredient = ingredients.get(mod['ingredient'])
-        if not ingredient:
-            print(f"Skipping {mod['name']}, ingredient {mod['ingredient']} not found.")
-            continue
-            
-        option, created = ModifierOption.objects.get_or_create(
-            group=topping_group,
-            name=mod['name'],
-            defaults={
-                'price_adjustment': mod['price'],
-                'ingredient': ingredient,
-                'quantity_required': mod['qty']
-            }
-        )
-        if not created:
-            # Update links if they didn't exist
-            option.ingredient = ingredient
-            option.quantity_required = mod['qty']
-            option.save()
-            print(f"Updated Modifier: {option.name}")
-        else:
-            print(f"Created Modifier: {option.name}")
+    # for mod in modifier_data:
+    #     ingredient = ingredients.get(mod['ingredient'])
+    #     if not ingredient:
+    #         print(f"Skipping {mod['name']}, ingredient {mod['ingredient']} not found.")
+    #         continue
+    #         
+    #     option, created = ModifierOption.objects.get_or_create(
+    #         group=topping_group,
+    #         name=mod['name'],
+    #         defaults={
+    #             'price_adjustment': mod['price'],
+    #             'ingredient': ingredient,
+    #             'quantity_required': mod['qty']
+    #         }
+    #     )
+    #     if not created:
+    #         # Update links if they didn't exist
+    #         option.ingredient = ingredient
+    #         option.quantity_required = mod['qty']
+    #         option.save()
+    #         print(f"Updated Modifier: {option.name}")
+    #     else:
+    #         print(f"Created Modifier: {option.name}")
 
     # 4. Seed Mitra Stock (Based on Package)
     # Eksekutif: 450 total (150 Dimsum, 150 Gyoza, 150 Wonton)

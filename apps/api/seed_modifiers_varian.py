@@ -47,8 +47,8 @@ def seed_varian_topping():
     group, created = ModifierGroup.objects.get_or_create(
         name="Varian Topping",
         defaults={
-            'min_selection': 1, # Must choose 1? Or 0? Let's say 0 for now unless logic dictates
-            'max_selection': 1  # Pick 1
+            'min_selection': 0,
+            'max_selection': 3
         }
     )
     
