@@ -23,7 +23,7 @@ interface CartSheetProps {
 export function CartSheet({ onClose }: CartSheetProps) {
     const { items, updateQuantity, clearCart, getTotalPrice, removeItem } = useCartStore();
     const { success, warning } = useToast();
-    const { activeShift, fetchCurrentShift } = useShiftStore();
+    const { fetchCurrentShift } = useShiftStore();
     const total = getTotalPrice();
 
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -169,15 +169,7 @@ export function CartSheet({ onClose }: CartSheetProps) {
                     </div>
                 </div>
 
-                {/* Shift Info */}
-                {activeShift && (
-                    <div className="flex items-center justify-between px-4 py-1.5 bg-blue-50 dark:bg-blue-900/10 border-b border-blue-100 dark:border-blue-900/20 shrink-0">
-                        <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400">Total Uang di Kasir</span>
-                        <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300">
-                            {formatRupiah(activeShift.current_cash || activeShift.initial_cash)}
-                        </span>
-                    </div>
-                )}
+                {/* Shift Info - Removed as per request */}
 
                 {/* Cart Items */}
                 <div className="flex-1 overflow-y-auto p-3">

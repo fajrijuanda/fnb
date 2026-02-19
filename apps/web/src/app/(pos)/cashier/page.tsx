@@ -13,13 +13,15 @@ import { CloseShiftModal } from '@/components/pos/CloseShiftModal';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCartStore } from '@/store';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useShiftStore } from '@/store/useShiftStore';
 import { usePrinter } from '@/hooks/usePrinter';
-import { cn } from '@/lib/utils';
+import { cn, formatRupiah } from '@/lib/utils';
 import { useRef, useEffect } from 'react';
 
 export default function CashierPage() {
     const router = useRouter();
     const { logout, isAuthenticated, user, _hasHydrated } = useAuthStore();
+    const { activeShift } = useShiftStore();
     const [isCartOpen, setIsCartOpen] = useState(false);
     const totalItems = useCartStore((state) => state.getTotalItems());
 
@@ -178,6 +180,13 @@ export default function CashierPage() {
                                 {/* Dropdown Menu */}
                                 {isProfileDropdownOpen && (
                                     <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-white dark:bg-[#1a1a1a] shadow-xl border border-gray-100 dark:border-white/10 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="px-3 py-2 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5">
+                                            <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-0.5">Saldo Shift</p>
+                                            <p className="text-sm font-bold text-primary dark:text-white">
+                                                {activeShift ? formatRupiah(activeShift.current_cash || 0) : 'Rp 0'}
+                                            </p>
+                                        </div>
+
                                         <div className="px-3 py-2 border-b border-gray-100 dark:border-white/5 lg:hidden">
                                             <p className="text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">{user?.username}</p>
                                             <p className="text-[10px] text-gray-500 capitalize">{user?.role}</p>

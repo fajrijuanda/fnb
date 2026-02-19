@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import { X, Minus, Plus, Check, ImageOff } from 'lucide-react';
 import { formatRupiah, cn } from '@/lib/utils';
-import type { Product, ProductVariant, ModifierGroup, ModifierOption } from '@/types/api';
-
-const MAX_TOPPINGS = 3;
+import type { Product, ProductVariant, ModifierOption } from '@/types/api';
 
 interface ProductVariantModalProps {
     isOpen: boolean;
@@ -23,7 +21,7 @@ interface ProductVariantModalProps {
 export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: ProductVariantModalProps) {
     const [quantity, setQuantity] = useState(1);
     const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
-    const [selectedModifierIds, setSelectedModifierIds] = useState<number[]>([]);
+    const [modifierCounts, setModifierCounts] = useState<Record<number, number>>({});
     const [note, setNote] = useState('');
 
     if (!isOpen) return null;
@@ -35,29 +33,46 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
         setSelectedVariantId(id);
     };
 
-    // Collect all topping options across all modifier groups
-    const allModifierOptions: { option: ModifierOption; group: ModifierGroup }[] = [];
-    product.modifier_groups?.forEach(group => {
+    const hasModifiers = product.modifier_groups && product.modifier_groups.length > 0;
+
+    const getGroupTotalCount = (groupId: number) => {
+        let total = 0;
+        const group = product.modifier_groups?.find(g => g.id === groupId);
+        if (!group) return 0;
+
         group.options.forEach(opt => {
-            allModifierOptions.push({ option: opt, group });
+            total += modifierCounts[opt.id] || 0;
         });
-    });
-    const hasModifiers = allModifierOptions.length > 0;
+        return total;
+    };
 
-    const handleModifierToggle = (optionId: number) => {
-        const isSelected = selectedModifierIds.includes(optionId);
+    const handleModifierChange = (groupId: number, optionId: number, delta: number) => {
+        const group = product.modifier_groups?.find(g => g.id === groupId);
+        if (!group) return;
 
-        if (isSelected) {
-            setSelectedModifierIds(prev => prev.filter(id => id !== optionId));
-            return;
+        const currentGroupCount = getGroupTotalCount(groupId);
+        const currentOptionCount = modifierCounts[optionId] || 0;
+
+        // Check limits
+        if (delta > 0) {
+            // Increment
+            if (currentGroupCount >= group.max_selection) return; // Group max reached
+        } else {
+            // Decrement
+            if (currentOptionCount <= 0) return;
         }
 
-        // Enforce max 3 toppings globally
-        if (selectedModifierIds.length >= MAX_TOPPINGS) {
-            return;
-        }
+        setModifierCounts(prev => {
+            const newCount = (prev[optionId] || 0) + delta;
 
-        setSelectedModifierIds(prev => [...prev, optionId]);
+            if (newCount <= 0) {
+                const next = { ...prev };
+                delete next[optionId];
+                return next;
+            }
+
+            return { ...prev, [optionId]: newCount };
+        });
     };
 
     const calculateTotal = () => {
@@ -70,10 +85,11 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
         }
 
         // Modifiers
-        allModifierOptions.forEach(({ option }) => {
-            if (selectedModifierIds.includes(option.id)) {
-                total += option.price_adjustment;
-            }
+        product.modifier_groups?.forEach(group => {
+            group.options.forEach(opt => {
+                const count = modifierCounts[opt.id] || 0;
+                total += opt.price_adjustment * count;
+            });
         });
 
         return total * quantity;
@@ -85,7 +101,7 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
         // Check Min Selections for modifier groups
         let validModifiers = true;
         product.modifier_groups?.forEach(group => {
-            const count = selectedModifierIds.filter(id => group.options.some(opt => opt.id === id)).length;
+            const count = getGroupTotalCount(group.id);
             if (count < group.min_selection) validModifiers = false;
         });
 
@@ -96,17 +112,20 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
         const variant = product.variants?.find(v => v.id === selectedVariantId);
         const modifiers: ModifierOption[] = [];
 
-        allModifierOptions.forEach(({ option }) => {
-            if (selectedModifierIds.includes(option.id)) {
-                modifiers.push(option);
-            }
+        product.modifier_groups?.forEach(group => {
+            group.options.forEach(opt => {
+                const count = modifierCounts[opt.id] || 0;
+                for (let i = 0; i < count; i++) {
+                    modifiers.push(opt);
+                }
+            });
         });
 
         onAddToOrder(product, quantity, variant, modifiers, note);
         // Reset and close
         setQuantity(1);
         setSelectedVariantId(null);
-        setSelectedModifierIds([]);
+        setModifierCounts({});
         setNote('');
         onClose();
     };
@@ -190,7 +209,7 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                         </div>
                     </div>
 
-                    {/* Variants (Existing Logic, New Style) */}
+                    {/* Variants */}
                     {hasVariants && (
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
@@ -235,83 +254,86 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                         </div>
                     )}
 
-                    {/* Toppings / Modifiers */}
-                    {hasModifiers && (
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-semibold text-gray-900 dark:text-white">
-                                    Pilih Varian Topping
-                                </label>
-                                <span className={cn(
-                                    "text-xs font-bold px-2 py-0.5 rounded-full",
-                                    selectedModifierIds.length >= MAX_TOPPINGS ? "text-red-500 bg-red-50" : "text-gray-500 bg-gray-100 dark:bg-white/10"
-                                )}>
-                                    {selectedModifierIds.length}/{MAX_TOPPINGS} Pcs
-                                </span>
-                            </div>
+                    {/* Modifier Groups */}
+                    {hasModifiers && product.modifier_groups?.map(group => {
+                        const currentCount = getGroupTotalCount(group.id);
+                        const isMaxed = currentCount >= group.max_selection;
 
-                            <div className="divide-y divide-gray-100 dark:divide-white/5 border-t border-b border-gray-100 dark:border-white/5">
-                                {allModifierOptions.map(({ option }) => {
-                                    const isSelected = selectedModifierIds.includes(option.id);
-                                    const isDisabled = option.mitra_availability === false;
-                                    const isMaxed = !isSelected && selectedModifierIds.length >= MAX_TOPPINGS;
+                        return (
+                            <div key={group.id} className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                                        {group.name}
+                                    </label>
+                                    <span className={cn(
+                                        "text-xs font-bold px-2 py-0.5 rounded-full",
+                                        isMaxed ? "text-red-500 bg-red-50" : "text-gray-500 bg-gray-100 dark:bg-white/10"
+                                    )}>
+                                        {currentCount} / {group.max_selection} Pcs
+                                    </span>
+                                </div>
 
-                                    return (
-                                        <div key={option.id} className="flex items-center justify-between py-3">
-                                            <div className="flex flex-col">
-                                                <span className={cn(
-                                                    "text-sm font-medium",
-                                                    isDisabled ? "text-gray-400" : "text-gray-900 dark:text-white"
-                                                )}>
-                                                    {option.name}
-                                                </span>
-                                                {option.price_adjustment > 0 && (
-                                                    <span className="text-[10px] text-gray-500">
-                                                        +{formatRupiah(option.price_adjustment)}
+                                <div className="divide-y divide-gray-100 dark:divide-white/5 border-t border-b border-gray-100 dark:border-white/5">
+                                    {group.options.map(option => {
+                                        const count = modifierCounts[option.id] || 0;
+                                        const isDisabled = option.mitra_availability === false;
+                                        // Can increment if not disabled AND (not maxed OR count > 0 for this option although logic for max is handled in handler, visual disabled state important)
+                                        // Actually simplest disabled logic: can't plus if maxed.
+
+                                        return (
+                                            <div key={option.id} className="flex items-center justify-between py-3">
+                                                <div className="flex flex-col">
+                                                    <span className={cn(
+                                                        "text-sm font-medium",
+                                                        isDisabled ? "text-gray-400" : "text-gray-900 dark:text-white"
+                                                    )}>
+                                                        {option.name}
                                                     </span>
-                                                )}
-                                            </div>
+                                                    {option.price_adjustment > 0 && (
+                                                        <span className="text-[10px] text-gray-500">
+                                                            +{formatRupiah(option.price_adjustment)}
+                                                        </span>
+                                                    )}
+                                                </div>
 
-                                            {/* Quantity Control UI for Modifiers */}
-                                            <div className="flex items-center gap-3">
-                                                {isSelected ? (
-                                                    <>
-                                                        {/* Ideally we would deduct quantity here if we supported multiple. 
-                                                          For boolean toggle, MINUS deselects it. */}
-                                                        <button
-                                                            onClick={() => handleModifierToggle(option.id)}
-                                                            className="w-7 h-7 rounded-lg border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-500 hover:bg-gray-50"
-                                                        >
-                                                            <Minus size={14} />
-                                                        </button>
-                                                        <span className="text-sm font-bold w-4 text-center">1</span>
-                                                        <button
-                                                            onClick={() => {/* If we supported > 1, we'd add here. For now, max 1 implies disabled or no-op */ }}
-                                                            disabled
-                                                            className="w-7 h-7 rounded-lg bg-red-100 text-red-500 flex items-center justify-center opacity-50 cursor-not-allowed"
-                                                        >
-                                                            <Plus size={14} />
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="text-sm font-medium text-gray-400 w-4 text-center">0</span>
-                                                        <button
-                                                            onClick={() => handleModifierToggle(option.id)}
-                                                            disabled={isDisabled || isMaxed}
-                                                            className="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 hover:scale-105 transition-all disabled:opacity-30 disabled:hover:scale-100 disabled:hover:bg-red-50"
-                                                        >
-                                                            <Plus size={14} />
-                                                        </button>
-                                                    </>
-                                                )}
+                                                <div className="flex items-center gap-3">
+                                                    {count > 0 ? (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleModifierChange(group.id, option.id, -1)}
+                                                                className="w-7 h-7 rounded-lg border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                                            >
+                                                                <Minus size={14} />
+                                                            </button>
+                                                            <span className="text-sm font-bold w-4 text-center text-gray-900 dark:text-white">{count}</span>
+                                                            <button
+                                                                onClick={() => handleModifierChange(group.id, option.id, 1)}
+                                                                disabled={isMaxed}
+                                                                className="w-7 h-7 rounded-lg bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                                            >
+                                                                <Plus size={14} />
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="text-sm font-medium text-gray-400 w-4 text-center">0</span>
+                                                            <button
+                                                                onClick={() => handleModifierChange(group.id, option.id, 1)}
+                                                                disabled={isDisabled || isMaxed}
+                                                                className="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                                            >
+                                                                <Plus size={14} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        );
+                    })}
 
                     {/* Notes */}
                     <div className="space-y-2">

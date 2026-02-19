@@ -85,8 +85,8 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
         try {
             await print(
                 `<div style="text-align:center; font-family:monospace;">
-                    <h3>TEST PRINT</h3>
-                    <p>Printer Connected!</p>
+                    <h3>TES PRINT</h3>
+                    <p>Printer Terhubung!</p>
                     <p>----------------</p>
                     <p>FNB System</p>
                 </div>`
@@ -134,7 +134,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                 : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                                 }`}
                         >
-                            Shift Info
+                            Info Shift
                         </button>
                         <button
                             onClick={() => setActiveTab('device')}
@@ -201,7 +201,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                 </div>
 
                                 <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/10">
-                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Saldo Saat Ini (System)</p>
+                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Saldo Saat Ini (Sistem)</p>
                                     <p className="text-3xl font-bold text-primary">
                                         Rp {activeShift?.current_cash.toLocaleString('id-ID') || '0'}
                                     </p>
@@ -242,7 +242,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <Bluetooth className="h-4 w-4 text-primary" />
-                                                <span className="text-sm font-medium text-gray-900 dark:text-white">{printerName || 'Unknown Device'}</span>
+                                                <span className="text-sm font-medium text-gray-900 dark:text-white">{printerName || 'Perangkat Tidak Dikenal'}</span>
                                             </div>
                                             <button
                                                 onClick={disconnectPrinter}
@@ -280,7 +280,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
 
                                     <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                                         <div>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">Auto-Connect</p>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">Koneksi Otomatis</p>
                                             <p className="text-[10px] text-gray-500 dark:text-gray-400">Hubungkan otomatis saat login</p>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
@@ -318,7 +318,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                         className="px-4 py-2 rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/20 transition-colors disabled:opacity-50 flex items-center gap-2"
                                     >
                                         <RotateCcw className={`h-3.5 w-3.5 ${isTestingPrinter ? 'animate-spin' : ''}`} />
-                                        Test Print
+                                        Tes Print
                                     </button>
                                     <button
                                         onClick={handleSavePrinterSettings}
@@ -334,7 +334,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                         {activeTab === 'account' && (
                             <form onSubmit={handleAccountSubmit} className="space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Username</label>
+                                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nama Pengguna</label>
                                     <div className="relative group">
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
                                         <input
@@ -342,7 +342,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                             value={formData.username}
                                             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                             className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-2 pl-9 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                                            placeholder="Username"
+                                            placeholder="Nama Pengguna"
                                         />
                                     </div>
                                 </div>
@@ -350,7 +350,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                 <div className="my-2 border-t border-gray-100 dark:border-white/5" />
 
                                 <div className="space-y-3">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Ganti Password</p>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Ganti Kata Sandi</p>
 
                                     <div className="relative group">
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 group-focus-within:text-primary transition-colors" />
@@ -359,7 +359,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                             value={formData.currentPassword}
                                             onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                                             className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-2 pl-9 pr-9 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                                            placeholder="Password Saat Ini"
+                                            placeholder="Kata Sandi Saat Ini"
                                         />
                                         <button
                                             type="button"
@@ -377,7 +377,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                             value={formData.newPassword}
                                             onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                                             className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-2 pl-9 pr-9 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                                            placeholder="Password Baru"
+                                            placeholder="Kata Sandi Baru"
                                         />
                                         <button
                                             type="button"

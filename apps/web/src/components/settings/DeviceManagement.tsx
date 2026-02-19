@@ -14,7 +14,7 @@ interface TrustedDevice {
 }
 
 function formatDeviceName(userAgent: string) {
-    if (!userAgent) return 'Unknown Device';
+    if (!userAgent) return 'Perangkat Tidak Dikenal';
 
     // Check if it looks like a user agent string
     const isUserAgent = userAgent.includes('Mozilla') || userAgent.includes('AppleWebKit');
@@ -34,9 +34,9 @@ function formatDeviceName(userAgent: string) {
     else if (userAgent.includes('Firefox')) browser = 'Firefox';
     else if (userAgent.includes('Safari') && !userAgent.includes('Chrome') && !userAgent.includes('Edg/') && !userAgent.includes('OPR') && !userAgent.includes('Opera')) browser = 'Safari';
 
-    if (os && browser) return `${browser} on ${os}`;
-    if (os) return `${os} Device`;
-    if (browser) return `${browser} Browser`;
+    if (os && browser) return `${browser} di ${os}`;
+    if (os) return `Perangkat ${os}`;
+    if (browser) return `Browser ${browser}`;
 
     return userAgent;
 }

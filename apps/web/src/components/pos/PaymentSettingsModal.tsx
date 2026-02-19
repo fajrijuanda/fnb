@@ -244,7 +244,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
                                             ) : (
                                                 <>
                                                     <QrCode className="text-gray-400 mb-2" size={24} />
-                                                    <span className="text-[10px] text-gray-500 text-center px-2">Tap to upload</span>
+                                                    <span className="text-[10px] text-gray-500 text-center px-2">Ketuk untuk unggah</span>
                                                 </>
                                             )}
                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
