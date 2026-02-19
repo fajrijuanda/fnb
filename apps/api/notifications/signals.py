@@ -1,7 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from sales.models import Order
-from users.models import User
 from .models import Notification
 
 @receiver(post_save, sender=Order)
@@ -25,7 +24,20 @@ def notify_mitra_on_order(sender, instance, created, **kwargs):
                 title="Pesanan Baru",
                 message=f"Pesanan #{instance.invoice_number or instance.id} baru saja dibuat oleh {instance.cashier.username}.",
                 notification_type='success',
-                related_link="/admin/orders" 
+                # Link ke admin panel
+                related_link=f"/admin/orders?search={instance.invoice_number or instance.id}" 
+            )
+
+        # Notify the Cashier as well (Confirmation)
+        # Check to avoid duplicate if cashier IS the mitra (rare but possible in dev)
+        if instance.cashier != recipient:
+             Notification.objects.create(
+                recipient=instance.cashier,
+                title="Transaksi Berhasil",
+                message=f"Pesanan #{instance.invoice_number or instance.id} berhasil diproses.",
+                notification_type='success',
+                # No specific link for POS side yet, or maybe to history?
+                related_link="#" 
             )
 
 # Placeholder for Subscription Signals (if Subscription model exists)

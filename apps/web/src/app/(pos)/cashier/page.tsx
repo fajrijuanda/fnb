@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown, CreditCard, Bell } from 'lucide-react';
+import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown, CreditCard } from 'lucide-react';
 import { ProductGrid } from '@/components/pos/ProductGrid';
 import { CartSheet } from '@/components/pos/CartSheet';
 
@@ -10,6 +10,7 @@ import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
 import { PaymentSettingsModal } from '@/components/pos/PaymentSettingsModal';
 import { SettingsModal } from '@/components/pos/SettingsModal';
 import { CloseShiftModal } from '@/components/pos/CloseShiftModal';
+import { CashierNotificationDropdown } from '@/components/pos/CashierNotificationDropdown';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useCartStore } from '@/store';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -124,11 +125,7 @@ export default function CashierPage() {
 
                         {/* Right Actions */}
                         <div className="flex items-center gap-2 shrink-0">
-                            <button
-                                className="h-9 w-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-                            >
-                                <Bell className="h-5 w-5" />
-                            </button>
+                            <CashierNotificationDropdown />
 
                             {/* Admin Link (Only for Admin Role) */}
                             {(user?.role === 'superadmin' || user?.role === 'mitra') && (
