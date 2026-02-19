@@ -72,15 +72,11 @@ class Product(models.Model):
         # if it's a file upload ( InMemoryUploadedFile ).
         
         if self.image:
-             # Check if it's an uploaded file (not just a path string from DB)
-             if hasattr(self.image, 'file'):
-                 # Avoid re-compressing if already compressed?
-                 # compress_image handles this by checking if it's an image file.
-                 # But we should be careful not to re-compress on every save if not changed.
-                 # A simple check is if it is an instance of InMemoryUploadedFile or TemporaryUploadedFile
-                 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-                 if isinstance(self.image.file, (InMemoryUploadedFile, TemporaryUploadedFile)):
-                     self.image = compress_image(self.image)
+             # Check if it's an uploaded file (not just a path string from DB/seed)
+             # Avoid checking .file property via hasattr as it might trigger file open on paths
+             from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+             if isinstance(self.image, (InMemoryUploadedFile, TemporaryUploadedFile)):
+                 self.image = compress_image(self.image)
         
         super().save(*args, **kwargs)
     
