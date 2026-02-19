@@ -95,8 +95,8 @@ export default function ShiftPage() {
     }, [fetchShifts]);
 
     const filteredShifts = shifts.filter(shift =>
-        shift.cashier.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shift.status_display.toLowerCase().includes(searchTerm.toLowerCase())
+        (shift.cashier?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (shift.status_display || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (loading && shifts.length === 0) {
