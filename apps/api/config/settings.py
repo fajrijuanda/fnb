@@ -169,6 +169,9 @@ CORS_ALLOWED_ORIGINS = [
     'https://fnb-five.vercel.app',
 ]
 
+# Allow all for debugging/production flexibility if specific origins fail
+CORS_ALLOW_ALL_ORIGINS = True
+
 CSRF_TRUSTED_ORIGINS = [
     'https://fnb-five.vercel.app',
 ]
