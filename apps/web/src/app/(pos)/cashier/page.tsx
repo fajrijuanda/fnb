@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown, CreditCard } from 'lucide-react';
+import { ShoppingCart, LogOut, Search, Settings, User, ChevronDown, CreditCard, Bell } from 'lucide-react';
 import { ProductGrid } from '@/components/pos/ProductGrid';
 import { CartSheet } from '@/components/pos/CartSheet';
-import { ThemeToggle } from '@/components/ThemeToggle';
+
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
 import { PaymentSettingsModal } from '@/components/pos/PaymentSettingsModal';
 import { SettingsModal } from '@/components/pos/SettingsModal';
@@ -31,7 +31,7 @@ export default function CashierPage() {
 
     // Settings Modal State
     const [showSettingsModal, setShowSettingsModal] = useState(false);
-    const [settingsInitialTab, setSettingsInitialTab] = useState<'shift' | 'device' | 'printer' | 'account'>('shift');
+    const [settingsInitialTab, setSettingsInitialTab] = useState<'shift' | 'device' | 'printer' | 'account' | 'appearance'>('shift');
 
     const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
     const [showPaymentSettingsModal, setShowPaymentSettingsModal] = useState(false);
@@ -76,7 +76,7 @@ export default function CashierPage() {
         router.replace('/login');
     };
 
-    const openSettings = (tab: 'shift' | 'device' | 'printer' | 'account') => {
+    const openSettings = (tab: 'shift' | 'device' | 'printer' | 'account' | 'appearance') => {
         setSettingsInitialTab(tab);
         setShowSettingsModal(true);
         setIsProfileDropdownOpen(false);
@@ -124,10 +124,11 @@ export default function CashierPage() {
 
                         {/* Right Actions */}
                         <div className="flex items-center gap-2 shrink-0">
-                            <ThemeToggle
-                                dropdownSide="right"
-                                className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10"
-                            />
+                            <button
+                                className="h-9 w-9 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                            >
+                                <Bell className="h-5 w-5" />
+                            </button>
 
                             {/* Admin Link (Only for Admin Role) */}
                             {(user?.role === 'superadmin' || user?.role === 'mitra') && (

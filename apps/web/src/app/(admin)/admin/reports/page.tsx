@@ -36,7 +36,7 @@ export default function ReportsPage() {
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize] = useState(10);
 
     // Filter State — Sales
     const [salesFilterStatus, setSalesFilterStatus] = useState<string>('all');

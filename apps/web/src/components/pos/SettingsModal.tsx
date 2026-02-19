@@ -1,21 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Loader2, Save, User, Lock, Eye, EyeOff, Smartphone, Clock, RotateCcw, Bluetooth } from 'lucide-react';
+import { X, Loader2, Save, User, Lock, Eye, EyeOff, Smartphone, Clock, RotateCcw, Bluetooth, Monitor, Moon, Sun } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useShiftStore } from '@/store/useShiftStore';
 import { usePrinter } from '@/hooks/usePrinter';
 import { useToast } from '@/components/ToastContext';
+import { useTheme } from '@/components/ThemeProvider';
 import { DeviceManagement } from '@/components/settings/DeviceManagement';
 import { CloseShiftModal } from '@/components/pos/CloseShiftModal';
 
 interface SettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    initialTab?: 'shift' | 'device' | 'printer' | 'account';
+    initialTab?: 'shift' | 'device' | 'printer' | 'account' | 'appearance';
 }
 
-type Tab = 'shift' | 'device' | 'printer' | 'account';
+type Tab = 'shift' | 'device' | 'printer' | 'account' | 'appearance';
 
 export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: SettingsModalProps) {
     const { user, updateProfile } = useAuthStore();
@@ -30,6 +31,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
         print
     } = usePrinter();
     const { success, error } = useToast();
+    const { theme, setTheme } = useTheme();
 
     const [activeTab, setActiveTab] = useState<Tab>('shift');
     const [isLoading, setIsLoading] = useState(false);
@@ -137,6 +139,15 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                             Info Shift
                         </button>
                         <button
+                            onClick={() => setActiveTab('appearance')}
+                            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'appearance'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            Tampilan
+                        </button>
+                        <button
                             onClick={() => setActiveTab('device')}
                             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'device'
                                 ? 'border-primary text-primary'
@@ -214,6 +225,46 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                     <Lock className="h-4 w-4" />
                                     Tutup Kasir (End Shift)
                                 </button>
+                            </div>
+                        )}
+
+                        {activeTab === 'appearance' && (
+                            <div className="space-y-6">
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">Tema Aplikasi</h3>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <button
+                                            onClick={() => setTheme('light')}
+                                            className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${theme === 'light'
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 text-gray-500 dark:text-gray-400'
+                                                }`}
+                                        >
+                                            <Sun className="h-6 w-6" />
+                                            <span className="text-sm font-medium">Terang</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setTheme('dark')}
+                                            className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${theme === 'dark'
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 text-gray-500 dark:text-gray-400'
+                                                }`}
+                                        >
+                                            <Moon className="h-6 w-6" />
+                                            <span className="text-sm font-medium">Gelap</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setTheme('system')}
+                                            className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${theme === 'system'
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 text-gray-500 dark:text-gray-400'
+                                                }`}
+                                        >
+                                            <Monitor className="h-6 w-6" />
+                                            <span className="text-sm font-medium">Sistem</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getVapidPublicKey, subscribeToPush } from "@/lib/api";
 
 const urlBase64ToUint8Array = (base64String: string) => {
@@ -17,29 +17,16 @@ const urlBase64ToUint8Array = (base64String: string) => {
 };
 
 export default function NotificationManager() {
-    const [isSubscribed, setIsSubscribed] = useState(false);
-    const [permission, setPermission] = useState<NotificationPermission>("default");
-
-    useEffect(() => {
-        if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-            // Register Service Worker
-            navigator.serviceWorker
-                .register("/sw.js")
-                .then((registration) => {
-                    console.log("Service Worker registered with scope:", registration.scope);
-                })
-                .catch((error) => {
-                    console.error("Service Worker registration failed:", error);
-                });
-
-            // Check permission
-            if ("Notification" in window && Notification.permission !== permission) {
-                setPermission(Notification.permission);
-            }
+    const [, setIsSubscribed] = useState(false);
+    // Initialize permission state lazily to avoid setting it in useEffect
+    const [permission, setPermission] = useState<NotificationPermission>(() => {
+        if (typeof window !== "undefined" && "Notification" in window) {
+            return Notification.permission;
         }
-    }, []);
+        return "default";
+    });
 
-    const subscribeUser = async () => {
+    const subscribeUser = useCallback(async () => {
         if (!("serviceWorker" in navigator)) return;
 
         try {
@@ -57,13 +44,31 @@ export default function NotificationManager() {
         } catch (error) {
             console.error("Failed to subscribe the user: ", error);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        if (permission === 'granted' && !isSubscribed) {
-            subscribeUser();
+        if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+            // Register Service Worker
+            navigator.serviceWorker
+                .register("/sw.js")
+                .then(async (registration) => {
+                    console.log("Service Worker registered with scope:", registration.scope);
+
+                    // Check if already subscribed
+                    const subscription = await registration.pushManager.getSubscription();
+                    if (subscription) {
+                        setIsSubscribed(true);
+                    } else if (Notification.permission === 'granted') {
+                        subscribeUser();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Service Worker registration failed:", error);
+                });
         }
-    }, [permission, isSubscribed]);
+    }, [subscribeUser]);
+
+
 
     const requestPermission = async () => {
         if (!("Notification" in window)) {
@@ -72,6 +77,9 @@ export default function NotificationManager() {
         }
         const result = await Notification.requestPermission();
         setPermission(result);
+        if (result === 'granted') {
+            subscribeUser();
+        }
     };
 
     if (permission === 'granted') {
