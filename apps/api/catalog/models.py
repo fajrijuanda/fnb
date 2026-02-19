@@ -90,19 +90,13 @@ class Product(models.Model):
     @property
     def stock_status(self) -> dict:
         """Return stock status for API response."""
-        if self.track_inventory:
-            return {
-                'is_tracked': True,
-                'remaining': self.current_stock,
-                'available': self.current_stock > 0 and self.is_available
-            }
-        else:
-            # For racikan/composite products, availability is manual
-            # TODO: Check ingredient availability via inventory.selectors
-            return {
-                'is_tracked': False,
-                'available': self.is_available
-            }
+        # UNLIMITED STOCK MODE (Requested by User)
+        # We ignore track_inventory and current_stock for now.
+        return {
+            'is_tracked': False, # Pretend it's not tracked
+            'remaining': 100, # Dummy value
+            'available': self.is_available
+        }
 
 
 class ProductVariant(models.Model):

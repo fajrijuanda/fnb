@@ -72,23 +72,11 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         # Availability Logic for Mitra/Cashier
         if mitra:
-            from django.db.models import OuterRef, Subquery, Case, When, F, BooleanField
-            from .models import ProductAvailability
+            # UNLIMITED STOCK MODE: Bypass ProductAvailability check
+            from django.db.models import F
             
-            # Subquery to get specific availability from cached ProductAvailability pivot
-            mitra_availability_subquery = ProductAvailability.objects.filter(
-                product=OuterRef('pk'),
-                mitra=mitra
-            ).values('is_available')[:1]
-
             queryset = queryset.annotate(
-                _mitra_avail = Subquery(mitra_availability_subquery)
-            ).annotate(
-                mitra_availability=Case(
-                    When(_mitra_avail__isnull=False, then=F('_mitra_avail')),
-                    default=F('is_available'), # Default to global if no record found
-                    output_field=BooleanField()
-                )
+                mitra_availability=F('is_available')
             )
             
             # Filter specifically if requested (e.g., POS showing only available)
@@ -102,8 +90,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         elif not (user.is_staff or user.is_superuser):
              # For public/anonymous, show only globally available
              queryset = queryset.filter(is_available=True)
-
-        return queryset
 
         return queryset
     
@@ -161,25 +147,11 @@ class ModifierOptionViewSet(viewsets.ModelViewSet):
             mitra = user.cashier_profile.mitra
 
         if mitra:
-            from django.db.models import OuterRef, Subquery, Case, When, F, Value, BooleanField
-            from inventory.models import IngredientStock
+            # UNLIMITED STOCK MODE: Bypass IngredientStock check
+            from django.db.models import Value, BooleanField
             
-            # Subquery to get current stock of the ingredient linked to this modifier
-            stock_subquery = IngredientStock.objects.filter(
-                mitra=mitra,
-                ingredient=OuterRef('ingredient')
-            ).values('current_stock')[:1]
-
             queryset = queryset.annotate(
-                _current_stock = Subquery(stock_subquery)
-            ).annotate(
-                mitra_availability=Case(
-                    When(ingredient__isnull=True, then=Value(True)), # No ingredient = Always available
-                    When(_current_stock__isnull=True, then=Value(False)), # No stock record = 0 = Unavailable
-                    When(_current_stock__gte=F('quantity_required'), then=Value(True)),
-                    default=Value(False),
-                    output_field=BooleanField()
-                )
+                mitra_availability=Value(True, output_field=BooleanField())
             )
         
         return queryset
