@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import { useToast } from '@/components/ToastContext';
+import { useNotification } from '@/context/NotificationContext';
 import { useRouter } from 'next/navigation';
 import {
     User,
@@ -58,7 +59,7 @@ export default function SettingsPage() {
     });
 
     // Preferences State
-    const [notifications, setNotifications] = useState(true);
+    const { soundEnabled, toggleSound } = useNotification();
     const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
 
     // Initial Load
@@ -605,9 +606,9 @@ export default function SettingsPage() {
                                     </div>
                                 )}
 
-                                <div className="p-5 lg:p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors" onClick={() => setNotifications(!notifications)}>
+                                <div className="p-5 lg:p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors" onClick={toggleSound}>
                                     <div className="flex items-center gap-4">
-                                        <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-full flex items-center justify-center transition-colors ${notifications ? 'bg-red-50 dark:bg-red-500/10 text-[#C5161D] dark:text-red-400' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
+                                        <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-full flex items-center justify-center transition-colors ${soundEnabled ? 'bg-red-50 dark:bg-red-500/10 text-[#C5161D] dark:text-red-400' : 'bg-gray-100 dark:bg-white/5 text-gray-400'}`}>
                                             <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
                                         </div>
                                         <div>
@@ -615,8 +616,8 @@ export default function SettingsPage() {
                                             <p className="text-xs lg:text-sm text-gray-500">Putar suara notifikasi saat ada pesanan baru masuk</p>
                                         </div>
                                     </div>
-                                    <div className={`w-14 h-8 rounded-full p-1 transition-colors relative ${notifications ? 'bg-[#C5161D]' : 'bg-gray-200 dark:bg-white/10'}`}>
-                                        <div className={`h-6 w-6 bg-white rounded-full shadow-md absolute top-1 transition-all ${notifications ? 'left-[calc(100%-28px)]' : 'left-1'}`} />
+                                    <div className={`w-14 h-8 rounded-full p-1 transition-colors relative ${soundEnabled ? 'bg-[#C5161D]' : 'bg-gray-200 dark:bg-white/10'}`}>
+                                        <div className={`h-6 w-6 bg-white rounded-full shadow-md absolute top-1 transition-all ${soundEnabled ? 'left-[calc(100%-28px)]' : 'left-1'}`} />
                                     </div>
                                 </div>
                             </div>

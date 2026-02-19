@@ -20,6 +20,8 @@ interface NotificationContextType {
     markAsRead: (id: string) => void;
     markAllAsRead: () => void;
     clearNotifications: () => void;
+    soundEnabled: boolean;
+    toggleSound: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -30,15 +32,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
-    const addNotification = useCallback((notification: Omit<NotificationItem, 'id' | 'timestamp' | 'read'>) => {
-        const newItem: NotificationItem = {
-            ...notification,
-            id: crypto.randomUUID(),
-            timestamp: new Date(),
-            read: false,
-        };
-        setNotifications(prev => [newItem, ...prev]);
-    }, []);
+
 
     const markAsRead = useCallback((id: string) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
@@ -47,6 +41,44 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const markAllAsRead = useCallback(() => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     }, []);
+
+    // Sound Preference
+    const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('sound_enabled');
+            return saved !== null ? JSON.parse(saved) : true;
+        }
+        return true;
+    });
+
+    const toggleSound = useCallback(() => {
+        setSoundEnabled(prev => {
+            const newValue = !prev;
+            localStorage.setItem('sound_enabled', JSON.stringify(newValue));
+            return newValue;
+        });
+    }, []);
+
+    const playNotificationSound = useCallback(() => {
+        if (!soundEnabled) return;
+        try {
+            const audio = new Audio('/notification.mp3');
+            audio.play().catch(err => console.warn("Failed to play notification sound:", err));
+        } catch (error) {
+            console.error("Audio playback error:", error);
+        }
+    }, [soundEnabled]);
+
+    const addNotification = useCallback((notification: Omit<NotificationItem, 'id' | 'timestamp' | 'read'>) => {
+        const newItem: NotificationItem = {
+            ...notification,
+            id: crypto.randomUUID(),
+            timestamp: new Date(),
+            read: false,
+        };
+        setNotifications(prev => [newItem, ...prev]);
+        playNotificationSound();
+    }, [playNotificationSound]);
 
     const clearNotifications = useCallback(() => {
         setNotifications([]);
@@ -59,7 +91,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             addNotification,
             markAsRead,
             markAllAsRead,
-            clearNotifications
+            clearNotifications,
+            soundEnabled,
+            toggleSound
         }}>
             {children}
         </NotificationContext.Provider>
