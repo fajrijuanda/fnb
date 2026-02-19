@@ -198,7 +198,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             >
                 <div className="absolute inset-0 overflow-auto flex flex-col">
                     <AdminNavbar />
-                    <main className="flex-1 p-4 lg:p-6 pb-32 lg:pb-6">
+                    <main className="flex-1 p-4 lg:p-6 pb-24 lg:pb-6">
                         {/* Feature Locks */}
                         {user?.role === 'mitra' && pathname.startsWith('/admin/inventory') ? (
                             <PremiumLocked
