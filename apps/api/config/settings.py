@@ -17,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@+(d9_u6!a%)(k+jyjrkwx5%hq8*8f&b)e*nkspztbf2&z=ah'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
@@ -122,8 +122,13 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
 
+# Helper for boolean env vars
+def get_bool_env(name, default=False):
+    val = os.environ.get(name, str(default))
+    return val.lower() in ('true', '1', 'yes', 'on')
+
 # Only use Cloudinary in production or if explicitly set
-if os.environ.get('USE_CLOUDINARY') == 'True':
+if get_bool_env('USE_CLOUDINARY'):
     items = ['cloudinary_storage', 'cloudinary']
     # Add to installed apps if not present (handled dynamically or just ensuring they are installed)
     INSTALLED_APPS += items
