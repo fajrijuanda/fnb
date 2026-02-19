@@ -199,6 +199,19 @@ class RestockOrder(models.Model):
     received_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
 
+    receiving_proof = models.ImageField(upload_to='receiving_proofs/', blank=True, null=True)
+    
+    # Link to Mitra (Tenant)
+    mitra = models.ForeignKey(
+        'users.Mitra',
+        on_delete=models.CASCADE,
+        related_name='restock_orders',
+        null=True, # Allow null for migration, but logic should enforce it
+        blank=True
+    )
+
+
+
     # External system reference
     external_order_id = models.CharField(max_length=100, blank=True, help_text="ID from samdenidimsum system")
 

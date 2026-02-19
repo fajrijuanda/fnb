@@ -288,6 +288,17 @@ export interface Notification {
   created_at: string;
 }
 
+export interface Expense {
+  id: string;
+  amount: number;
+  category: string;
+  category_display: string;
+  description: string;
+  notes: string | null;
+  date: string;
+  created_at: string;
+}
+
 // Shift Management
 export interface Shift {
   id: string;
@@ -303,4 +314,5 @@ export interface Shift {
   status: "OPEN" | "CLOSED";
   status_display: string;
   notes: string | null;
+  expenses: Expense[];
 }

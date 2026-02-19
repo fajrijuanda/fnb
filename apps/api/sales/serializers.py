@@ -185,6 +185,7 @@ class ShiftSerializer(serializers.ModelSerializer):
     difference = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     current_cash = serializers.SerializerMethodField()
+    expenses = serializers.SerializerMethodField()
 
     class Meta:
         model = Shift
@@ -201,13 +202,20 @@ class ShiftSerializer(serializers.ModelSerializer):
             'difference',
             'status',
             'status_display',
-            'notes'
+            'notes',
+            'expenses'
         ]
         read_only_fields = ['id', 'cashier', 'start_time', 'end_time', 'final_cash_system', 'status']
 
+    def get_expenses(self, obj):
+        """Get summary of expenses for this shift."""
+        # Avoid circular import by importing inside method
+        from finances.serializers import ExpenseSerializer
+        return ExpenseSerializer(obj.expenses.all(), many=True).data
+
     def get_current_cash(self, obj):
         """
-        Calculate current cash in drawer (Initial + Cash Sales).
+        Calculate current cash in drawer (Initial + Cash Sales - Cash Expenses).
         """
         try:
             from django.db.models import Sum
@@ -215,7 +223,11 @@ class ShiftSerializer(serializers.ModelSerializer):
                 payment_method=Order.PaymentMethod.CASH, 
                 status=Order.Status.PAID
             ).aggregate(total=Sum('total_amount'))['total'] or 0
-            return obj.initial_cash + cash_sales
+            
+            # Subtract expenses
+            cash_expenses = obj.expenses.aggregate(total=Sum('amount'))['total'] or 0
+            
+            return obj.initial_cash + cash_sales - cash_expenses
         except Exception as e:
             print(f"Error calculating current cash: {e}")
             return obj.initial_cash

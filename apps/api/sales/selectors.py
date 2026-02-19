@@ -134,7 +134,7 @@ def get_recent_orders(limit=10):
     """Get most recent orders."""
     return Order.objects.select_related().prefetch_related('items__product')[:limit]
 
-def get_orders_for_export(start_date, end_date=None):
+def get_orders_for_export(start_date, end_date=None, mitra_id=None):
     """
     Get detailed order list for export.
     """
@@ -146,11 +146,18 @@ def get_orders_for_export(start_date, end_date=None):
         created_at__date__lte=end_date,
         status=Order.Status.PAID
     ).select_related('cashier', 'mitra').order_by('-created_at')
+
+    if mitra_id:
+        from django.db.models import Q
+        orders = orders.filter(
+            Q(cashier__cashier_profile__mitra__user__id=mitra_id) | 
+            Q(cashier__id=mitra_id)
+        )
     
     return orders
 
 
-def get_profit_loss_report(start_date, end_date=None, mitra=None):
+def get_profit_loss_report(start_date, end_date=None, mitra_id=None):
     """
     Calculate profit/loss report:
     - Revenue: total dari order items (price_at_sale * qty + variant + modifier adjustments)
@@ -172,6 +179,13 @@ def get_profit_loss_report(start_date, end_date=None, mitra=None):
         created_at__date__lte=end_date,
         status=Order.Status.PAID
     ).prefetch_related('items__product__recipe__items__ingredient')
+
+    if mitra_id:
+        from django.db.models import Q
+        orders = orders.filter(
+            Q(cashier__cashier_profile__mitra__user__id=mitra_id) | 
+            Q(cashier__id=mitra_id)
+        )
 
     # 2. Calculate Revenue and COGS
     total_revenue = Decimal(0)
@@ -230,6 +244,9 @@ def get_profit_loss_report(start_date, end_date=None, mitra=None):
         date__gte=start_date,
         date__lte=end_date,
     )
+    if mitra_id:
+        expense_qs = expense_qs.filter(mitra__user__id=mitra_id)
+
     total_expenses = expense_qs.aggregate(total=Sum('amount'))['total'] or 0
 
     # Expense breakdown by category

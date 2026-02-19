@@ -26,11 +26,16 @@ export const useShiftStore = create<ShiftState>((set) => ({
       // API returns 404 if no shift, but axios interceptor might throw.
       // We need to handle 404 specifically as "No Active Shift" (not error)
       set({ activeShift: response.data.data as Shift });
-    } catch (err: any) {
-      if (err.response && err.response.status === 404) {
+    } catch (err: unknown) {
+      if (
+        err &&
+        typeof err === "object" &&
+        "response" in err &&
+        (err as { response: { status: number } }).response.status === 404
+      ) {
         set({ activeShift: null });
       } else {
-        set({ error: err.message || "Failed to fetch shift" });
+        set({ error: (err as Error).message || "Failed to fetch shift" });
       }
     } finally {
       set({ isLoading: false });
@@ -47,8 +52,8 @@ export const useShiftStore = create<ShiftState>((set) => ({
         },
       );
       set({ activeShift: response.data.data as Shift });
-    } catch (err: any) {
-      set({ error: err.message || "Failed to open shift" });
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || "Failed to open shift" });
       throw err;
     } finally {
       set({ isLoading: false });
@@ -63,8 +68,8 @@ export const useShiftStore = create<ShiftState>((set) => ({
         notes,
       });
       set({ activeShift: null }); // Shift closed
-    } catch (err: any) {
-      set({ error: err.message || "Failed to close shift" });
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || "Failed to close shift" });
       throw err;
     } finally {
       set({ isLoading: false });

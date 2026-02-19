@@ -225,8 +225,17 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'message': 'Invalid date format.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
+        # Determine Mitra ID
+        target_mitra_id = None
+        if request.user.is_superuser:
+            target_mitra_id = request.query_params.get('mitra_id')
+        elif hasattr(request.user, 'mitra_profile'):
+            target_mitra_id = request.user.id
+        elif hasattr(request.user, 'cashier_profile'):
+            target_mitra_id = request.user.cashier_profile.mitra.user.id
+
         # Fetch Data
-        orders = get_orders_for_export(start_date, end_date)
+        orders = get_orders_for_export(start_date, end_date, mitra_id=target_mitra_id)
         
         if export_format == 'excel':
             return self._export_to_excel(orders, start_date, end_date)
@@ -261,8 +270,16 @@ class OrderViewSet(viewsets.ModelViewSet):
                     'message': 'Invalid date format. Use YYYY-MM-DD.'
                 }, status=status.HTTP_400_BAD_REQUEST)
         
-        mitra_id = request.query_params.get('mitra_id')
-        data = get_analytics_summary(start_date, end_date, mitra_id=mitra_id)
+        # Determine Mitra ID for filtering
+        target_mitra_id = None
+        if request.user.is_superuser:
+            target_mitra_id = request.query_params.get('mitra_id')
+        elif hasattr(request.user, 'mitra_profile'):
+            target_mitra_id = request.user.id
+        elif hasattr(request.user, 'cashier_profile'):
+            target_mitra_id = request.user.cashier_profile.mitra.user.id
+
+        data = get_analytics_summary(start_date, end_date, mitra_id=target_mitra_id)
         
         return Response({
             'status': 'success',
@@ -375,7 +392,16 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'message': 'Invalid date format. Use YYYY-MM-DD.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        data = get_profit_loss_report(start_date, end_date)
+        # Determine Mitra ID
+        target_mitra_id = None
+        if request.user.is_superuser:
+            target_mitra_id = request.query_params.get('mitra_id')
+        elif hasattr(request.user, 'mitra_profile'):
+            target_mitra_id = request.user.id
+        elif hasattr(request.user, 'cashier_profile'):
+            target_mitra_id = request.user.cashier_profile.mitra.user.id
+
+        data = get_profit_loss_report(start_date, end_date, mitra_id=target_mitra_id)
 
         return Response({
             'status': 'success',
@@ -455,15 +481,17 @@ class ShiftViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # Calculate system cash
-        # Initial Cash + Total Cash Sales (Not including Transfer/QRIS potentially, depending on policy)
-        # Usually Shift Cash reconciliation is about PHYSICAL CASH.
-        # So we should filter orders by PaymentMethod.CASH
-        
+        # Initial Cash + Total Cash Sales - Total Cash Expenses
         total_cash_sales = shift.orders.filter(payment_method='CASH', status='PAID').aggregate(
             total=Sum('total_amount')
         )['total'] or 0
         
-        shift.final_cash_system = shift.initial_cash + total_cash_sales
+        # Get expenses for this shift
+        total_cash_expenses = shift.expenses.aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+        
+        shift.final_cash_system = shift.initial_cash + total_cash_sales - total_cash_expenses
         shift.final_cash_actual = final_cash_actual
         shift.end_time = timezone.now()
         shift.status = Shift.Status.CLOSED

@@ -105,13 +105,16 @@ class RestockOrderSerializer(serializers.ModelSerializer):
             'notes', 'items', 'payment',
             'created_at', 'updated_at', 'paid_at', 'preparing_at',
             'shipped_at', 'received_at', 'cancelled_at',
+            'shipped_at', 'received_at', 'cancelled_at',
             'external_order_id',
+            'mitra',
         ]
         read_only_fields = [
             'id', 'order_number', 'subtotal', 'total_amount',
             'created_at', 'updated_at', 'paid_at', 'preparing_at',
             'shipped_at', 'received_at', 'cancelled_at',
             'external_order_id',
+            'mitra',
         ]
 
     def create(self, validated_data):

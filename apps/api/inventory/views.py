@@ -22,11 +22,38 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        from django.db.models import OuterRef, Subquery, DecimalField, F, Value
+        from django.db.models.functions import Coalesce
+        from .models import IngredientStock
         
-        # Filter by status
+        queryset = self.get_queryset()
+        user = request.user
+        
+        # Annotate with Mitra-specific stock if applicable
+        if user.is_authenticated and not user.is_superuser:
+            mitra = None
+            if hasattr(user, 'mitra_profile'):
+                mitra = user.mitra_profile
+            elif hasattr(user, 'cashier_profile'):
+                mitra = user.cashier_profile.mitra
+            
+            if mitra:
+                mitra_stock_qs = IngredientStock.objects.filter(
+                    mitra=mitra,
+                    ingredient=OuterRef('pk')
+                ).values('current_stock')[:1]
+                
+                queryset = queryset.annotate(
+                    mitra_stock_val=Subquery(mitra_stock_qs, output_field=DecimalField())
+                ).annotate(
+                    current_stock=Coalesce(F('mitra_stock_val'), Value(0, output_field=DecimalField()))
+                )
+        
+        # Filter by status (using the annotated current_stock)
         stock_status = request.query_params.get('status')
         if stock_status:
+            # We must use the annotated field if it exists, but filter doesn't always see annotations directly if they mask model fields?
+            # It usually works.
             if stock_status.upper() == 'LOW':
                 queryset = queryset.filter(current_stock__lte=models.F('min_stock_alert'), current_stock__gt=0)
             elif stock_status.upper() == 'CRITICAL':
@@ -127,6 +154,18 @@ class RestockOrderViewSet(viewsets.ModelViewSet):
     queryset = RestockOrder.objects.prefetch_related('items__ingredient').select_related('payment').all()
     serializer_class = RestockOrderSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        
+        if user.is_superuser:
+            return queryset
+            
+        if hasattr(user, 'mitra_profile'):
+            return queryset.filter(mitra=user.mitra_profile)
+            
+        return queryset.none()
+
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
@@ -148,7 +187,20 @@ class RestockOrderViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        
+        # Set Mitra
+        user = request.user
+        mitra = None
+        if hasattr(user, 'mitra_profile'):
+            mitra = user.mitra_profile
+        
+        if not mitra:
+             return Response(
+                {'status': 'error', 'message': 'Only Mitra can create restock orders.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
+        serializer.save(mitra=mitra)
         return Response(
             {'status': 'success', 'data': serializer.data},
             status=status.HTTP_201_CREATED

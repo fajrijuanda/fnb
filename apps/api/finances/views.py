@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from .models import Expense
 from .serializers import ExpenseSerializer, ExpenseCreateSerializer
-from users.models import Mitra
+
 
 
 class ExpenseViewSet(viewsets.ModelViewSet):
@@ -32,16 +32,14 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         qs = Expense.objects.all()
 
         # Filter by mitra for non-superadmin users
-        if user.role != 'superadmin':
-            try:
-                mitra = Mitra.objects.get(user=user)
-                qs = qs.filter(mitra=mitra)
-            except Mitra.DoesNotExist:
-                # Cashier -> find their owner mitra
-                if hasattr(user, 'cashier_profile'):
-                    qs = qs.filter(mitra=user.cashier_profile.mitra)
-                else:
-                    return Expense.objects.none()
+        # Filter by mitra for non-superadmin users
+        if not user.is_superuser:
+            if hasattr(user, 'mitra_profile'):
+                qs = qs.filter(mitra=user.mitra_profile)
+            elif hasattr(user, 'cashier_profile'):
+                qs = qs.filter(mitra=user.cashier_profile.mitra)
+            else:
+                return Expense.objects.none()
         else:
             # Superadmin can filter by mitra_id
             mitra_id = self.request.query_params.get('mitra_id')
@@ -65,14 +63,20 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        try:
-            mitra = Mitra.objects.get(user=user)
-        except Mitra.DoesNotExist:
-            if hasattr(user, 'cashier_profile'):
-                mitra = user.cashier_profile.mitra
-            else:
-                raise Exception("User is not linked to a Mitra.")
-        serializer.save(mitra=mitra)
+        mitra = None
+        shift = None
+        
+        if hasattr(user, 'mitra_profile'):
+            mitra = user.mitra_profile
+        elif hasattr(user, 'cashier_profile'):
+            mitra = user.cashier_profile.mitra
+            # Try to get open shift
+            from sales.models import Shift
+            shift = Shift.objects.filter(cashier=user, status=Shift.Status.OPEN).first()
+        else:
+             raise Exception("User is not linked to a Mitra.")
+             
+        serializer.save(mitra=mitra, shift=shift)
 
     @action(detail=False, methods=['get'])
     def summary(self, request):
