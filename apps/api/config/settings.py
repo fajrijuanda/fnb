@@ -127,8 +127,15 @@ def get_bool_env(name, default=False):
     val = os.environ.get(name, str(default))
     return val.lower() in ('true', '1', 'yes', 'on')
 
-# Only use Cloudinary in production or if explicitly set
-if get_bool_env('USE_CLOUDINARY'):
+# Only use Cloudinary in production or if explicitly set OR if credentials are present
+# This ensures images persist even if USE_CLOUDINARY env var is missed
+use_cloudinary = get_bool_env('USE_CLOUDINARY') or (
+    CLOUDINARY_STORAGE['CLOUD_NAME'] and 
+    CLOUDINARY_STORAGE['API_KEY'] and 
+    CLOUDINARY_STORAGE['API_SECRET']
+)
+
+if use_cloudinary:
     items = ['cloudinary_storage', 'cloudinary']
     # Add to installed apps if not present (handled dynamically or just ensuring they are installed)
     INSTALLED_APPS += items
