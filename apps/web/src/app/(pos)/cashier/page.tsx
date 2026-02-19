@@ -219,16 +219,7 @@ export default function CashierPage() {
 
                                         <div className="my-1 border-t border-gray-100 dark:border-white/5" />
 
-                                        <button
-                                            onClick={() => {
-                                                setShowCloseShiftModal(true);
-                                                setIsProfileDropdownOpen(false);
-                                            }}
-                                            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                                        >
-                                            <LogOut className="h-4 w-4" />
-                                            Tutup Shift
-                                        </button>
+
 
                                         <button
                                             onClick={() => {

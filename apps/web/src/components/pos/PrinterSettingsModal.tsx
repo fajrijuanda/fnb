@@ -72,7 +72,7 @@ export function PrinterSettingsModal({ isOpen, onClose }: PrinterSettingsModalPr
                 {/* Header */}
                 <div className="p-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between flex-shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                        <div className="h-9 w-9 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary">
                             <Printer className="h-4 w-4" />
                         </div>
                         <div>
@@ -108,7 +108,7 @@ export function PrinterSettingsModal({ isOpen, onClose }: PrinterSettingsModalPr
                         {isConnected ? (
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Bluetooth className="h-4 w-4 text-blue-500" />
+                                    <Bluetooth className="h-4 w-4 text-primary" />
                                     <span className="text-sm font-medium text-gray-900 dark:text-white">{printerName || 'Unknown Device'}</span>
                                 </div>
                                 <button
@@ -124,7 +124,7 @@ export function PrinterSettingsModal({ isOpen, onClose }: PrinterSettingsModalPr
                                 <div className="grid grid-cols-2 gap-2">
                                     <button
                                         onClick={handleConnectBluetooth}
-                                        className="flex items-center justify-center gap-2 p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                                        className="flex items-center justify-center gap-2 p-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
                                     >
                                         <Bluetooth className="h-4 w-4" />
                                         <span className="text-xs font-bold">Bluetooth</span>
@@ -157,7 +157,7 @@ export function PrinterSettingsModal({ isOpen, onClose }: PrinterSettingsModalPr
                                     checked={localSettings.autoConnect}
                                     onChange={(e) => setLocalSettings({ ...localSettings, autoConnect: e.target.checked })}
                                 />
-                                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 dark:peer-focus:ring-primary/80 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                             </label>
                         </div>
 
@@ -173,7 +173,7 @@ export function PrinterSettingsModal({ isOpen, onClose }: PrinterSettingsModalPr
                                     checked={localSettings.printQRIS}
                                     onChange={(e) => setLocalSettings({ ...localSettings, printQRIS: e.target.checked })}
                                 />
-                                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 dark:peer-focus:ring-primary/80 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                             </label>
                         </div>
                     </div>
@@ -191,7 +191,7 @@ export function PrinterSettingsModal({ isOpen, onClose }: PrinterSettingsModalPr
                     </button>
                     <button
                         onClick={handleSave}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
                     >
                         <Save className="h-3.5 w-3.5" />
                         Simpan
