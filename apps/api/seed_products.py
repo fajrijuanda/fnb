@@ -58,7 +58,7 @@ def seed_products():
         # DIMSUM
         {
             'category': 'Dimsum',
-            'name': 'Dimsum - Paket Single',
+            'name': 'Dimsum - Paket Reguler',
             'description': '3 Pcs. Dimsum Mix Rasa',
             'price': 10000,
             'track_inventory': False,
@@ -67,7 +67,7 @@ def seed_products():
         },
         {
             'category': 'Dimsum',
-            'name': 'Dimsum - Paket Bareng',
+            'name': 'Dimsum - Paket Kenyang',
             'description': '7 Pcs. Dimsum Mix Rasa (Best Seller)',
             'price': 20000,
             'track_inventory': False,
@@ -76,58 +76,60 @@ def seed_products():
         },
         {
             'category': 'Dimsum',
-            'name': 'Dimsum Mentai',
-            'description': '6 Pcs. Dimsum Mix Rasa + Saus Mentai Special',
-            'price': 30000,
+            'name': 'Dimsum - Satuan',
+            'description': '1 Pc. Dimsum (Tambahan)',
+            'price': 3500,
             'track_inventory': False,
             'order': 3,
-            'image': 'products/dimsum-mentai.jpg',
+            'image': 'products/dimsum-mentai.jpg', # Reusing image path for now
         },
-        # GYOZA
+        # GYOZA KUKUS
         {
             'category': 'Gyoza',
-            'name': 'Gyoza Kukus - Paket Single',
+            'name': 'Gyoza Kukus - Paket Reguler',
             'description': '4 Pcs. Gyoza Kukus',
             'price': 10000,
             'track_inventory': False,
-            'order': 1,
+            'order': 4,
             'image': 'products/gyoza-kukus-single.jpg',
         },
         {
             'category': 'Gyoza',
-            'name': 'Gyoza Kukus - Paket Bareng',
+            'name': 'Gyoza Kukus - Paket Kenyang',
             'description': '10 Pcs. Gyoza Kukus',
             'price': 20000,
             'track_inventory': False,
-            'order': 2,
+            'order': 5,
             'image': 'products/gyoza-kukus-bareng.jpg',
         },
+        # GYOZA GORENG
+        {
+            'category': 'Gyoza',
+            'name': 'Gyoza Goreng - Paket Reguler',
+            'description': '4 Pcs. Gyoza Goreng',
+            'price': 10000,
+            'track_inventory': False,
+            'order': 6,
+            'image': 'products/gyoza-goreng-single.jpg',
+        },
+        {
+            'category': 'Gyoza',
+            'name': 'Gyoza Goreng - Paket Kenyang',
+            'description': '10 Pcs. Gyoza Goreng',
+            'price': 20000,
+            'track_inventory': False,
+            'order': 7,
+            'image': 'products/gyoza-goreng-bareng.jpg',
+        },
+        # GYOZA MENTAI
         {
             'category': 'Gyoza',
             'name': 'Gyoza Mentai',
             'description': '7 Pcs. Gyoza Kukus + Saus Mentai Special',
             'price': 25000,
             'track_inventory': False,
-            'order': 3,
+            'order': 8,
             'image': 'products/gyoza-mentai.jpg',
-        },
-        {
-            'category': 'Gyoza',
-            'name': 'Gyoza Goreng - Paket Single',
-            'description': '4 Pcs. Gyoza Goreng',
-            'price': 10000,
-            'track_inventory': False,
-            'order': 4,
-            'image': 'products/gyoza-goreng-single.jpg',
-        },
-        {
-            'category': 'Gyoza',
-            'name': 'Gyoza Goreng - Paket Bareng',
-            'description': '10 Pcs. Gyoza Goreng',
-            'price': 20000,
-            'track_inventory': False,
-            'order': 5,
-            'image': 'products/gyoza-goreng-bareng.jpg',
         },
         # WONTON
         {
@@ -136,7 +138,7 @@ def seed_products():
             'description': '8 Pcs. Wonton Kuah',
             'price': 10000,
             'track_inventory': False,
-            'order': 1,
+            'order': 9,
             'image': 'products/wonton-kuah.jpg',
         },
         {
@@ -145,7 +147,7 @@ def seed_products():
             'description': '8 Pcs. Wonton Goreng',
             'price': 10000,
             'track_inventory': False,
-            'order': 2,
+            'order': 10,
             'image': 'products/wonton-goreng.jpg',
         }
     ]
