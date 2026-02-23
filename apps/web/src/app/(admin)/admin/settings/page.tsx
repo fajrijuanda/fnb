@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useToast } from '@/components/ToastContext';
 import { useNotification } from '@/context/NotificationContext';
 import { useRouter } from 'next/navigation';
+import { getImageUrl } from '@/lib/utils';
 import {
     User,
     Lock,
@@ -37,7 +38,7 @@ export default function SettingsPage() {
     // Profile State
     const [name, setName] = useState(user?.username || '');
     const [email, setEmail] = useState(user?.email || '');
-    const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(getImageUrl(user?.avatar) || null);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,7 +71,7 @@ export default function SettingsPage() {
         if (user) {
             setName(user.username);
             setEmail(user.email);
-            if (user.avatar) setAvatarPreview(user.avatar);
+            if (user.avatar) setAvatarPreview(getImageUrl(user.avatar));
 
             if (user.payment_info) {
                 setPaymentInfo({
@@ -81,7 +82,7 @@ export default function SettingsPage() {
                     ewallet_number: user.payment_info.ewallet_number || ''
                 });
                 if (user.payment_info.qris_image) {
-                    setQrisPreview(user.payment_info.qris_image);
+                    setQrisPreview(getImageUrl(user.payment_info.qris_image));
                 }
             } else if (user.role === 'mitra') {
                 api.get(`/users/${user.id}/`).then(res => {
@@ -97,7 +98,7 @@ export default function SettingsPage() {
                             ewallet_number: pi.ewallet_number || ''
                         });
                         if (pi.qris_image) {
-                            setQrisPreview(pi.qris_image);
+                            setQrisPreview(getImageUrl(pi.qris_image));
                         }
                         updateProfile({ payment_info: userData.payment_info });
                     }
@@ -157,6 +158,9 @@ export default function SettingsPage() {
                 email: updatedUser.email,
                 avatar: updatedUser.avatar,
             });
+            if (updatedUser.avatar) {
+                setAvatarPreview(getImageUrl(updatedUser.avatar));
+            }
             success('Profil berhasil diperbarui');
         } catch (err) {
             console.error(err);
@@ -219,7 +223,7 @@ export default function SettingsPage() {
                     }
                 });
                 if (updatedUser.payment_info.qris_image) {
-                    setQrisPreview(updatedUser.payment_info.qris_image);
+                    setQrisPreview(getImageUrl(updatedUser.payment_info.qris_image));
                 }
             }
             success('Metode pembayaran disimpan');

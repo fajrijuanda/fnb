@@ -7,14 +7,16 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
 import { NotificationDropdown } from './NotificationDropdown';
 import Link from 'next/link';
-import Image from 'next/image';
 import api from '@/lib/api';
+import { getImageUrl } from '@/lib/utils';
 
 export function AdminNavbar() {
     const { user } = useAuthStore();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [spreadsheetUrl, setSpreadsheetUrl] = useState<string | null>(null);
+    const [failedAvatarSrc, setFailedAvatarSrc] = useState<string | null>(null);
+    const avatarSrc = user?.avatar ? getImageUrl(user.avatar) : '';
 
     useEffect(() => {
         if (user) {
@@ -78,13 +80,13 @@ export function AdminNavbar() {
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
                         className="flex items-center gap-3 rounded-xl p-1 pr-3 hover:bg-gray-100 dark:hover:bg-white/10 transition-all border border-transparent hover:border-gray-200 dark:hover:border-white/5"
                     >
-                        {user?.avatar ? (
-                            <Image
-                                src={user.avatar}
+                        {user?.avatar && failedAvatarSrc !== avatarSrc ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={avatarSrc}
                                 alt="User Avatar"
-                                width={36}
-                                height={36}
                                 className="h-9 w-9 rounded-lg object-cover shadow-lg shadow-black/10"
+                                onError={() => setFailedAvatarSrc(avatarSrc)}
                             />
                         ) : (
                             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#C5161D] to-[#A01217] text-white shadow-lg shadow-red-900/20">
