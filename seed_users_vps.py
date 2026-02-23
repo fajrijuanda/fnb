@@ -1,0 +1,71 @@
+import os
+import sys
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+os.environ['DATABASE_URL'] = 'postgres://fnb_user:OmdenFnb2026!@localhost:5432/fnb_db'
+os.environ['DEBUG'] = 'False'
+os.environ['ALLOWED_HOSTS'] = '103.87.66.233,localhost,127.0.0.1'
+os.environ['SECRET_KEY'] = 'omden-fnb-production-secret-key-2026-change-me'
+
+sys.path.insert(0, '/var/www/fnb/apps/api')
+django.setup()
+
+from django.contrib.auth import get_user_model
+from users.models import Mitra, Cashier
+from subscriptions.models import Subscription
+from django.utils import timezone
+from datetime import timedelta
+
+User = get_user_model()
+
+# 1. Create Superuser
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser('admin', 'admin@omden.com', 'admin123')
+    u = User.objects.get(username='admin')
+    Subscription.objects.create(user=u, plan_name='Lifetime Access (Admin)', status='active', start_date=timezone.now().date(), end_date=timezone.now().date() + timedelta(days=36500))
+    print("Created admin superuser")
+else:
+    print("Admin already exists")
+
+# 2. Create Mitra 1 (Eksekutif)
+if not User.objects.filter(username='mitra1').exists():
+    u = User.objects.create_user('mitra1', 'mitra1@example.com', 'mitra123')
+    u.is_staff = True
+    u.save()
+    Mitra.objects.create(user=u, location='Jakarta Selatan')
+    Subscription.objects.create(user=u, plan_name='Eksekutif', status='active', start_date=timezone.now().date(), end_date=timezone.now().date() + timedelta(days=730))
+    print("Created mitra1")
+else:
+    print("mitra1 exists")
+
+# 3. Create Mitra 2 (Eksklusif)
+if not User.objects.filter(username='mitra2').exists():
+    u = User.objects.create_user('mitra2', 'mitra2@example.com', 'mitra123')
+    u.is_staff = True
+    u.save()
+    Mitra.objects.create(user=u, location='Bandung')
+    Subscription.objects.create(user=u, plan_name='Eksklusif', status='active', start_date=timezone.now().date(), end_date=timezone.now().date() + timedelta(days=730))
+    print("Created mitra2")
+else:
+    print("mitra2 exists")
+
+# 4. Cashier for mitra1
+if not User.objects.filter(username='kasir1').exists():
+    m = User.objects.get(username='mitra1').mitra_profile
+    u = User.objects.create_user('kasir1', 'kasir1@example.com', 'kasir123')
+    Cashier.objects.create(user=u, mitra=m)
+    print("Created kasir1")
+else:
+    print("kasir1 exists")
+
+# 5. Cashier for mitra2
+if not User.objects.filter(username='kasir2').exists():
+    m = User.objects.get(username='mitra2').mitra_profile
+    u = User.objects.create_user('kasir2', 'kasir2@example.com', 'kasir123')
+    Cashier.objects.create(user=u, mitra=m)
+    print("Created kasir2")
+else:
+    print("kasir2 exists")
+
+print("=== User seeding complete! ===")
