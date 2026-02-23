@@ -18,13 +18,11 @@ import {
     Eye,
     EyeOff,
     AlertTriangle,
-    Store,
-    Wallet,
     Bell,
     FileSpreadsheet,
+    QrCode,
 } from 'lucide-react';
 import { DeviceManagement } from '@/components/settings/DeviceManagement';
-import { FormSelect } from '@/components/admin/FormSelect';
 
 type Tab = 'profile' | 'security' | 'payment' | 'preferences' | 'devices';
 
@@ -42,6 +40,11 @@ export default function SettingsPage() {
     const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // QRIS State
+    const [qrisPreview, setQrisPreview] = useState<string | null>(null);
+    const [qrisFile, setQrisFile] = useState<File | null>(null);
+    const qrisInputRef = useRef<HTMLInputElement>(null);
 
     // Security State
     const [newPassword, setNewPassword] = useState('');
@@ -90,6 +93,9 @@ export default function SettingsPage() {
                             ewallet_type: pi.ewallet_type || '',
                             ewallet_number: pi.ewallet_number || ''
                         });
+                        if (pi.qris_image) {
+                            setQrisPreview(pi.qris_image);
+                        }
                         updateProfile({ payment_info: userData.payment_info });
                     }
                 }).catch(err => console.error("Failed to fetch user details", err));
@@ -114,6 +120,15 @@ export default function SettingsPage() {
             setAvatarFile(file);
             const objectUrl = URL.createObjectURL(file);
             setAvatarPreview(objectUrl);
+        }
+    };
+
+    const handleQrisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setQrisFile(file);
+            const objectUrl = URL.createObjectURL(file);
+            setQrisPreview(objectUrl);
         }
     };
 
@@ -179,6 +194,9 @@ export default function SettingsPage() {
         try {
             const formData = new FormData();
             formData.append('payment_info', JSON.stringify(paymentInfo));
+            if (qrisFile) {
+                formData.append('qris_image', qrisFile);
+            }
 
             const res = await api.patch(`/users/${user.id}/`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -192,7 +210,8 @@ export default function SettingsPage() {
                     bank_account_number: updatedUser.payment_info?.bank_account_number,
                     bank_account_holder: updatedUser.payment_info?.bank_account_holder,
                     ewallet_type: updatedUser.payment_info?.ewallet_type,
-                    ewallet_number: updatedUser.payment_info?.ewallet_number
+                    ewallet_number: updatedUser.payment_info?.ewallet_number,
+                    qris_image: updatedUser.payment_info?.qris_image
                 } : undefined
             });
             success('Metode pembayaran disimpan');
@@ -479,79 +498,45 @@ export default function SettingsPage() {
                                     Metode Pembayaran
                                 </h2>
 
-                                <div className="grid gap-6 md:grid-cols-2">
-                                    {/* Bank Account */}
-                                    <div className="space-y-4 p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                                        <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                            <Store size={18} className="text-gray-500" />
-                                            Rekening Bank
-                                        </h3>
-                                        <div className="space-y-3">
-                                            <div>
-                                                <label className="text-xs font-medium text-gray-500 mb-1 block">Nama Bank</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Contoh: BCA, Mandiri"
-                                                    value={paymentInfo.bank_name || ''}
-                                                    onChange={(e) => setPaymentInfo({ ...paymentInfo, bank_name: e.target.value })}
-                                                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121212] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#C5161D]/20 focus:border-[#C5161D] transition-all"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-medium text-gray-500 mb-1 block">Nomor Rekening</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Nomor Rekening"
-                                                    value={paymentInfo.bank_account_number || ''}
-                                                    onChange={(e) => setPaymentInfo({ ...paymentInfo, bank_account_number: e.target.value })}
-                                                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121212] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#C5161D]/20 focus:border-[#C5161D] transition-all"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs font-medium text-gray-500 mb-1 block">Atas Nama</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Nama Pemilik Rekening"
-                                                    value={paymentInfo.bank_account_holder || ''}
-                                                    onChange={(e) => setPaymentInfo({ ...paymentInfo, bank_account_holder: e.target.value })}
-                                                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121212] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#C5161D]/20 focus:border-[#C5161D] transition-all"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div className="grid gap-6">
 
-                                    {/* E-Wallet */}
-                                    <div className="space-y-4 p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                                    {/* QRIS Upload */}
+                                    <div className="space-y-4 p-5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 md:col-span-2">
                                         <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                            <Wallet size={18} className="text-gray-500" />
-                                            E-Wallet
+                                            <QrCode size={18} className="text-gray-500" />
+                                            QRIS Pembayaran
                                         </h3>
-                                        <div className="space-y-3">
-                                            <div>
-                                                <label className="text-xs font-medium text-gray-500 mb-1 block">Tipe E-Wallet</label>
-                                                <FormSelect
-                                                    value={paymentInfo.ewallet_type || ''}
-                                                    onChange={(val) => setPaymentInfo({ ...paymentInfo, ewallet_type: val as string })}
-                                                    options={[
-                                                        { value: '', label: 'Pilih E-Wallet' },
-                                                        { value: 'GOPAY', label: 'GoPay' },
-                                                        { value: 'OVO', label: 'OVO' },
-                                                        { value: 'DANA', label: 'DANA' },
-                                                        { value: 'SHOPEEPAY', label: 'ShopeePay' },
-                                                        { value: 'LINKAJA', label: 'LinkAja' },
-                                                    ]}
-                                                    className="w-full"
-                                                />
+                                        <div className="flex flex-col md:flex-row items-center gap-6">
+                                            <div className="relative group flex-shrink-0">
+                                                <div className="h-48 w-48 rounded-2xl bg-white dark:bg-[#121212] flex flex-col items-center justify-center border-2 border-dashed border-gray-200 dark:border-white/10 overflow-hidden cursor-pointer hover:border-[#C5161D]/50 transition-colors" onClick={() => qrisInputRef.current?.click()}>
+                                                    {qrisPreview ? (
+                                                        // eslint-disable-next-line @next/next/no-img-element
+                                                        <img src={qrisPreview} alt="QRIS" className="w-full h-full object-contain p-2" />
+                                                    ) : (
+                                                        <div className="text-center p-4">
+                                                            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                                                            <span className="text-xs text-gray-500 font-medium">Upload Gambar QRIS</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Upload className="text-white mb-1" size={24} />
+                                                        <span className="text-xs text-white font-medium">Ubah Gambar</span>
+                                                    </div>
+                                                </div>
+                                                <input type="file" ref={qrisInputRef} className="hidden" accept="image/*" onChange={handleQrisChange} />
                                             </div>
-                                            <div>
-                                                <label className="text-xs font-medium text-gray-500 mb-1 block">Nomor E-Wallet</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Nomor HP E-Wallet"
-                                                    value={paymentInfo.ewallet_number || ''}
-                                                    onChange={(e) => setPaymentInfo({ ...paymentInfo, ewallet_number: e.target.value })}
-                                                    className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#121212] px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#C5161D]/20 focus:border-[#C5161D] transition-all"
-                                                />
+                                            <div className="flex-1 space-y-2">
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                    Unggah gambar QRIS statis toko Anda. Gambar ini akan ditampilkan di halaman kasir saat pelanggan memilih metode pembayaran QRIS.
+                                                </p>
+                                                <p className="text-xs font-semibold text-gray-500">
+                                                    Format: JPG, PNG. Maksimal ukuran: 5MB. Pastikan gambar terlihat jelas dan dapat di-scan.
+                                                </p>
+                                                {qrisPreview && (
+                                                    <button onClick={() => { setQrisPreview(null); setQrisFile(null); if (qrisInputRef.current) qrisInputRef.current.value = ""; }} className="text-xs mt-2 font-bold text-red-500 hover:text-red-600 hover:underline">
+                                                        Hapus Gambar
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

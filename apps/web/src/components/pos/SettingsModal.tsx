@@ -462,22 +462,6 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                             <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 dark:peer-focus:ring-primary/80 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
                                         </label>
                                     </div>
-
-                                    <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">Cetak QRIS</p>
-                                            <p className="text-[10px] text-gray-500 dark:text-gray-400">Tampilkan QR code di struk</p>
-                                        </div>
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                className="sr-only peer"
-                                                checked={localPrinterSettings.printQRIS}
-                                                onChange={(e) => setLocalPrinterSettings({ ...localPrinterSettings, printQRIS: e.target.checked })}
-                                            />
-                                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/30 dark:peer-focus:ring-primary/80 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
-                                        </label>
-                                    </div>
                                 </div>
 
                                 <div className="flex gap-3">

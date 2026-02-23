@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Loader2, Banknote, QrCode, CreditCard, CheckCircle, Printer } from 'lucide-react';
+import { X, Loader2, Banknote, QrCode, CheckCircle, Printer } from 'lucide-react';
 import { useCartStore } from '@/store';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useNotification } from '@/context/NotificationContext';
 import { formatRupiah, cn } from '@/lib/utils';
 import api from '@/lib/api';
 import type { CreateOrderRequest, OrderResponse, WrappedResponse, StoreSettings } from '@/types/api';
 import Image from 'next/image';
 
-type PaymentMethod = 'CASH' | 'QRIS' | 'TRANSFER';
+type PaymentMethod = 'CASH' | 'QRIS';
 
 interface CheckoutModalProps {
     isOpen: boolean;
@@ -20,6 +21,7 @@ interface CheckoutModalProps {
 
 export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps) {
     const { items, getTotalPrice, clearCart } = useCartStore();
+    const { user } = useAuthStore();
     const { addNotification } = useNotification();
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
     const [customerName, setCustomerName] = useState('');
@@ -60,6 +62,8 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
     }, [isOpen]);
 
     const total = getTotalPrice();
+    const paymentInfo = user?.payment_info;
+    const qrisImage = paymentInfo?.qris_image || storeSettings?.qris_image;
 
     // Live Clock
     useEffect(() => {
@@ -99,7 +103,6 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
     const paymentMethods = [
         { id: 'CASH' as PaymentMethod, label: 'Tunai', icon: Banknote },
         { id: 'QRIS' as PaymentMethod, label: 'QRIS', icon: QrCode },
-        { id: 'TRANSFER' as PaymentMethod, label: 'Transfer', icon: CreditCard },
     ];
 
     const handleCheckout = async () => {
@@ -284,11 +287,11 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                 <p className="text-lg font-bold text-primary mt-1">{formatRupiah(total)}</p>
                                 <p className="text-xs text-gray-500">Dana / GoPay / OVO / ShopeePay</p>
                             </>
-                        ) : storeSettings.qris_image ? (
+                        ) : qrisImage ? (
                             <>
                                 <div className="relative w-48 h-48 mb-3">
                                     <Image
-                                        src={storeSettings.qris_image}
+                                        src={qrisImage}
                                         alt="QRIS Code"
                                         fill
                                         className="object-contain"
@@ -297,7 +300,12 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                 </div>
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">Scan QRIS untuk membayar</p>
                                 <p className="text-lg font-bold text-primary mt-1">{formatRupiah(total)}</p>
-                                <p className="text-xs text-gray-500">Dana / GoPay / OVO / ShopeePay</p>
+                                <p className="text-xs text-gray-500 mb-3">Scan menggunakan aplikasi E-Wallet atau M-Banking</p>
+                                <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg p-3 max-w-sm">
+                                    <p className="text-xs text-red-600 dark:text-red-400 font-medium">
+                                        ⚠️ Pastikan pelanggan telah menunjukkan bukti pembayaran berhasil di aplikasi mereka dengan nominal yang sesuai sebelum Anda menekan tombol Bayar.
+                                    </p>
+                                </div>
                             </>
                         ) : (
                             <>
@@ -309,51 +317,6 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                         )}
                     </div>
                 )}
-
-                {storeSettings && paymentMethod === 'TRANSFER' && (
-                    <div className="mb-6 space-y-3">
-                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                            <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">Bank Transfer</p>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-bold text-gray-900 dark:text-white">{storeSettings.bank_name}</span>
-                                <span className="text-sm font-mono text-gray-700 dark:text-gray-300 bg-white dark:bg-black/20 px-2 py-1 rounded">{storeSettings.bank_account}</span>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">a.n. {storeSettings.bank_holder}</p>
-                        </div>
-                        {(storeSettings.dana_number || storeSettings.gopay_number || storeSettings.ovo_number || storeSettings.shopeepay_number) && (
-                            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-900/30">
-                                <p className="text-xs text-green-600 dark:text-green-400 font-medium mb-2">E-Wallet</p>
-                                <div className="space-y-1">
-                                    {storeSettings.dana_number && (
-                                        <div className="flex justify-between text-xs">
-                                            <span className="text-gray-600 dark:text-gray-400">DANA</span>
-                                            <span className="font-mono text-gray-900 dark:text-white">{storeSettings.dana_number}</span>
-                                        </div>
-                                    )}
-                                    {storeSettings.gopay_number && (
-                                        <div className="flex justify-between text-xs">
-                                            <span className="text-gray-600 dark:text-gray-400">GoPay</span>
-                                            <span className="font-mono text-gray-900 dark:text-white">{storeSettings.gopay_number}</span>
-                                        </div>
-                                    )}
-                                    {storeSettings.ovo_number && (
-                                        <div className="flex justify-between text-xs">
-                                            <span className="text-gray-600 dark:text-gray-400">OVO</span>
-                                            <span className="font-mono text-gray-900 dark:text-white">{storeSettings.ovo_number}</span>
-                                        </div>
-                                    )}
-                                    {storeSettings.shopeepay_number && (
-                                        <div className="flex justify-between text-xs">
-                                            <span className="text-gray-600 dark:text-gray-400">ShopeePay</span>
-                                            <span className="font-mono text-gray-900 dark:text-white">{storeSettings.shopeepay_number}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
 
                 {/* Error */}
                 {error && (
@@ -389,7 +352,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                     </button>
                 </div>
             </div>
-        </div>,
+        </div >,
         document.body
     );
 }

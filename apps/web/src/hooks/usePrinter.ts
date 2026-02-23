@@ -13,7 +13,6 @@ interface BluetoothDevice {
 export interface PrinterSettings {
   type: "browser" | "rawbt" | "bluetooth";
   autoConnect: boolean;
-  printQRIS: boolean;
   deviceName?: string; // For Bluetooth
   deviceId?: string; // For Bluetooth
 }
@@ -21,7 +20,6 @@ export interface PrinterSettings {
 const DEFAULT_SETTINGS: PrinterSettings = {
   type: "browser",
   autoConnect: false,
-  printQRIS: false,
 };
 
 export function usePrinter() {

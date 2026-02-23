@@ -61,15 +61,20 @@ class UserSerializer(serializers.ModelSerializer):
     def get_payment_info(self, obj):
         try:
             mitra = obj.mitra_profile
-            return {
-                'bank_name': mitra.bank_name,
-                'bank_account_number': mitra.bank_account_number,
-                'bank_account_holder': mitra.bank_account_holder,
-                'ewallet_type': mitra.ewallet_type,
-                'ewallet_number': mitra.ewallet_number,
-            }
         except Mitra.DoesNotExist:
-            return None
+            try:
+                mitra = obj.cashier_profile.mitra
+            except Cashier.DoesNotExist:
+                return None
+        
+        return {
+            'bank_name': mitra.bank_name,
+            'bank_account_number': mitra.bank_account_number,
+            'bank_account_holder': mitra.bank_account_holder,
+            'ewallet_type': mitra.ewallet_type,
+            'ewallet_number': mitra.ewallet_number,
+            'qris_image': mitra.qris_image.url if mitra.qris_image else None,
+        }
         
     def get_role(self, obj):
         if obj.is_superuser:
@@ -187,6 +192,14 @@ class UserSerializer(serializers.ModelSerializer):
                         if field in payment_info:
                             setattr(mitra, field, payment_info[field])
                     mitra.save()
+
+            qris_image = self.context['request'].FILES.get('qris_image')
+            if qris_image is not None:
+                if qris_image == '':
+                    mitra.qris_image = None
+                else:
+                    mitra.qris_image = qris_image
+                mitra.save()
 
         
         # Avatar is on UserProfile

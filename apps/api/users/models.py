@@ -33,8 +33,17 @@ class Mitra(models.Model):
     bank_account_holder = models.CharField(max_length=255, null=True, blank=True)
     ewallet_type = models.CharField(max_length=50, null=True, blank=True) # e.g. OVO, DANA, GOPAY
     ewallet_number = models.CharField(max_length=50, null=True, blank=True)
+    qris_image = models.ImageField(upload_to='qris/', null=True, blank=True)
     google_sheet_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID of the Google Sheet for this Mitra's daily report")
     
+    def save(self, *args, **kwargs):
+        if self.qris_image:
+             if hasattr(self.qris_image, 'file'):
+                 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
+                 if isinstance(self.qris_image.file, (InMemoryUploadedFile, TemporaryUploadedFile)):
+                     self.qris_image = compress_image(self.qris_image)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f'Mitra: {self.user.username}'
 

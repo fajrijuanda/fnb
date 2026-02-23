@@ -37,6 +37,7 @@ interface AdminLayoutProps {
 const superadminNav = [
     { href: '/admin', label: 'Dasbor', icon: LayoutDashboard },
     { href: '/admin/analytics', label: 'Analitik', icon: PieChart },
+    { href: '/admin/shifts', label: 'Shift Outlet', icon: Clock },
     { href: '/admin/users', label: 'Pengguna', icon: Users },
     { href: '/admin/subscriptions', label: 'Langganan', icon: CreditCard },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },

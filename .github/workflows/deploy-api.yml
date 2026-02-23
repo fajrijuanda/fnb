@@ -1,0 +1,50 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - master # Triggers when code is pushed to the master branch
+    paths:
+      - "apps/api/**" # Only trigger if changes happen in the API
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }} # IP Address of the VPS
+          username: ${{ secrets.VPS_USERNAME }} # e.g., root or ubuntu
+          key: ${{ secrets.VPS_SSH_KEY }} # Private SSH key
+          port: ${{ secrets.VPS_PORT }} # e.g., 22
+          script: |
+            # Go to the project directory
+            cd /root/fnb-project/fnb
+
+            # Pull latest changes from git
+            git fetch origin master
+            git reset --hard origin/master
+
+            # Setup Backend (API)
+            cd apps/api
+
+            # Activate virtual environment
+            source venv/bin/activate
+
+            # Install any new dependencies if needed
+            pip install -r requirements.txt
+
+            # Run database migrations without reseeding
+            python manage.py makemigrations
+            python manage.py migrate
+
+            # Restart backend services
+            # Assuming you use pm2 or systemd (Gunicorn). Adjust this line if you use something else:
+            pm2 reload api || pm2 restart all
+
+            echo "API Deploy & Migration Completed Successfully!"
