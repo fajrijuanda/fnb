@@ -9,6 +9,7 @@ interface ProductVariantModalProps {
     isOpen: boolean;
     onClose: () => void;
     product: Product;
+    addonProduct?: Product;
     onAddToOrder: (
         product: Product,
         quantity: number,
@@ -22,10 +23,11 @@ interface ItemSelection {
     id: string; // Unique ID for React keys
     variantId: number | null;
     modifierCounts: Record<number, number>; // modifierOptionId -> count
+    addonCount: number;
     note: string;
 }
 
-export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: ProductVariantModalProps) {
+export function ProductVariantModal({ isOpen, onClose, product, addonProduct, onAddToOrder }: ProductVariantModalProps) {
     // State to track ALL items. Length of array = quantity.
     const [selections, setSelections] = useState<ItemSelection[]>([]);
 
@@ -36,6 +38,7 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                 id: crypto.randomUUID(),
                 variantId: null,
                 modifierCounts: {},
+                addonCount: 0,
                 note: ''
             }]);
         } else if (!isOpen) {
@@ -53,6 +56,8 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
 
     const hasVariants = product.variants && product.variants.length > 0;
     const hasModifiers = product.modifier_groups && product.modifier_groups.length > 0;
+    const isDimsum = product.name.toLowerCase().includes('dimsum');
+    const showAddon = isDimsum && !!addonProduct;
 
     const getGroupTotalCount = (selectionIndex: number, groupId: number) => {
         let total = 0;
@@ -79,6 +84,7 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                     id: crypto.randomUUID(),
                     variantId: null,
                     modifierCounts: {},
+                    addonCount: 0,
                     note: ''
                 }));
                 return [...prev, ...newItems];
@@ -139,6 +145,16 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
         });
     };
 
+    const setAddonCount = (index: number, delta: number) => {
+        setSelections(prev => {
+            const next = [...prev];
+            const currentItem = { ...next[index] };
+            currentItem.addonCount = Math.max(0, currentItem.addonCount + delta);
+            next[index] = currentItem;
+            return next;
+        });
+    };
+
     // --- Calculations ---
 
     const calculateTotal = () => {
@@ -151,6 +167,11 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
             if (sel.variantId) {
                 const variant = product.variants?.find(v => v.id === sel.variantId);
                 if (variant) itemTotal += variant.price_adjustment;
+            }
+
+            // Add addon price
+            if (showAddon && sel.addonCount > 0 && addonProduct) {
+                itemTotal += (addonProduct.price * sel.addonCount);
             }
 
             // Note: User requested modifiers are free / inventory only in previous prompts.
@@ -198,6 +219,10 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
 
             // Call AddToOrder with Quantity 1 for EACH selection
             onAddToOrder(product, 1, variant, modifiers, sel.note); // Call individual adds
+
+            if (showAddon && sel.addonCount > 0 && addonProduct) {
+                onAddToOrder(addonProduct, sel.addonCount, undefined, undefined, `Tambahan (dari pesanan ${product.name})`);
+            }
         });
 
         onClose();
@@ -391,6 +416,61 @@ export function ProductVariantModal({ isOpen, onClose, product, onAddToOrder }: 
                                 );
                             })}
 
+
+                            {/* Tambahan Dimsum Satuan */}
+                            {showAddon && addonProduct && (
+                                <div className="space-y-3 pt-6 border-t border-gray-100 dark:border-white/5">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                                            Tambahan Satuan
+                                        </label>
+                                        <span className="text-[10px] font-bold text-primary bg-red-50 dark:bg-primary/20 px-2 py-0.5 rounded-full">
+                                            Opsional
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                {addonProduct.name}
+                                            </span>
+                                            <span className="text-xs text-primary font-bold mt-0.5">
+                                                +{formatRupiah(addonProduct.price)} / Pcs
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {status.addonCount > 0 ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => setAddonCount(index, -1)}
+                                                        className="w-7 h-7 rounded-lg border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                                                    >
+                                                        <Minus size={14} />
+                                                    </button>
+                                                    <span className="text-sm font-bold w-4 text-center text-gray-900 dark:text-white">
+                                                        {status.addonCount}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => setAddonCount(index, 1)}
+                                                        className="w-7 h-7 rounded-lg bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200 hover:scale-105 transition-all"
+                                                    >
+                                                        <Plus size={14} />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="text-sm font-medium text-gray-400 w-4 text-center">0</span>
+                                                    <button
+                                                        onClick={() => setAddonCount(index, 1)}
+                                                        className="w-7 h-7 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 hover:scale-105 transition-all"
+                                                    >
+                                                        <Plus size={14} />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Notes */}
                             <div className="space-y-2">

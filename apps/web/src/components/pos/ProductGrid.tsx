@@ -137,9 +137,14 @@ export function ProductGrid({ searchQuery = '' }: ProductGridProps) {
         fetchData();
     }, []);
 
+    // Extract "Dimsum - Satuan" and remove from grouped products
+    const addonProduct = products.find(p => p.name === 'Dimsum - Satuan');
+
     // Group Products by Category
     const groupedProducts = categories.reduce((acc, category) => {
         acc[category.slug] = products.filter(p => {
+            if (p.name === 'Dimsum - Satuan') return false;
+
             const pCat = p.category;
             // Case 1: pCat is the Category Name string (e.g. "Paket") - Matches strict equality
             if (typeof pCat === 'string') {
@@ -243,6 +248,7 @@ export function ProductGrid({ searchQuery = '' }: ProductGridProps) {
                 <ProductVariantModal
                     isOpen={isModalOpen}
                     product={selectedProduct}
+                    addonProduct={addonProduct || undefined}
                     onClose={() => setIsModalOpen(false)}
                     onAddToOrder={handleConfirmAdd}
                 />
