@@ -83,6 +83,15 @@ def seed_products():
             'order': 3,
             'image': 'products/dimsum-mentai.jpg', # Reusing image path for now
         },
+        {
+            'category': 'Dimsum',
+            'name': 'Dimsum Mentai',
+            'description': '6 Pcs. Dimsum Mentai',
+            'price': 30000,
+            'track_inventory': False,
+            'order': 4,
+            'image': 'products/dimsum-mentai.jpg', 
+        },
         # GYOZA KUKUS
         {
             'category': 'Gyoza',
