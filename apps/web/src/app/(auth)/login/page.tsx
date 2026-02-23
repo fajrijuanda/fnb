@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -12,7 +12,7 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 
 export default function LoginPage() {
     const router = useRouter();
-    const { login, isAuthenticated, user } = useAuthStore();
+    const { login, isAuthenticated, user, updateProfile } = useAuthStore();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +21,36 @@ export default function LoginPage() {
 
     // Pending Approval State
     const [pendingAttempt, setPendingAttempt] = useState<{ id: string; expires_in: number } | null>(null);
+
+    const syncUserProfile = useCallback(async (userId: number) => {
+        try {
+            const response = await api.get(`/users/${userId}/`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const payload = ((response.data as any)?.data || response.data) as Record<string, unknown>;
+            if (!payload || typeof payload !== 'object') return;
+
+            const profile = (payload.profile as Record<string, unknown> | undefined) || undefined;
+            const paymentInfo = (payload.payment_info as Record<string, unknown> | undefined) || undefined;
+
+            updateProfile({
+                username: (payload.username as string | undefined) ?? user?.username ?? '',
+                email: (payload.email as string | undefined) ?? user?.email ?? '',
+                avatar: (payload.avatar as string | null | undefined) ?? (profile?.avatar as string | null | undefined) ?? null,
+                location: (payload.location as string | null | undefined) ?? (profile?.location as string | null | undefined) ?? null,
+                profile: profile as { location?: string; avatar?: string; owner?: number } | undefined,
+                payment_info: paymentInfo as {
+                    bank_name?: string;
+                    bank_account_number?: string;
+                    bank_account_holder?: string;
+                    ewallet_type?: string;
+                    ewallet_number?: string;
+                    qris_image?: string | null;
+                } | undefined,
+            });
+        } catch {
+            // Optional sync; login flow should keep working even if this fails
+        }
+    }, [updateProfile, user]);
 
     useEffect(() => {
         if (isAuthenticated && user) {
@@ -47,6 +77,7 @@ export default function LoginPage() {
                     clearInterval(pollInterval);
                     const data = response.data.data;
                     login(data);
+                    await syncUserProfile(data.user_id);
 
                     if (data.role === 'superadmin' || data.role === 'mitra') {
                         router.replace('/admin');
@@ -70,7 +101,7 @@ export default function LoginPage() {
         }, 2000); // Check every 2 seconds
 
         return () => clearInterval(pollInterval);
-    }, [pendingAttempt, login, router]);
+    }, [pendingAttempt, login, router, syncUserProfile]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -105,6 +136,7 @@ export default function LoginPage() {
             if (response.data.status === 'success') {
                 const data = response.data.data as LoginResponse;
                 login(data);
+                await syncUserProfile(data.user_id);
 
                 if (data.role === 'superadmin' || data.role === 'mitra') {
                     router.replace('/admin');

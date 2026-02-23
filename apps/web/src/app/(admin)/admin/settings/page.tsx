@@ -137,15 +137,36 @@ export default function SettingsPage() {
             });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const updatedUser = res.data as any;
-            updateProfile({
-                username: updatedUser.username,
-                email: updatedUser.email,
-                avatar: updatedUser.avatar,
-            });
-            if (updatedUser.avatar) {
-                setAvatarPreview(getImageUrl(updatedUser.avatar));
+            const patchedUser = ((res.data as any)?.data || res.data) as Record<string, unknown>;
+            let canonicalUser = patchedUser;
+
+            try {
+                const refreshed = await api.get(`/users/${user.id}/`);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                canonicalUser = ((refreshed.data as any)?.data || refreshed.data) as Record<string, unknown>;
+            } catch {
+                // keep patched payload if refresh call fails
             }
+
+            const profile = (canonicalUser.profile as Record<string, unknown> | undefined) || undefined;
+            const avatarPath = (canonicalUser.avatar as string | null | undefined) ?? (profile?.avatar as string | null | undefined) ?? null;
+
+            updateProfile({
+                username: (canonicalUser.username as string | undefined) ?? name,
+                email: (canonicalUser.email as string | undefined) ?? email,
+                avatar: avatarPath,
+                location: (canonicalUser.location as string | null | undefined) ?? (profile?.location as string | null | undefined) ?? null,
+                profile: profile as { location?: string; avatar?: string; owner?: number } | undefined,
+                payment_info: (canonicalUser.payment_info as {
+                    bank_name?: string;
+                    bank_account_number?: string;
+                    bank_account_holder?: string;
+                    ewallet_type?: string;
+                    ewallet_number?: string;
+                    qris_image?: string | null;
+                } | undefined) ?? user.payment_info,
+            });
+            setAvatarPreview(avatarPath ? getImageUrl(avatarPath) : null);
             success('Profil berhasil diperbarui');
         } catch (err) {
             console.error(err);

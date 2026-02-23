@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import { ShieldAlert, Check, X, Smartphone } from 'lucide-react';
@@ -15,9 +15,53 @@ interface LoginAttempt {
 }
 
 export function SecurityPuller() {
-    const { user, accessToken } = useAuthStore();
+    const { user, accessToken, updateProfile } = useAuthStore();
     const [pendingAttempt, setPendingAttempt] = useState<LoginAttempt | null>(null);
     const { success, error } = useToast();
+    const syncedUserIdRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        if (!user?.id || !accessToken) {
+            syncedUserIdRef.current = null;
+            return;
+        }
+
+        if (syncedUserIdRef.current === user.id) return;
+
+        const syncUserProfile = async () => {
+            try {
+                const response = await api.get(`/users/${user.id}/`);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const payload = ((response.data as any)?.data || response.data) as Record<string, unknown>;
+                if (!payload || typeof payload !== 'object') return;
+
+                const profile = (payload.profile as Record<string, unknown> | undefined) || undefined;
+                const paymentInfo = (payload.payment_info as Record<string, unknown> | undefined) || undefined;
+
+                updateProfile({
+                    username: (payload.username as string | undefined) ?? user.username,
+                    email: (payload.email as string | undefined) ?? user.email,
+                    avatar: (payload.avatar as string | null | undefined) ?? (profile?.avatar as string | null | undefined) ?? null,
+                    location: (payload.location as string | null | undefined) ?? (profile?.location as string | null | undefined) ?? null,
+                    profile: profile as { location?: string; avatar?: string; owner?: number } | undefined,
+                    payment_info: paymentInfo as {
+                        bank_name?: string;
+                        bank_account_number?: string;
+                        bank_account_holder?: string;
+                        ewallet_type?: string;
+                        ewallet_number?: string;
+                        qris_image?: string | null;
+                    } | undefined,
+                });
+
+                syncedUserIdRef.current = user.id;
+            } catch {
+                // Silent error: profile hydration can retry on next session load
+            }
+        };
+
+        syncUserProfile();
+    }, [user, accessToken, updateProfile]);
 
     useEffect(() => {
         if (!user || !accessToken) return;

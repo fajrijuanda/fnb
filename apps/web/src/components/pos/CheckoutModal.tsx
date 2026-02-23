@@ -6,7 +6,7 @@ import { X, Loader2, Banknote, QrCode, CheckCircle, Printer } from 'lucide-react
 import { useCartStore } from '@/store';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useNotification } from '@/context/NotificationContext';
-import { formatRupiah, cn } from '@/lib/utils';
+import { formatRupiah, cn, getImageUrl } from '@/lib/utils';
 import api from '@/lib/api';
 import type { CreateOrderRequest, OrderResponse, WrappedResponse, StoreSettings } from '@/types/api';
 import Image from 'next/image';
@@ -23,31 +23,31 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
     const { items, getTotalPrice, clearCart } = useCartStore();
     const { user } = useAuthStore();
     const { addNotification } = useNotification();
+
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
     const [customerName, setCustomerName] = useState('');
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Animation State
     const [isVisible, setIsVisible] = useState(false);
     const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setTimeout(() => setMounted(true), 0);
-    }, []);
 
     const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
     const [dynamicQris, setDynamicQris] = useState<string | null>(null);
     const [qrisLoading, setQrisLoading] = useState(false);
 
     useEffect(() => {
+        setTimeout(() => setMounted(true), 0);
+    }, []);
+
+    useEffect(() => {
         const fetchSettings = async () => {
             try {
                 const response = await api.get<StoreSettings>('/settings/store/');
                 setStoreSettings(response.data);
-            } catch (error) {
-                console.error('Failed to fetch store settings', error);
+            } catch (err) {
+                console.error('Failed to fetch store settings', err);
             }
         };
 
@@ -55,17 +55,17 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
             const timer = setTimeout(() => setIsVisible(true), 10);
             fetchSettings();
             return () => clearTimeout(timer);
-        } else {
-            const timer = setTimeout(() => setIsVisible(false), 300);
-            return () => clearTimeout(timer);
         }
+
+        const timer = setTimeout(() => setIsVisible(false), 300);
+        return () => clearTimeout(timer);
     }, [isOpen]);
 
     const total = getTotalPrice();
+    const isQris = paymentMethod === 'QRIS';
     const paymentInfo = user?.payment_info;
-    const qrisImage = paymentInfo?.qris_image || storeSettings?.qris_image;
+    const qrisImage = getImageUrl(paymentInfo?.qris_image || storeSettings?.qris_image);
 
-    // Live Clock
     useEffect(() => {
         setCurrentTime(new Date());
         const timer = setInterval(() => {
@@ -74,13 +74,13 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
         return () => clearInterval(timer);
     }, []);
 
-    // Fetch dynamic QRIS when payment method is QRIS
     useEffect(() => {
         const fetchDynamicQris = async () => {
-            if (paymentMethod !== 'QRIS' || total <= 0) {
+            if (!isQris || total <= 0) {
                 setDynamicQris(null);
                 return;
             }
+
             setQrisLoading(true);
             try {
                 const response = await api.get<{ status: string; data: { qris_base64: string } }>(
@@ -97,8 +97,9 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                 setQrisLoading(false);
             }
         };
+
         fetchDynamicQris();
-    }, [paymentMethod, total]);
+    }, [isQris, total]);
 
     const paymentMethods = [
         { id: 'CASH' as PaymentMethod, label: 'Tunai', icon: Banknote },
@@ -120,20 +121,17 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                 })),
             };
 
-            const response = await api.post<WrappedResponse<OrderResponse>>(
-                '/sales/orders/',
-                orderData
-            );
+            const response = await api.post<WrappedResponse<OrderResponse>>('/sales/orders/', orderData);
 
             if (response.data.status === 'success') {
                 clearCart();
-                const orderData = response.data.data as OrderResponse;
-                onSuccess(orderData);
+                const createdOrder = response.data.data as OrderResponse;
+                onSuccess(createdOrder);
                 addNotification({
                     type: 'success',
                     title: 'Pembayaran Berhasil',
-                    message: `Transaksi #${orderData.invoice_number} berhasil diproses via ${orderData.payment_method_display || orderData.payment_method}`,
-                    data: orderData
+                    message: `Transaksi #${createdOrder.invoice_number} berhasil diproses via ${createdOrder.payment_method_display || createdOrder.payment_method}`,
+                    data: createdOrder,
                 });
             }
         } catch (err: unknown) {
@@ -143,7 +141,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
             addNotification({
                 type: 'error',
                 title: 'Pembayaran Gagal',
-                message: errorMessage
+                message: errorMessage,
             });
         } finally {
             setIsLoading(false);
@@ -152,13 +150,12 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
     if (!mounted || !isVisible) return null;
 
-    // Date formatting
     const formatDate = (date: Date) => {
         return new Intl.DateTimeFormat('id-ID', {
             weekday: 'long',
             day: 'numeric',
             month: 'long',
-            year: 'numeric'
+            year: 'numeric',
         }).format(date);
     };
 
@@ -167,192 +164,168 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
-            hour12: false
+            hour12: false,
         }).format(date);
     };
 
     return createPortal(
-        <div className={cn(
-            "fixed inset-0 z-50 flex items-center justify-center transition-all duration-300",
-            isOpen ? "opacity-100" : "opacity-0"
-        )}>
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                onClick={onClose}
-            />
+        <div
+            className={cn(
+                'fixed inset-0 z-50 flex items-center justify-center transition-all duration-300',
+                isOpen ? 'opacity-100' : 'opacity-0'
+            )}
+        >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            {/* Modal */}
-            <div className={cn(
-                "relative w-full max-w-md rounded-2xl bg-card p-6 shadow-elevated mx-4 transition-all",
-                // Fade only
-                "transform-none"
-            )}>
-                {/* ... (rest of content) ... */}
-                {/* Header */}
+            <div
+                className={cn(
+                    'relative w-[calc(100vw-2rem)] rounded-2xl bg-card shadow-elevated transition-all max-h-[92vh] overflow-y-auto',
+                    isQris ? 'max-w-5xl p-5 lg:p-6' : 'max-w-md p-6',
+                    'transform-none'
+                )}
+            >
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold text-card-foreground">Pembayaran</h2>
-                    <button
-                        onClick={onClose}
-                        className="rounded-lg p-2 hover:bg-muted transition-colors"
-                    >
+                    <button onClick={onClose} className="rounded-lg p-2 hover:bg-muted transition-colors">
                         <X className="h-5 w-5 text-muted-foreground" />
                     </button>
                 </div>
 
-                {/* Digital Clock */}
-                {currentTime && (
-                    <div className="mb-6 flex flex-col items-center justify-center rounded-xl bg-muted/50 p-3 text-center border border-border">
-                        <p className="text-sm font-medium text-muted-foreground">
-                            {formatDate(currentTime)}
-                        </p>
-                        <p className="text-2xl font-black text-primary tracking-wider font-mono">
-                            {formatTime(currentTime)}
-                        </p>
-                    </div>
-                )}
-
-                {/* Customer Name Input */}
-                <div className="mb-4">
-                    <label className="mb-2 block text-sm font-medium text-card-foreground">
-                        Nama Pelanggan <span className="text-muted-foreground">(Opsional)</span>
-                    </label>
-                    <input
-                        type="text"
-                        placeholder="Masukkan nama pelanggan..."
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                </div>
-
-                {/* Total */}
-                <div className="bg-muted rounded-xl p-4 mb-6">
-                    <p className="text-sm text-muted-foreground mb-1">Total Pembayaran</p>
-                    <p className="text-3xl font-bold text-primary">{formatRupiah(total)}</p>
-                </div>
-
-                {/* Payment Method Selection */}
-                <div className="mb-6">
-                    <p className="text-sm font-medium text-card-foreground mb-3">
-                        Pilih Metode Pembayaran
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                        {paymentMethods.map((method) => (
-                            <button
-                                key={method.id}
-                                onClick={() => setPaymentMethod(method.id)}
-                                className={`flex flex-col items-center gap-2 rounded-xl p-4 border-2 transition-all ${paymentMethod === method.id
-                                    ? 'border-primary bg-red-50 dark:bg-primary/10 text-primary'
-                                    : 'border-border hover:border-primary/50 hover:bg-red-50/50 dark:hover:bg-primary/5'
-                                    }`}
-                            >
-                                <method.icon
-                                    className={`h-6 w-6 ${paymentMethod === method.id
-                                        ? 'text-primary'
-                                        : 'text-muted-foreground'
-                                        }`}
-                                />
-                                <span
-                                    className={`text-sm font-medium ${paymentMethod === method.id
-                                        ? 'text-primary'
-                                        : 'text-card-foreground'
-                                        }`}
-                                >
-                                    {method.label}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                {/* Payment Method Details */}
-                {storeSettings && paymentMethod === 'QRIS' && (
-                    <div className="mb-6 p-4 bg-white dark:bg-black/20 rounded-xl border border-gray-200 dark:border-white/10 flex flex-col items-center text-center">
-                        {qrisLoading ? (
-                            <div className="w-48 h-48 mb-3 flex items-center justify-center">
-                                <Loader2 className="animate-spin text-primary" size={32} />
+                <div
+                    className={cn(
+                        'grid gap-5',
+                        isQris ? 'lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start' : 'grid-cols-1'
+                    )}
+                >
+                    <div className="min-w-0">
+                        {currentTime && (
+                            <div className="mb-5 flex flex-col items-center justify-center rounded-xl bg-muted/50 p-3 text-center border border-border">
+                                <p className="text-sm font-medium text-muted-foreground">{formatDate(currentTime)}</p>
+                                <p className="text-2xl font-black text-primary tracking-wider font-mono">{formatTime(currentTime)}</p>
                             </div>
-                        ) : dynamicQris ? (
-                            <>
-                                <div className="relative w-48 h-48 mb-3">
-                                    <Image
-                                        src={dynamicQris}
-                                        alt="QRIS Dynamic"
-                                        fill
-                                        className="object-contain"
-                                        unoptimized
-                                    />
+                        )}
+
+                        <div className="mb-4">
+                            <label className="mb-2 block text-sm font-medium text-card-foreground">
+                                Nama Pelanggan <span className="text-muted-foreground">(Opsional)</span>
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Masukkan nama pelanggan..."
+                                value={customerName}
+                                onChange={(e) => setCustomerName(e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                        </div>
+
+                        <div className="bg-muted rounded-xl p-4 mb-5">
+                            <p className="text-sm text-muted-foreground mb-1">Total Pembayaran</p>
+                            <p className="text-3xl font-bold text-primary">{formatRupiah(total)}</p>
+                        </div>
+
+                        <div className="mb-5">
+                            <p className="text-sm font-medium text-card-foreground mb-3">Pilih Metode Pembayaran</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                {paymentMethods.map((method) => (
+                                    <button
+                                        key={method.id}
+                                        onClick={() => setPaymentMethod(method.id)}
+                                        className={`flex flex-col items-center gap-2 rounded-xl p-4 border-2 transition-all ${paymentMethod === method.id
+                                            ? 'border-primary bg-red-50 dark:bg-primary/10 text-primary'
+                                            : 'border-border hover:border-primary/50 hover:bg-red-50/50 dark:hover:bg-primary/5'}`}
+                                    >
+                                        <method.icon
+                                            className={`h-6 w-6 ${paymentMethod === method.id ? 'text-primary' : 'text-muted-foreground'}`}
+                                        />
+                                        <span
+                                            className={`text-sm font-medium ${paymentMethod === method.id ? 'text-primary' : 'text-card-foreground'}`}
+                                        >
+                                            {method.label}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {error && (
+                            <div className="mb-4 rounded-lg bg-red-100 dark:bg-red-500/20 p-3 text-sm text-red-600 dark:text-red-400">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={onClose}
+                                className="flex-1 rounded-xl border border-gray-200 dark:border-white/10 py-3 font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={handleCheckout}
+                                disabled={isLoading || items.length === 0}
+                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-red-600"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        Memproses...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle className="h-5 w-5" />
+                                        Bayar
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {isQris && (
+                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 p-4 lg:sticky lg:top-0">
+                            <div className="mb-3 text-center">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white">Scan QRIS untuk membayar</p>
+                                <p className="text-2xl font-bold text-primary">{formatRupiah(total)}</p>
+                            </div>
+
+                            {qrisLoading ? (
+                                <div className="mx-auto mb-4 flex aspect-square w-full max-w-[320px] items-center justify-center rounded-xl border border-dashed border-border">
+                                    <Loader2 className="animate-spin text-primary" size={32} />
                                 </div>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">Scan QRIS untuk membayar</p>
-                                <p className="text-lg font-bold text-primary mt-1">{formatRupiah(total)}</p>
-                                <p className="text-xs text-gray-500">Dana / GoPay / OVO / ShopeePay</p>
-                            </>
-                        ) : qrisImage ? (
-                            <>
-                                <div className="relative w-48 h-48 mb-3">
-                                    <Image
-                                        src={qrisImage}
-                                        alt="QRIS Code"
-                                        fill
-                                        className="object-contain"
-                                        unoptimized
-                                    />
+                            ) : dynamicQris ? (
+                                <div className="mx-auto mb-4 relative aspect-square w-full max-w-[320px] overflow-hidden rounded-xl bg-white p-2">
+                                    <Image src={dynamicQris} alt="QRIS Dynamic" fill className="object-contain" unoptimized />
                                 </div>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">Scan QRIS untuk membayar</p>
-                                <p className="text-lg font-bold text-primary mt-1">{formatRupiah(total)}</p>
-                                <p className="text-xs text-gray-500 mb-3">Scan menggunakan aplikasi E-Wallet atau M-Banking</p>
-                                <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg p-3 max-w-sm">
-                                    <p className="text-xs text-red-600 dark:text-red-400 font-medium">
-                                        ⚠️ Pastikan pelanggan telah menunjukkan bukti pembayaran berhasil di aplikasi mereka dengan nominal yang sesuai sebelum Anda menekan tombol Bayar.
+                            ) : qrisImage ? (
+                                <div className="mx-auto mb-4 w-full max-w-[320px] overflow-hidden rounded-xl bg-white p-2">
+                                    <div className="relative h-[420px] w-full">
+                                        <Image src={qrisImage} alt="QRIS Code" fill className="object-contain" unoptimized />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="mx-auto mb-4 flex aspect-square w-full max-w-[320px] items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5">
+                                    <QrCode className="text-gray-400" size={56} />
+                                </div>
+                            )}
+
+                            {qrisImage || dynamicQris ? (
+                                <>
+                                    <p className="text-xs text-center text-gray-500 mb-3">
+                                        Scan menggunakan aplikasi E-Wallet atau M-Banking.
                                     </p>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="w-48 h-48 mb-3 bg-gray-100 dark:bg-white/5 rounded-lg flex items-center justify-center">
-                                    <QrCode className="text-gray-400" size={48} />
-                                </div>
-                                <p className="text-sm text-gray-500">QRIS belum dikonfigurasi</p>
-                            </>
-                        )}
-                    </div>
-                )}
-
-                {/* Error */}
-                {error && (
-                    <div className="mb-4 rounded-lg bg-red-100 dark:bg-red-500/20 p-3 text-sm text-red-600 dark:text-red-400">
-                        {error}
-                    </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-3">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 rounded-xl border border-gray-200 dark:border-white/10 py-3 font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        onClick={handleCheckout}
-                        disabled={isLoading || items.length === 0}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-red-600"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                Memproses...
-                            </>
-                        ) : (
-                            <>
-                                <CheckCircle className="h-5 w-5" />
-                                Bayar
-                            </>
-                        )}
-                    </button>
+                                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-500/20 dark:bg-red-500/10">
+                                        <p className="text-xs font-medium text-red-600 dark:text-red-400">
+                                            Pastikan pelanggan menunjukkan bukti pembayaran berhasil dengan nominal yang sesuai sebelum menekan tombol Bayar.
+                                        </p>
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-sm text-center text-gray-500">QRIS belum dikonfigurasi.</p>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
-        </div >,
+        </div>,
         document.body
     );
 }
