@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Loader2, Save, User, Lock, Eye, EyeOff, Smartphone, Clock, RotateCcw, Bluetooth, Monitor, Moon, Sun, Plus, Receipt, Trash2 } from 'lucide-react';
+import { X, Loader2, Save, User, Lock, Eye, EyeOff, Clock, RotateCcw, Bluetooth, Monitor, Moon, Sun, Plus, Receipt, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useShiftStore } from '@/store/useShiftStore';
 import { usePrinter } from '@/hooks/usePrinter';
@@ -51,6 +51,8 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
     // Printer States
     const [localPrinterSettings, setLocalPrinterSettings] = useState(printerSettings);
     const [isTestingPrinter, setIsTestingPrinter] = useState(false);
+    const [isBluetoothPromptOpen, setIsBluetoothPromptOpen] = useState(false);
+    const [isConnectingPrinter, setIsConnectingPrinter] = useState(false);
 
     // Expense States
     const [expenseAmount, setExpenseAmount] = useState('');
@@ -68,6 +70,9 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                 newPassword: '',
             });
             setLocalPrinterSettings(printerSettings);
+        } else {
+            setIsBluetoothPromptOpen(false);
+            setIsConnectingPrinter(false);
         }
     }, [isOpen, initialTab, user, printerSettings]);
 
@@ -89,6 +94,29 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
     const handleSavePrinterSettings = () => {
         updatePrinterSettings(localPrinterSettings);
         success('Pengaturan printer disimpan');
+    };
+
+    const requestPrinterConnection = () => {
+        setIsBluetoothPromptOpen(true);
+    };
+
+    const closePrinterConnectPrompt = () => {
+        if (isConnectingPrinter) return;
+        setIsBluetoothPromptOpen(false);
+    };
+
+    const handleConfirmPrinterConnect = async () => {
+        setIsConnectingPrinter(true);
+        try {
+            await connectPrinter('bluetooth');
+            success('Printer Bluetooth berhasil dihubungkan');
+        } catch (err) {
+            console.error(err);
+            error('Gagal terhubung ke printer Bluetooth');
+        } finally {
+            setIsConnectingPrinter(false);
+            setIsBluetoothPromptOpen(false);
+        }
     };
 
     const handleTestPrint = async () => {
@@ -446,21 +474,14 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                         </div>
                                     ) : (
                                         <div className="space-y-2">
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Pilih metode koneksi:</p>
-                                            <div className="grid grid-cols-2 gap-2">
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Hubungkan printer via Bluetooth:</p>
+                                            <div className="grid grid-cols-1 gap-2">
                                                 <button
-                                                    onClick={() => connectPrinter('bluetooth').catch(() => error('Gagal terhubung ke printer Bluetooth'))}
+                                                    onClick={requestPrinterConnection}
                                                     className="flex items-center justify-center gap-2 p-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
                                                 >
                                                     <Bluetooth className="h-4 w-4" />
                                                     <span className="text-xs font-bold">Bluetooth</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => connectPrinter('rawbt')}
-                                                    className="flex items-center justify-center gap-2 p-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors"
-                                                >
-                                                    <Smartphone className="h-4 w-4" />
-                                                    <span className="text-xs font-bold">RawBT (Android)</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -590,6 +611,50 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                     </div>
                 </div>
             </div>
+
+            {isBluetoothPromptOpen && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm animate-in fade-in duration-150"
+                    onClick={closePrinterConnectPrompt}
+                >
+                    <div
+                        className="w-full max-w-md rounded-2xl bg-white dark:bg-[#151515] border border-gray-200 dark:border-white/10 shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="h-10 w-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300">
+                                    <Bluetooth className="h-5 w-5" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-base font-bold text-gray-900 dark:text-white">Konfirmasi Koneksi Printer</h3>
+                                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                                        Lanjutkan menghubungkan printer via Bluetooth? Setelah klik lanjut, browser akan menampilkan daftar perangkat.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-5 flex items-center justify-end gap-2">
+                                <button
+                                    onClick={closePrinterConnectPrompt}
+                                    disabled={isConnectingPrinter}
+                                    className="px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 disabled:opacity-60"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={handleConfirmPrinterConnect}
+                                    disabled={isConnectingPrinter}
+                                    className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 disabled:opacity-70 flex items-center gap-2"
+                                >
+                                    {isConnectingPrinter && <Loader2 className="h-4 w-4 animate-spin" />}
+                                    Lanjutkan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <CloseShiftModal
                 isOpen={isCloseShiftModalOpen}

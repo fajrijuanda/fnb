@@ -106,11 +106,6 @@ export function usePrinter() {
             throw new Error("Browser ini tidak mendukung Web Bluetooth.");
           }
 
-          const confirmed = window.confirm(
-            "Sambungkan printer Bluetooth sekarang? Setelah ini daftar perangkat akan ditampilkan.",
-          );
-          if (!confirmed) return;
-
           const PRINTER_SERVICE_UUID = "000018f0-0000-1000-8000-00805f9b34fb";
 
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -120,12 +115,6 @@ export function usePrinter() {
             acceptAllDevices: true,
             optionalServices: [PRINTER_SERVICE_UUID],
           });
-
-          const selectedDeviceName = device.name || "Perangkat tanpa nama";
-          const connectConfirmed = window.confirm(
-            `Hubungkan ke "${selectedDeviceName}" sekarang?`,
-          );
-          if (!connectConfirmed) return;
 
           if (!device.gatt) {
             throw new Error("Perangkat Bluetooth tidak mendukung koneksi GATT.");
