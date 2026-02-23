@@ -195,6 +195,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'https://fnb-five.vercel.app',
+    'https://omden.id',
+    'https://www.omden.id',
 ]
 
 # Allow all for debugging/production flexibility if specific origins fail
@@ -202,6 +204,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
     'https://fnb-five.vercel.app',
+    'https://omden.id',
+    'https://www.omden.id',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
