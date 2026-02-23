@@ -419,8 +419,9 @@ export default function ProductsPage() {
                 indigo: { bg: 'bg-indigo-100 dark:bg-indigo-500/20', text: 'text-indigo-700 dark:text-indigo-400', icon: 'text-indigo-500' },
                 yellow: { bg: 'bg-yellow-100 dark:bg-yellow-500/20', text: 'text-yellow-700 dark:text-yellow-400', icon: 'text-yellow-500' },
             };
-            if (mapping[cat.color]) {
-                colorConfig = mapping[cat.color];
+            const normalizedColor = cat.color.toLowerCase();
+            if (mapping[normalizedColor]) {
+                colorConfig = mapping[normalizedColor];
             }
         }
         return { name, icon, color: colorConfig };

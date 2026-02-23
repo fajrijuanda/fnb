@@ -62,9 +62,8 @@ const getCategoryStyles = (colorName: string | null | undefined) => {
         };
     }
 
-    // Legacy fallback
     const mapping: Record<string, string> = {
-        orange: 'bg-red-100 dark:bg-primary/20 text-red-700 dark:text-red-500 border-red-300/50 dark:border-primary/30',
+        orange: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-500 border-amber-300/50 dark:border-amber-500/30',
         blue: 'bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/30',
         purple: 'bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-200/50 dark:border-purple-500/30',
         green: 'bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 border-green-200/50 dark:border-green-500/30',
@@ -76,7 +75,8 @@ const getCategoryStyles = (colorName: string | null | undefined) => {
 
     // Convert legacy class string to object style for consistency if needed, 
     // but here we just return the class string for legacy support
-    return { className: mapping[color] || mapping['orange'] };
+    const normalizedColor = color.toLowerCase();
+    return { className: mapping[normalizedColor] || mapping['orange'] };
 };
 
 const IconComponent = ({ name, size = 16, className = "" }: { name: string, size?: number, className?: string }) => {
