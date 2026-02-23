@@ -25,6 +25,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+from django.db.models import Sum, F, Case, When, IntegerField
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -463,7 +464,6 @@ class ShiftViewSet(viewsets.ModelViewSet):
         user = request.user
         from .models import Shift
         from django.utils import timezone
-        from django.db.models import Sum
         
         try:
             shift = Shift.objects.filter(cashier=user, status=Shift.Status.OPEN).latest('start_time')
@@ -483,7 +483,13 @@ class ShiftViewSet(viewsets.ModelViewSet):
         # Calculate system cash
         # Initial Cash + Total Cash Sales - Total Cash Expenses
         total_cash_sales = shift.orders.filter(payment_method='CASH', status='PAID').aggregate(
-            total=Sum('total_amount')
+            total=Sum(
+                Case(
+                    When(cash_received__isnull=False, then=F('cash_received') - F('change_amount')),
+                    default=F('total_amount'),
+                    output_field=IntegerField()
+                )
+            )
         )['total'] or 0
         
         # Get expenses for this shift

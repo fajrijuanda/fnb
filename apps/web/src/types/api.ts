@@ -131,6 +131,7 @@ export interface CreateOrderRequest {
   items: OrderItemInput[];
   notes?: string;
   customer_name?: string;
+  cash_received?: number;
 }
 
 export interface OrderItemResponse {
@@ -150,6 +151,8 @@ export interface OrderResponse {
   status: "PENDING" | "PAID" | "CANCELLED";
   status_display: string;
   total_amount: number;
+  cash_received?: number | null;
+  change_amount?: number;
   payment_method: "CASH" | "QRIS" | "TRANSFER";
   payment_method_display: string;
   notes: string | null;

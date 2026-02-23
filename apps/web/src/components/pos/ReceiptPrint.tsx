@@ -73,6 +73,18 @@ export const ReceiptPrint = forwardRef<HTMLDivElement, ReceiptPrintProps>(
                         <span>TOTAL</span>
                         <span>{formatRupiah(order.total_amount)}</span>
                     </div>
+                    {order.payment_method === 'CASH' && order.cash_received != null && (
+                        <>
+                            <div className="flex justify-between text-[9px] mt-1">
+                                <span>TUNAI</span>
+                                <span>{formatRupiah(order.cash_received)}</span>
+                            </div>
+                            <div className="flex justify-between text-[9px]">
+                                <span>KEMBALI</span>
+                                <span>{formatRupiah(order.change_amount || 0)}</span>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Divider */}

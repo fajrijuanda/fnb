@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Order, OrderItem, Shift
 from catalog.models import Product
+from django.db.models import Sum, F, Case, When, IntegerField
 
 
 class OrderItemInputSerializer(serializers.Serializer):
@@ -20,6 +21,8 @@ class CreateOrderSerializer(serializers.Serializer):
     """
     payment_method = serializers.ChoiceField(choices=Order.PaymentMethod.choices)
     items = OrderItemInputSerializer(many=True, min_length=1)
+    cash_received = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    customer_name = serializers.CharField(required=False, allow_blank=True, max_length=100)
     notes = serializers.CharField(required=False, allow_blank=True)
 
     def validate_items(self, items):
@@ -38,23 +41,32 @@ class CreateOrderSerializer(serializers.Serializer):
         
         return items
 
+    def validate(self, attrs):
+        payment_method = attrs.get('payment_method')
+        cash_received = attrs.get('cash_received')
+
+        if payment_method == Order.PaymentMethod.CASH and cash_received is None:
+            raise serializers.ValidationError({
+                'cash_received': 'Nominal uang diterima wajib diisi untuk pembayaran tunai.'
+            })
+
+        return attrs
+
     def create(self, validated_data):
         """
         Buat order dan order items.
         """
         items_data = validated_data.pop('items')
+        validated_data.pop('customer_name', None)
+        cash_received_input = validated_data.pop('cash_received', None)
+        payment_method = validated_data['payment_method']
+        notes = validated_data.get('notes', '')
+        cashier = validated_data.get('cashier')
         
-        # Create order
-        order = Order.objects.create(
-            payment_method=validated_data['payment_method'],
-            notes=validated_data.get('notes', ''),
-            status=Order.Status.PAID,
-            cashier=validated_data.get('cashier')
-        )
-        
-        # Create order items
+        # Prepare order items and pre-calculate total before saving order
         total = 0
         from catalog.models import Product, ProductVariant, ModifierOption
+        prepared_items = []
 
         for item_data in items_data:
             product = Product.objects.get(id=item_data['product_id'])
@@ -79,11 +91,13 @@ class CreateOrderSerializer(serializers.Serializer):
             # Handle Modifiers
             modifiers_snapshot = []
             modifier_ids = item_data.get('modifier_option_ids', [])
+            modifiers_price_adjustment = 0
             if modifier_ids:
                 modifiers = ModifierOption.objects.filter(id__in=modifier_ids)
                 # Verify they belong to product's groups? Optional for now but good practice.
                 # For now just trust ID existence.
                 for mod in modifiers:
+                    modifiers_price_adjustment += int(mod.price_adjustment)
                     modifiers_snapshot.append({
                         'id': mod.id,
                         'group_name': mod.group.name,
@@ -91,16 +105,51 @@ class CreateOrderSerializer(serializers.Serializer):
                         'price_adjustment': mod.price_adjustment
                     })
 
-            order_item = OrderItem.objects.create(
+            variant_price_adjustment = int(variant_snapshot['price_adjustment']) if variant_snapshot else 0
+            unit_price = int(product.price) + variant_price_adjustment + modifiers_price_adjustment
+            subtotal = unit_price * item_data['quantity']
+            total += subtotal
+
+            prepared_items.append({
+                'product': product,
+                'quantity': item_data['quantity'],
+                'price_at_sale': product.price,
+                'variant_snapshot': variant_snapshot,
+                'modifiers_snapshot': modifiers_snapshot,
+                'note': item_data.get('note', '')
+            })
+
+        cash_received = None
+        change_amount = 0
+        if payment_method == Order.PaymentMethod.CASH:
+            cash_received = int(cash_received_input or 0)
+            if cash_received < total:
+                raise serializers.ValidationError({
+                    'cash_received': f'Nominal tunai tidak cukup. Minimal Rp {total:,}.'
+                })
+            change_amount = cash_received - total
+
+        # Create order
+        order = Order.objects.create(
+            payment_method=payment_method,
+            notes=notes,
+            status=Order.Status.PAID,
+            cashier=cashier,
+            cash_received=cash_received,
+            change_amount=change_amount
+        )
+
+        # Create order items
+        for item_data in prepared_items:
+            OrderItem.objects.create(
                 order=order,
-                product=product,
+                product=item_data['product'],
                 quantity=item_data['quantity'],
-                price_at_sale=product.price,
-                variant_snapshot=variant_snapshot,
-                modifiers_snapshot=modifiers_snapshot,
-                note=item_data.get('note', '')
+                price_at_sale=item_data['price_at_sale'],
+                variant_snapshot=item_data['variant_snapshot'],
+                modifiers_snapshot=item_data['modifiers_snapshot'],
+                note=item_data['note']
             )
-            total += order_item.subtotal
         
         # Update total
         order.total_amount = total
@@ -148,6 +197,8 @@ class OrderSerializer(serializers.ModelSerializer):
             'status',
             'status_display',
             'total_amount',
+            'cash_received',
+            'change_amount',
             'payment_method',
             'payment_method_display',
             'notes',
@@ -218,11 +269,18 @@ class ShiftSerializer(serializers.ModelSerializer):
         Calculate current cash in drawer (Initial + Cash Sales - Cash Expenses).
         """
         try:
-            from django.db.models import Sum
             cash_sales = obj.orders.filter(
                 payment_method=Order.PaymentMethod.CASH, 
                 status=Order.Status.PAID
-            ).aggregate(total=Sum('total_amount'))['total'] or 0
+            ).aggregate(
+                total=Sum(
+                    Case(
+                        When(cash_received__isnull=False, then=F('cash_received') - F('change_amount')),
+                        default=F('total_amount'),
+                        output_field=IntegerField()
+                    )
+                )
+            )['total'] or 0
             
             # Subtract expenses
             cash_expenses = obj.expenses.aggregate(total=Sum('amount'))['total'] or 0

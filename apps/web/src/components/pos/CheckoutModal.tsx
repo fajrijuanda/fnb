@@ -10,6 +10,7 @@ import { formatRupiah, cn, getImageUrl } from '@/lib/utils';
 import api from '@/lib/api';
 import type { CreateOrderRequest, OrderResponse, WrappedResponse, StoreSettings } from '@/types/api';
 import Image from 'next/image';
+import axios from 'axios';
 
 type PaymentMethod = 'CASH' | 'QRIS';
 
@@ -26,6 +27,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
     const [customerName, setCustomerName] = useState('');
+    const [cashReceivedInput, setCashReceivedInput] = useState('');
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -36,6 +38,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
     const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
     const [dynamicQris, setDynamicQris] = useState<string | null>(null);
     const [qrisLoading, setQrisLoading] = useState(false);
+    const [dynamicQrisSupported, setDynamicQrisSupported] = useState(true);
 
     useEffect(() => {
         setTimeout(() => setMounted(true), 0);
@@ -53,6 +56,9 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
         if (isOpen) {
             const timer = setTimeout(() => setIsVisible(true), 10);
+            setError(null);
+            setDynamicQrisSupported(true);
+            setDynamicQris(null);
             fetchSettings();
             return () => clearTimeout(timer);
         }
@@ -63,8 +69,13 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
     const total = getTotalPrice();
     const isQris = paymentMethod === 'QRIS';
+    const cashReceived = Number(cashReceivedInput.replace(/\D/g, '')) || 0;
+    const changeAmount = paymentMethod === 'CASH' ? Math.max(cashReceived - total, 0) : 0;
+    const isCashInsufficient = paymentMethod === 'CASH' && cashReceived < total;
     const paymentInfo = user?.payment_info;
     const qrisImage = getImageUrl(paymentInfo?.qris_image || storeSettings?.qris_image);
+    const hasDynamicQrisConfig = Boolean(storeSettings?.qris_data?.trim());
+    const canUseDynamicQris = isQris && total > 0 && hasDynamicQrisConfig && dynamicQrisSupported;
 
     useEffect(() => {
         setCurrentTime(new Date());
@@ -76,7 +87,8 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
     useEffect(() => {
         const fetchDynamicQris = async () => {
-            if (!isQris || total <= 0) {
+            if (!canUseDynamicQris) {
+                setQrisLoading(false);
                 setDynamicQris(null);
                 return;
             }
@@ -91,7 +103,10 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                 } else {
                     setDynamicQris(null);
                 }
-            } catch {
+            } catch (error) {
+                if (axios.isAxiosError(error) && (error.response?.status === 404 || error.response?.status === 405)) {
+                    setDynamicQrisSupported(false);
+                }
                 setDynamicQris(null);
             } finally {
                 setQrisLoading(false);
@@ -99,14 +114,29 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
         };
 
         fetchDynamicQris();
-    }, [isQris, total]);
+    }, [canUseDynamicQris, total]);
 
     const paymentMethods = [
         { id: 'CASH' as PaymentMethod, label: 'Tunai', icon: Banknote },
         { id: 'QRIS' as PaymentMethod, label: 'QRIS', icon: QrCode },
     ];
 
+    const handleCashReceivedChange = (value: string) => {
+        const digits = value.replace(/\D/g, '');
+        if (!digits) {
+            setCashReceivedInput('');
+            return;
+        }
+        const amount = Number(digits);
+        setCashReceivedInput(new Intl.NumberFormat('id-ID').format(amount));
+    };
+
     const handleCheckout = async () => {
+        if (paymentMethod === 'CASH' && isCashInsufficient) {
+            setError('Nominal uang tunai kurang dari total pembayaran.');
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
@@ -114,6 +144,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
             const orderData: CreateOrderRequest = {
                 payment_method: paymentMethod,
                 customer_name: customerName,
+                cash_received: paymentMethod === 'CASH' ? cashReceived : undefined,
                 items: items.map((item) => ({
                     product_id: item.product.id,
                     quantity: item.quantity,
@@ -194,7 +225,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                 <div
                     className={cn(
                         'grid gap-5',
-                        isQris ? 'lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start' : 'grid-cols-1'
+                        isQris ? 'lg:grid-cols-[minmax(0,1fr)_430px] xl:grid-cols-[minmax(0,1fr)_470px] lg:items-start' : 'grid-cols-1'
                     )}
                 >
                     <div className="min-w-0">
@@ -229,7 +260,10 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                 {paymentMethods.map((method) => (
                                     <button
                                         key={method.id}
-                                        onClick={() => setPaymentMethod(method.id)}
+                                        onClick={() => {
+                                            setPaymentMethod(method.id);
+                                            setError(null);
+                                        }}
                                         className={`flex flex-col items-center gap-2 rounded-xl p-4 border-2 transition-all ${paymentMethod === method.id
                                             ? 'border-primary bg-red-50 dark:bg-primary/10 text-primary'
                                             : 'border-border hover:border-primary/50 hover:bg-red-50/50 dark:hover:bg-primary/5'}`}
@@ -247,6 +281,37 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                             </div>
                         </div>
 
+                        {paymentMethod === 'CASH' && (
+                            <div className="mb-5 space-y-3 rounded-xl border border-border bg-muted/40 p-4">
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-card-foreground">
+                                        Uang Diterima
+                                    </label>
+                                    <div className="relative">
+                                        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">Rp</span>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="0"
+                                            value={cashReceivedInput}
+                                            onChange={(e) => handleCashReceivedChange(e.target.value)}
+                                            className="w-full rounded-xl border border-border bg-background py-3 pl-12 pr-4 text-base font-semibold focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                        />
+                                    </div>
+                                    {isCashInsufficient && (
+                                        <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
+                                            Uang kurang {formatRupiah(total - cashReceived)}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between rounded-lg bg-background px-3 py-2.5 border border-border/70">
+                                    <span className="text-sm text-muted-foreground">Kembalian</span>
+                                    <span className="text-lg font-bold text-primary">{formatRupiah(changeAmount)}</span>
+                                </div>
+                            </div>
+                        )}
+
                         {error && (
                             <div className="mb-4 rounded-lg bg-red-100 dark:bg-red-500/20 p-3 text-sm text-red-600 dark:text-red-400">
                                 {error}
@@ -262,7 +327,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                             </button>
                             <button
                                 onClick={handleCheckout}
-                                disabled={isLoading || items.length === 0}
+                                disabled={isLoading || items.length === 0 || isCashInsufficient}
                                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-red-600"
                             >
                                 {isLoading ? (
@@ -288,21 +353,21 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                             </div>
 
                             {qrisLoading ? (
-                                <div className="mx-auto mb-4 flex aspect-square w-full max-w-[320px] items-center justify-center rounded-xl border border-dashed border-border">
+                                <div className="mx-auto mb-4 flex aspect-square w-full max-w-[380px] items-center justify-center rounded-xl border border-dashed border-border">
                                     <Loader2 className="animate-spin text-primary" size={32} />
                                 </div>
                             ) : dynamicQris ? (
-                                <div className="mx-auto mb-4 relative aspect-square w-full max-w-[320px] overflow-hidden rounded-xl bg-white p-2">
-                                    <Image src={dynamicQris} alt="QRIS Dynamic" fill className="object-contain" unoptimized />
+                                <div className="mx-auto mb-4 relative aspect-square w-full max-w-[380px] overflow-hidden rounded-xl bg-white p-2">
+                                    <Image src={dynamicQris} alt="QRIS Dynamic" fill className="object-contain" unoptimized loading="eager" />
                                 </div>
                             ) : qrisImage ? (
-                                <div className="mx-auto mb-4 w-full max-w-[320px] overflow-hidden rounded-xl bg-white p-2">
-                                    <div className="relative h-[420px] w-full">
-                                        <Image src={qrisImage} alt="QRIS Code" fill className="object-contain" unoptimized />
+                                <div className="mx-auto mb-4 w-full max-w-[420px] overflow-hidden rounded-xl bg-white p-2">
+                                    <div className="relative aspect-[4/6] w-full">
+                                        <Image src={qrisImage} alt="QRIS Code" fill className="object-contain" unoptimized loading="eager" />
                                     </div>
                                 </div>
                             ) : (
-                                <div className="mx-auto mb-4 flex aspect-square w-full max-w-[320px] items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5">
+                                <div className="mx-auto mb-4 flex aspect-square w-full max-w-[380px] items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5">
                                     <QrCode className="text-gray-400" size={56} />
                                 </div>
                             )}
@@ -392,6 +457,19 @@ export function CheckoutSuccessModal({ isOpen, order, onClose, onPrint }: Succes
                         {formatRupiah(order.total_amount)}
                     </p>
                 </div>
+
+                {order.payment_method === 'CASH' && order.cash_received != null && (
+                    <div className="mb-8 rounded-xl border border-border/60 bg-background p-4 text-left">
+                        <div className="mb-2 flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Uang Diterima</span>
+                            <span className="font-semibold text-card-foreground">{formatRupiah(order.cash_received)}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Kembalian</span>
+                            <span className="font-semibold text-card-foreground">{formatRupiah(order.change_amount || 0)}</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-3">

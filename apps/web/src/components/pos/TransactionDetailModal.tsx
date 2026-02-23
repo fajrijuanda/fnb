@@ -121,6 +121,19 @@ export function TransactionDetailModal({ isOpen, onClose, notification }: Transa
                                 <span className="text-xl font-black text-primary">{formatRupiah(order.total_amount)}</span>
                             </div>
 
+                            {order.payment_method === 'CASH' && order.cash_received != null && (
+                                <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/5">
+                                    <div className="mb-1.5 flex items-center justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Uang Diterima</span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">{formatRupiah(order.cash_received)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Kembalian</span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">{formatRupiah(order.change_amount || 0)}</span>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Actions */}
                             <div className="flex gap-3">
                                 {isSuccess && (

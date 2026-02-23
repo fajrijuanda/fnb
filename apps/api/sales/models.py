@@ -28,6 +28,15 @@ class Order(models.Model):
         default=Status.PAID
     )
     total_amount = models.PositiveIntegerField(default=0)
+    cash_received = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Nominal tunai diterima dari pelanggan (khusus pembayaran CASH)"
+    )
+    change_amount = models.PositiveIntegerField(
+        default=0,
+        help_text="Nominal kembalian untuk pembayaran CASH"
+    )
     payment_method = models.CharField(
         max_length=20,
         choices=PaymentMethod.choices,
