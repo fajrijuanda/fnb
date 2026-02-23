@@ -7,6 +7,8 @@ import { useToast } from '@/components/ToastContext';
 import { useNotification } from '@/context/NotificationContext';
 import { useRouter } from 'next/navigation';
 import { getImageUrl } from '@/lib/utils';
+import axios from 'axios';
+import type { StoreSettings } from '@/types/api';
 import {
     User,
     Lock,
@@ -53,15 +55,6 @@ export default function SettingsPage() {
     const [showPassword, setShowPassword] = useState({ current: false, new: false, confirm: false });
     const [deleteConfirm, setDeleteConfirm] = useState('');
 
-    // Payment State
-    const [paymentInfo, setPaymentInfo] = useState({
-        bank_name: '',
-        bank_account_number: '',
-        bank_account_holder: '',
-        ewallet_type: '',
-        ewallet_number: ''
-    });
-
     // Preferences State
     const { soundEnabled, toggleSound } = useNotification();
     const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
@@ -73,36 +66,28 @@ export default function SettingsPage() {
             setEmail(user.email);
             if (user.avatar) setAvatarPreview(getImageUrl(user.avatar));
 
-            if (user.payment_info) {
-                setPaymentInfo({
-                    bank_name: user.payment_info.bank_name || '',
-                    bank_account_number: user.payment_info.bank_account_number || '',
-                    bank_account_holder: user.payment_info.bank_account_holder || '',
-                    ewallet_type: user.payment_info.ewallet_type || '',
-                    ewallet_number: user.payment_info.ewallet_number || ''
-                });
-                if (user.payment_info.qris_image) {
-                    setQrisPreview(getImageUrl(user.payment_info.qris_image));
-                }
+            if (user.payment_info?.qris_image) {
+                setQrisPreview(getImageUrl(user.payment_info.qris_image));
             } else if (user.role === 'mitra') {
                 api.get(`/users/${user.id}/`).then(res => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const userData = res.data as any;
                     if (userData.payment_info) {
-                        const pi = userData.payment_info;
-                        setPaymentInfo({
-                            bank_name: pi.bank_name || '',
-                            bank_account_number: pi.bank_account_number || '',
-                            bank_account_holder: pi.bank_account_holder || '',
-                            ewallet_type: pi.ewallet_type || '',
-                            ewallet_number: pi.ewallet_number || ''
-                        });
-                        if (pi.qris_image) {
-                            setQrisPreview(getImageUrl(pi.qris_image));
+                        if (userData.payment_info.qris_image) {
+                            setQrisPreview(getImageUrl(userData.payment_info.qris_image));
                         }
                         updateProfile({ payment_info: userData.payment_info });
                     }
                 }).catch(err => console.error("Failed to fetch user details", err));
+            }
+
+            // Always read QRIS store config for mitra so preview reflects what cashier uses.
+            if (user.role === 'mitra') {
+                api.get<StoreSettings>('/settings/store/').then(res => {
+                    if (res.data?.qris_image) {
+                        setQrisPreview(getImageUrl(res.data.qris_image));
+                    }
+                }).catch(err => console.error("Failed to fetch store settings for qris", err));
             }
 
             // Fetch Store Settings
@@ -197,39 +182,40 @@ export default function SettingsPage() {
 
     const handleSavePayment = async () => {
         if (!user) return;
+        if (!qrisFile) {
+            showToastError('Pilih gambar QRIS terlebih dahulu sebelum menyimpan');
+            return;
+        }
+
         setIsSaving(true);
         try {
             const formData = new FormData();
-            formData.append('payment_info', JSON.stringify(paymentInfo));
-            if (qrisFile) {
-                formData.append('qris_image', qrisFile);
-            }
+            formData.append('qris_image', qrisFile);
 
-            const res = await api.patch(`/users/${user.id}/`, formData, {
+            await api.patch('/settings/store/', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const updatedUser = res.data as any;
-            if (updatedUser.payment_info) {
+            const refreshed = await api.get<StoreSettings>('/settings/store/');
+            const savedQrisPath = refreshed.data?.qris_image || null;
+            if (savedQrisPath) {
+                setQrisPreview(getImageUrl(savedQrisPath));
                 updateProfile({
                     payment_info: {
-                        bank_name: updatedUser.payment_info.bank_name,
-                        bank_account_number: updatedUser.payment_info.bank_account_number,
-                        bank_account_holder: updatedUser.payment_info.bank_account_holder,
-                        ewallet_type: updatedUser.payment_info.ewallet_type,
-                        ewallet_number: updatedUser.payment_info.ewallet_number,
-                        qris_image: updatedUser.payment_info.qris_image
+                        ...(user.payment_info || {}),
+                        qris_image: savedQrisPath,
                     }
                 });
-                if (updatedUser.payment_info.qris_image) {
-                    setQrisPreview(getImageUrl(updatedUser.payment_info.qris_image));
-                }
             }
-            success('Metode pembayaran disimpan');
+            setQrisFile(null);
+            success('QRIS berhasil disimpan');
         } catch (err) {
             console.error(err);
-            showToastError('Gagal menyimpan metode pembayaran');
+            const axiosMessage =
+                axios.isAxiosError(err)
+                    ? err.response?.data?.message || err.response?.data?.detail || err.message
+                    : null;
+            showToastError(axiosMessage ? `Gagal menyimpan QRIS: ${axiosMessage}` : 'Gagal menyimpan QRIS');
         } finally {
             setIsSaving(false);
         }
@@ -279,7 +265,7 @@ export default function SettingsPage() {
     ];
 
     return (
-        <div className="max-w-6xl mx-auto pb-10">
+        <div className="max-w-6xl mx-auto">
             {/* Header */}
             <div className="mb-6 lg:mb-8">
                 <h1 className="text-xl lg:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Pengaturan</h1>
