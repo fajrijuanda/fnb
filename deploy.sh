@@ -2,47 +2,38 @@
 set -e
 
 echo "============================================="
-echo "  FNB Application Deployment Script"
+echo "  FNB Backend API Deployment"
 echo "============================================="
 
-# --- 1. Resize swap to 4GB ---
+# --- 1. Clone Repository (shallow, only backend needed) ---
 echo ""
-echo "=== Step 1: Resizing swap to 4GB ==="
-if [ "$(sudo swapon --show | grep -c '/swapfile')" -gt 0 ]; then
-    sudo swapoff /swapfile
-fi
-sudo fallocate -l 4G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-echo "Swap: $(free -m | grep Swap | awk '{print $2}')MB"
-
-# --- 2. Clone Repository ---
-echo ""
-echo "=== Step 2: Cloning repository ==="
+echo "=== Step 1: Cloning repository ==="
+rm -rf /var/www/fnb/* /var/www/fnb/.* 2>/dev/null || true
 cd /var/www/fnb
-if [ -d ".git" ]; then
-    echo "Repo exists, pulling latest..."
-    git pull origin master
-else
-    git clone https://github.com/fajrijuanda/fnb.git .
-fi
+git clone --depth 1 https://github.com/fajrijuanda/fnb.git . || {
+    echo "Clone failed, trying with sparse checkout..."
+    git init
+    git remote add origin https://github.com/fajrijuanda/fnb.git
+    git fetch --depth 1 origin master
+    git checkout FETCH_HEAD
+}
+echo "Repository cloned!"
+ls -la
 
-# --- 3. Setup Django Backend ---
+# --- 2. Setup Python Virtual Environment ---
 echo ""
-echo "=== Step 3: Setting up Django Backend ==="
+echo "=== Step 2: Setting up Python environment ==="
 cd /var/www/fnb/apps/api
-
-# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
-
-# Install dependencies
 pip install --upgrade pip
 pip install -r /var/www/fnb/requirements.txt
-pip install pywebpush  # for web push notifications
+pip install pywebpush
+echo "Python dependencies installed!"
 
-# Create .env for Django
+# --- 3. Configure Environment ---
+echo ""
+echo "=== Step 3: Configuring environment ==="
 cat > /var/www/fnb/apps/api/.env << 'ENVEOF'
 DATABASE_URL=postgres://fnb_user:OmdenFnb2026!@localhost:5432/fnb_db
 DEBUG=False
@@ -50,31 +41,22 @@ ALLOWED_HOSTS=103.87.66.233,localhost,127.0.0.1
 SECRET_KEY=omden-fnb-production-secret-key-2026-change-me
 ENVEOF
 
-# Run migrations
+# --- 4. Run Django Migrations ---
+echo ""
+echo "=== Step 4: Running migrations ==="
+export DATABASE_URL="postgres://fnb_user:OmdenFnb2026!@localhost:5432/fnb_db"
+export DEBUG="False"
+export ALLOWED_HOSTS="103.87.66.233,localhost,127.0.0.1"
+export SECRET_KEY="omden-fnb-production-secret-key-2026-change-me"
 python manage.py migrate
 python manage.py collectstatic --noinput
+echo "Migrations and static files done!"
 
 deactivate
 
-# --- 4. Setup Next.js Frontend ---
-echo ""
-echo "=== Step 4: Setting up Next.js Frontend ==="
-cd /var/www/fnb/apps/web
-
-# Create .env.local for Next.js
-cat > .env.local << 'ENVEOF'
-NEXT_PUBLIC_API_URL=http://103.87.66.233/api/v1
-ENVEOF
-
-# Install dependencies and build
-npm install
-NODE_OPTIONS="--max-old-space-size=1024" npm run build
-
-# --- 5. Setup PM2 processes ---
+# --- 5. Setup PM2 for Gunicorn ---
 echo ""
 echo "=== Step 5: Setting up PM2 ==="
-
-# Create PM2 ecosystem file
 cat > /var/www/fnb/ecosystem.config.js << 'PM2EOF'
 module.exports = {
   apps: [
@@ -89,16 +71,6 @@ module.exports = {
         ALLOWED_HOSTS: '103.87.66.233,localhost,127.0.0.1',
         SECRET_KEY: 'omden-fnb-production-secret-key-2026-change-me',
       }
-    },
-    {
-      name: 'fnb-web',
-      cwd: '/var/www/fnb/apps/web',
-      script: 'node_modules/.bin/next',
-      args: 'start -p 3000',
-      env: {
-        NODE_ENV: 'production',
-        NEXT_PUBLIC_API_URL: 'http://103.87.66.233/api/v1',
-      }
     }
   ]
 };
@@ -109,7 +81,7 @@ pm2 start /var/www/fnb/ecosystem.config.js
 pm2 save
 sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u ubuntu --hp /home/ubuntu 2>/dev/null || true
 
-# --- 6. Configure Nginx ---
+# --- 6. Configure Nginx as Reverse Proxy ---
 echo ""
 echo "=== Step 6: Configuring Nginx ==="
 sudo tee /etc/nginx/sites-available/fnb > /dev/null << 'NGINXEOF'
@@ -120,20 +92,13 @@ server {
 
     client_max_body_size 10M;
 
-    # Frontend (Next.js)
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
+    # CORS headers for Vercel frontend
+    add_header Access-Control-Allow-Origin "https://fnb-five.vercel.app" always;
+    add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Device-Id" always;
+    add_header Access-Control-Allow-Credentials "true" always;
 
-    # Backend API (Django/Gunicorn)
+    # Backend API
     location /api/ {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -141,6 +106,17 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Handle preflight
+        if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin "https://fnb-five.vercel.app" always;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "Authorization, Content-Type, X-Device-Id" always;
+            add_header Access-Control-Allow-Credentials "true" always;
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
+        }
     }
 
     # Django Admin
@@ -162,6 +138,12 @@ server {
         alias /var/www/fnb/apps/api/media/;
         expires 30d;
     }
+
+    # Health check
+    location / {
+        return 200 'FNB API Server Running';
+        add_header Content-Type text/plain;
+    }
 }
 NGINXEOF
 
@@ -173,7 +155,8 @@ echo ""
 echo "============================================="
 echo "  DEPLOYMENT COMPLETE!"
 echo "============================================="
-echo "Frontend: http://103.87.66.233"
 echo "Backend API: http://103.87.66.233/api/v1/"
+echo "Django Admin: http://103.87.66.233/admin/"
+echo "Frontend (Vercel): https://fnb-five.vercel.app"
 echo "============================================="
 pm2 status
