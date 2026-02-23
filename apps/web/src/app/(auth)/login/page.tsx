@@ -181,7 +181,7 @@ export default function LoginPage() {
                     <h1 className="text-3xl font-bold tracking-tight drop-shadow-md transition-colors" style={{ color: 'var(--login-text)' }}>
                         OMDEN
                     </h1>
-                    <p className="text-sm mt-1" style={{ color: 'var(--login-text-muted)' }}>Masukkan akun Anda untuk melanjutkan</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--login-text-muted)' }}>Masukkan akun anda untuk melanjutkan</p>
                 </div>
 
                 <form className="space-y-5" onSubmit={handleSubmit}>
