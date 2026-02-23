@@ -48,7 +48,6 @@ const superadminNav = [
 
 const mitraNav = [
     { href: '/admin', label: 'Dasbor', icon: LayoutDashboard },
-    { href: '/admin/analytics', label: 'Analitik', icon: PieChart },
     { href: '/admin/shifts', label: 'Shift Outlet', icon: Clock },
     { href: '/admin/products', label: 'Produk', icon: ShoppingBag },
     { href: '/admin/modifiers', label: 'Varian', icon: Layers },

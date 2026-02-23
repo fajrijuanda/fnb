@@ -35,7 +35,6 @@ export function usePrinter() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // eslint-disable-next-line
         setSettings(parsed);
         if (parsed.type !== "browser") {
           setPrinterName(
@@ -103,13 +102,34 @@ export function usePrinter() {
 
       if (type === "bluetooth") {
         try {
+          if (!("bluetooth" in navigator)) {
+            throw new Error("Browser ini tidak mendukung Web Bluetooth.");
+          }
+
+          const confirmed = window.confirm(
+            "Sambungkan printer Bluetooth sekarang? Setelah ini daftar perangkat akan ditampilkan.",
+          );
+          if (!confirmed) return;
+
+          const PRINTER_SERVICE_UUID = "000018f0-0000-1000-8000-00805f9b34fb";
+
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           const device = await navigator.bluetooth.requestDevice({
-            filters: [{ services: ["000018f0-0000-1000-8000-00805f9b34fb"] }], // Standard Invoice Service UUID or generic
-            acceptAllDevices: true, // For development/broad support
-            optionalServices: ["000018f0-0000-1000-8000-00805f9b34fb"],
+            // IMPORTANT: use either filters OR acceptAllDevices, never both.
+            acceptAllDevices: true,
+            optionalServices: [PRINTER_SERVICE_UUID],
           });
+
+          const selectedDeviceName = device.name || "Perangkat tanpa nama";
+          const connectConfirmed = window.confirm(
+            `Hubungkan ke "${selectedDeviceName}" sekarang?`,
+          );
+          if (!connectConfirmed) return;
+
+          if (!device.gatt) {
+            throw new Error("Perangkat Bluetooth tidak mendukung koneksi GATT.");
+          }
 
           await device.gatt?.connect();
           setBluetoothDevice(device);
@@ -123,6 +143,10 @@ export function usePrinter() {
             deviceId: device.id,
           });
         } catch (err) {
+          if (err instanceof DOMException && err.name === "NotFoundError") {
+            // User closed the device picker dialog or no device was selected.
+            return;
+          }
           console.error("Bluetooth connection failed", err);
           throw err;
         }

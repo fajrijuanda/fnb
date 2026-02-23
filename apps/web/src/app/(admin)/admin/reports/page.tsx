@@ -22,8 +22,9 @@ import { AdminSelect } from '@/components/admin/AdminSelect';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { StatCard } from '@/components/admin/StatCard';
 import { useAuthStore } from '@/store/useAuthStore';
+import AnalyticsPage from '../analytics/page';
 
-type TabType = 'sales' | 'profit_loss' | 'stock';
+type TabType = 'sales' | 'profit_loss' | 'stock' | 'analytics';
 
 export default function ReportsPage() {
     const { user } = useAuthStore();
@@ -569,12 +570,16 @@ export default function ReportsPage() {
 
             <div className="flex flex-wrap gap-2 lg:gap-3">
                 <TabButton value="sales" label="Laporan Penjualan" icon={TrendingUp} />
+                {user?.role !== 'superadmin' && (
+                    <TabButton value="analytics" label="Analitik" icon={BarChart3} />
+                )}
                 <TabButton value="profit_loss" label="Laba Rugi" icon={PieChart} />
                 <TabButton value="stock" label="Analisa Stok" icon={Package} />
             </div>
 
             <div className="min-h-[400px]">
                 {activeTab === 'sales' && <SalesView />}
+                {activeTab === 'analytics' && <div className="mt-4"><AnalyticsPage /></div>}
                 {activeTab === 'profit_loss' && (isUnlocked ? <ProfitLossView /> : <LockedView />)}
                 {activeTab === 'stock' && (isUnlocked ? <StockView /> : <LockedView />)}
             </div>

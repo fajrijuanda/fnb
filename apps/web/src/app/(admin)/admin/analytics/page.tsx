@@ -118,17 +118,17 @@ export default function AnalyticsPage() {
     return (
         <div className="space-y-6 animation-fade-in pb-10">
             {/* Header & Controls */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                <div className="flex-shrink-0">
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analitik Penjualan</h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Visualisasi performa bisnis Anda</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-3 w-full xl:w-auto justify-end">
 
                     {/* Mitra Filter (Superadmin Only) */}
                     {user?.role === 'superadmin' && (
-                        <div className="w-[200px]">
+                        <div className="w-full md:w-[200px] flex-shrink-0">
                             <FormSelect
                                 value={mitraId}
                                 onChange={(val) => setMitraId(val)}
@@ -141,33 +141,38 @@ export default function AnalyticsPage() {
                         </div>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-white/5 p-1 rounded-lg border border-gray-200 dark:border-white/10">
-                        {['7', '30', 'this_month', 'last_month'].map((r) => (
-                            <button
-                                key={r}
-                                onClick={() => setDateRange(r)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${dateRange === r
-                                    ? 'bg-primary text-white shadow-sm'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
-                                    }`}
-                            >
-                                {r === '7' ? '7 Hari' : r === '30' ? '30 Hari' : r === 'this_month' ? 'Bulan Ini' : 'Bulan Lalu'}
-                            </button>
-                        ))}
-                        <div className="h-4 w-[1px] bg-gray-300 dark:bg-white/20 mx-1"></div>
-                        <input
-                            type="date"
-                            value={customStart}
-                            onChange={(e) => { setCustomStart(e.target.value); setDateRange('custom'); }}
-                            className="bg-transparent text-xs outline-none text-gray-700 dark:text-gray-300"
-                        />
-                        <span className="text-gray-400">-</span>
-                        <input
-                            type="date"
-                            value={customEnd}
-                            onChange={(e) => { setCustomEnd(e.target.value); setDateRange('custom'); }}
-                            className="bg-transparent text-xs outline-none text-gray-700 dark:text-gray-300"
-                        />
+                    {/* Date Picker Range */}
+                    <div className="flex flex-wrap items-center gap-1.5 bg-white dark:bg-white/5 p-1 rounded-lg border border-gray-200 dark:border-white/10 w-full md:w-auto flex-shrink-0 overflow-x-auto">
+                        <div className="flex items-center gap-1">
+                            {['7', '30', 'this_month', 'last_month'].map((r) => (
+                                <button
+                                    key={r}
+                                    onClick={() => setDateRange(r)}
+                                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap ${dateRange === r
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
+                                        }`}
+                                >
+                                    {r === '7' ? '7 Hari' : r === '30' ? '30 Hari' : r === 'this_month' ? 'Bulan Ini' : 'Bulan Lalu'}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="h-4 w-[1px] bg-gray-300 dark:bg-white/20 mx-1 hidden sm:block"></div>
+                        <div className="flex items-center gap-1 px-1">
+                            <input
+                                type="date"
+                                value={customStart}
+                                onChange={(e) => { setCustomStart(e.target.value); setDateRange('custom'); }}
+                                className="bg-transparent text-xs outline-none text-gray-700 dark:text-gray-300 w-[105px]"
+                            />
+                            <span className="text-gray-400">-</span>
+                            <input
+                                type="date"
+                                value={customEnd}
+                                onChange={(e) => { setCustomEnd(e.target.value); setDateRange('custom'); }}
+                                className="bg-transparent text-xs outline-none text-gray-700 dark:text-gray-300 w-[105px]"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

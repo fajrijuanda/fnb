@@ -207,16 +207,21 @@ export default function SettingsPage() {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const updatedUser = res.data as any;
-            updateProfile({
-                payment_info: updatedUser.mitra_profile ? {
-                    bank_name: updatedUser.payment_info?.bank_name,
-                    bank_account_number: updatedUser.payment_info?.bank_account_number,
-                    bank_account_holder: updatedUser.payment_info?.bank_account_holder,
-                    ewallet_type: updatedUser.payment_info?.ewallet_type,
-                    ewallet_number: updatedUser.payment_info?.ewallet_number,
-                    qris_image: updatedUser.payment_info?.qris_image
-                } : undefined
-            });
+            if (updatedUser.payment_info) {
+                updateProfile({
+                    payment_info: {
+                        bank_name: updatedUser.payment_info.bank_name,
+                        bank_account_number: updatedUser.payment_info.bank_account_number,
+                        bank_account_holder: updatedUser.payment_info.bank_account_holder,
+                        ewallet_type: updatedUser.payment_info.ewallet_type,
+                        ewallet_number: updatedUser.payment_info.ewallet_number,
+                        qris_image: updatedUser.payment_info.qris_image
+                    }
+                });
+                if (updatedUser.payment_info.qris_image) {
+                    setQrisPreview(updatedUser.payment_info.qris_image);
+                }
+            }
             success('Metode pembayaran disimpan');
         } catch (err) {
             console.error(err);

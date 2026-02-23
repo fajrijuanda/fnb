@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { LogoutConfirmationModal } from '@/components/LogoutConfirmationModal';
 import { NotificationDropdown } from './NotificationDropdown';
 import Link from 'next/link';
+import Image from 'next/image';
 import api from '@/lib/api';
 
 export function AdminNavbar() {
@@ -72,15 +73,24 @@ export function AdminNavbar() {
 
                 <div className="h-6 w-px bg-gray-200 dark:bg-white/10" />
 
-                {/* Profile Dropdown */}
                 <div className="relative">
                     <button
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
                         className="flex items-center gap-3 rounded-xl p-1 pr-3 hover:bg-gray-100 dark:hover:bg-white/10 transition-all border border-transparent hover:border-gray-200 dark:hover:border-white/5"
                     >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#C5161D] to-[#A01217] text-white shadow-lg shadow-red-900/20">
-                            <span className="font-bold">{user?.username?.charAt(0) || 'A'}</span>
-                        </div>
+                        {user?.avatar ? (
+                            <Image
+                                src={user.avatar}
+                                alt="User Avatar"
+                                width={36}
+                                height={36}
+                                className="h-9 w-9 rounded-lg object-cover shadow-lg shadow-black/10"
+                            />
+                        ) : (
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#C5161D] to-[#A01217] text-white shadow-lg shadow-red-900/20">
+                                <span className="font-bold">{user?.username?.charAt(0) || 'A'}</span>
+                            </div>
+                        )}
                         <div className="hidden text-left sm:block">
                             <p className="text-sm font-semibold text-gray-900 dark:text-white">{user?.username || 'Admin'}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role || 'Administrator'}</p>

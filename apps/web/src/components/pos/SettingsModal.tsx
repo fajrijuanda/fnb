@@ -55,6 +55,7 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
     // Expense States
     const [expenseAmount, setExpenseAmount] = useState('');
     const [expenseDescription, setExpenseDescription] = useState('');
+    const [expenseCategory, setExpenseCategory] = useState('LAINNYA');
     const [isAddingExpense, setIsAddingExpense] = useState(false);
     const { fetchCurrentShift } = useShiftStore();
 
@@ -127,12 +128,13 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
             await api.post('/finances/expenses/', {
                 amount,
                 description: expenseDescription,
-                category: 'LAINNYA',
+                category: expenseCategory,
                 date: new Date().toISOString().split('T')[0]
             });
             success('Pengeluaran berhasil dicatat');
             setExpenseAmount('');
             setExpenseDescription('');
+            setExpenseCategory('LAINNYA');
             await fetchCurrentShift();
         } catch (err: unknown) {
             const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
@@ -275,19 +277,36 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                         <Receipt className="h-4 w-4 text-primary" />
                                         Catat Pengeluaran Kas Kecil
                                     </h3>
-                                    <form onSubmit={handleAddExpense} className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nominal (Rp)</label>
-                                            <input
-                                                type="text"
-                                                value={expenseAmount}
-                                                onChange={(e) => setExpenseAmount(e.target.value)}
-                                                placeholder="Contoh: 15.000"
-                                                className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                            />
+                                    <form onSubmit={handleAddExpense} className="flex flex-col gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nominal (Rp)</label>
+                                                <input
+                                                    type="text"
+                                                    value={expenseAmount}
+                                                    onChange={(e) => setExpenseAmount(e.target.value)}
+                                                    placeholder="Contoh: 15.000"
+                                                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kategori</label>
+                                                <select
+                                                    value={expenseCategory}
+                                                    onChange={(e) => setExpenseCategory(e.target.value)}
+                                                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-gray-700 dark:text-gray-300"
+                                                >
+                                                    <option value="GAS">Gas LPG</option>
+                                                    <option value="BAHAN_DARURAT">Bahan Baku Darurat</option>
+                                                    <option value="PACKAGING">Kemasan & Packaging</option>
+                                                    <option value="TRANSPORT">Transportasi</option>
+                                                    <option value="MAINTENANCE">Perawatan Alat</option>
+                                                    <option value="LAINNYA">Lainnya</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Keperluan</label>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Keperluan (Deskripsi)</label>
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
@@ -317,8 +336,13 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                                             <Receipt className="h-3.5 w-3.5" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-medium text-gray-900 dark:text-white">{expense.description}</p>
-                                                            <p className="text-[10px] text-gray-500">{new Date(expense.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300">
+                                                                    {expense.category_display || expense.category || 'Lainnya'}
+                                                                </span>
+                                                                <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">{expense.description}</p>
+                                                            </div>
+                                                            <p className="text-[10px] text-gray-500 mt-0.5">{new Date(expense.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-3">
