@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import { ShieldAlert, Check, X, Smartphone } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
+import axios from 'axios';
 
 interface LoginAttempt {
     id: string;
@@ -14,23 +15,73 @@ interface LoginAttempt {
     status: string;
 }
 
+const parseRetryAfterSeconds = (value: unknown): number | null => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+    return null;
+};
+
+const getRateLimitRetryMs = (error: unknown, fallbackMs: number): number => {
+    if (!axios.isAxiosError(error) || error.response?.status !== 429) {
+        return fallbackMs;
+    }
+
+    const retryAfterHeader = parseRetryAfterSeconds(error.response?.headers?.['retry-after']);
+    if (retryAfterHeader && retryAfterHeader > 0) {
+        return retryAfterHeader * 1000;
+    }
+
+    const detail = typeof error.response?.data?.detail === 'string' ? error.response.data.detail : '';
+    const detailMatch = detail.match(/(\d+)\s*seconds?/i);
+    if (detailMatch) {
+        const seconds = Number(detailMatch[1]);
+        if (Number.isFinite(seconds) && seconds > 0) {
+            return seconds * 1000;
+        }
+    }
+
+    return fallbackMs;
+};
+
 export function SecurityPuller() {
     const { user, accessToken, updateProfile } = useAuthStore();
     const [pendingAttempt, setPendingAttempt] = useState<LoginAttempt | null>(null);
     const { success, error } = useToast();
+
     const syncedUserIdRef = useRef<number | null>(null);
+    const profileRateLimitedUntilRef = useRef(0);
+    const pendingRateLimitedUntilRef = useRef(0);
+    const heartbeatRateLimitedUntilRef = useRef(0);
+
+    const userId = user?.id;
+    const role = user?.role;
 
     useEffect(() => {
-        if (!user?.id || !accessToken) {
+        if (!userId || !accessToken) {
             syncedUserIdRef.current = null;
             return;
         }
 
-        if (syncedUserIdRef.current === user.id) return;
+        const hasEnoughProfileData =
+            Boolean(user?.avatar) ||
+            Boolean(user?.location) ||
+            Boolean(user?.profile) ||
+            Boolean(user?.payment_info);
+
+        if (hasEnoughProfileData) {
+            syncedUserIdRef.current = userId;
+            return;
+        }
+
+        if (syncedUserIdRef.current === userId) return;
+        if (Date.now() < profileRateLimitedUntilRef.current) return;
 
         const syncUserProfile = async () => {
             try {
-                const response = await api.get(`/users/${user.id}/`);
+                const response = await api.get(`/users/${userId}/`);
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const payload = ((response.data as any)?.data || response.data) as Record<string, unknown>;
                 if (!payload || typeof payload !== 'object') return;
@@ -39,8 +90,8 @@ export function SecurityPuller() {
                 const paymentInfo = (payload.payment_info as Record<string, unknown> | undefined) || undefined;
 
                 updateProfile({
-                    username: (payload.username as string | undefined) ?? user.username,
-                    email: (payload.email as string | undefined) ?? user.email,
+                    username: payload.username as string | undefined,
+                    email: payload.email as string | undefined,
                     avatar: (payload.avatar as string | null | undefined) ?? (profile?.avatar as string | null | undefined) ?? null,
                     location: (payload.location as string | null | undefined) ?? (profile?.location as string | null | undefined) ?? null,
                     profile: profile as { location?: string; avatar?: string; owner?: number } | undefined,
@@ -54,19 +105,22 @@ export function SecurityPuller() {
                     } | undefined,
                 });
 
-                syncedUserIdRef.current = user.id;
-            } catch {
-                // Silent error: profile hydration can retry on next session load
+                syncedUserIdRef.current = userId;
+            } catch (err) {
+                profileRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 10 * 60 * 1000);
             }
         };
 
         syncUserProfile();
-    }, [user, accessToken, updateProfile]);
+    }, [userId, role, accessToken, updateProfile, user?.avatar, user?.location, user?.profile, user?.payment_info]);
 
     useEffect(() => {
-        if (!user || !accessToken) return;
+        if (!userId || !accessToken) return;
+        if (role !== 'mitra' && role !== 'superadmin') return;
 
         const checkPendingLogins = async () => {
+            if (Date.now() < pendingRateLimitedUntilRef.current) return;
+
             try {
                 const response = await api.get<{ data: LoginAttempt[] }>('/users/auth/pending/');
                 if (response.data.data.length > 0) {
@@ -74,27 +128,27 @@ export function SecurityPuller() {
                 } else {
                     setPendingAttempt(null);
                 }
-            } catch {
-                // Silent error
+            } catch (err) {
+                pendingRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 5 * 60 * 1000);
             }
         };
 
-        // Initial check
         checkPendingLogins();
 
-        // Poll every 10 seconds
-        const interval = setInterval(checkPendingLogins, 10000);
+        const interval = setInterval(checkPendingLogins, 60000);
 
-        // Also send heartbeat
         const heartbeatInterval = setInterval(() => {
-            api.post('/users/auth/heartbeat/').catch(() => { });
-        }, 60000); // Every minute
+            if (Date.now() < heartbeatRateLimitedUntilRef.current) return;
+            api.post('/users/auth/heartbeat/').catch((err) => {
+                heartbeatRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 5 * 60 * 1000);
+            });
+        }, 180000);
 
         return () => {
             clearInterval(interval);
             clearInterval(heartbeatInterval);
         };
-    }, [user, accessToken]);
+    }, [userId, role, accessToken]);
 
     const handleAction = async (action: 'APPROVE' | 'REJECT') => {
         if (!pendingAttempt) return;

@@ -14,10 +14,27 @@ export function NotificationDropdown() {
     // Initial fetch and polling
     useEffect(() => {
         fetchNotifications(1);
-        const interval = setInterval(() => {
+
+        const poll = () => {
+            if (typeof document !== 'undefined' && document.hidden) return;
             pollNotifications();
-        }, 30000); // Poll every 30s for admin
-        return () => clearInterval(interval);
+        };
+
+        const interval = setInterval(() => {
+            poll();
+        }, 120000); // Poll every 2 minutes for admin
+
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                poll();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, [fetchNotifications, pollNotifications]);
 
     // Close dropdown when clicking outside

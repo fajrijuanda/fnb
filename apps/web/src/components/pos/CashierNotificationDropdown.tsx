@@ -14,10 +14,27 @@ export function CashierNotificationDropdown() {
     // Initial fetch and polling
     useEffect(() => {
         fetchNotifications(1);
-        const interval = setInterval(() => {
+
+        const poll = () => {
+            if (typeof document !== 'undefined' && document.hidden) return;
             pollNotifications();
-        }, 15000); // Poll every 15s for cashier
-        return () => clearInterval(interval);
+        };
+
+        const interval = setInterval(() => {
+            poll();
+        }, 90000); // Poll every 90s for cashier
+
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                poll();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, [fetchNotifications, pollNotifications]);
 
     // Close dropdown when clicking outside

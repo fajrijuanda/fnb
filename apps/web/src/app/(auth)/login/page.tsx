@@ -31,26 +31,40 @@ export default function LoginPage() {
 
             const profile = (payload.profile as Record<string, unknown> | undefined) || undefined;
             const paymentInfo = (payload.payment_info as Record<string, unknown> | undefined) || undefined;
+            const nextProfile: Record<string, unknown> = {};
 
-            updateProfile({
-                username: (payload.username as string | undefined) ?? user?.username ?? '',
-                email: (payload.email as string | undefined) ?? user?.email ?? '',
-                avatar: (payload.avatar as string | null | undefined) ?? (profile?.avatar as string | null | undefined) ?? null,
-                location: (payload.location as string | null | undefined) ?? (profile?.location as string | null | undefined) ?? null,
-                profile: profile as { location?: string; avatar?: string; owner?: number } | undefined,
-                payment_info: paymentInfo as {
+            if (typeof payload.username === 'string') nextProfile.username = payload.username;
+            if (typeof payload.email === 'string') nextProfile.email = payload.email;
+            nextProfile.avatar =
+                (payload.avatar as string | null | undefined) ??
+                (profile?.avatar as string | null | undefined) ??
+                null;
+            nextProfile.location =
+                (payload.location as string | null | undefined) ??
+                (profile?.location as string | null | undefined) ??
+                null;
+            nextProfile.profile = profile;
+            nextProfile.payment_info = paymentInfo;
+
+            updateProfile(nextProfile as {
+                username?: string;
+                email?: string;
+                avatar?: string | null;
+                location?: string | null;
+                profile?: { location?: string; avatar?: string; owner?: number };
+                payment_info?: {
                     bank_name?: string;
                     bank_account_number?: string;
                     bank_account_holder?: string;
                     ewallet_type?: string;
                     ewallet_number?: string;
                     qris_image?: string | null;
-                } | undefined,
+                };
             });
         } catch {
             // Optional sync; login flow should keep working even if this fails
         }
-    }, [updateProfile, user]);
+    }, [updateProfile]);
 
     useEffect(() => {
         if (isAuthenticated && user) {

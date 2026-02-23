@@ -61,47 +61,44 @@ export default function SettingsPage() {
 
     // Initial Load
     useEffect(() => {
-        if (user) {
-            setName(user.username);
-            setEmail(user.email);
-            if (user.avatar) setAvatarPreview(getImageUrl(user.avatar));
+        if (!user?.id) return;
 
-            if (user.payment_info?.qris_image) {
-                setQrisPreview(getImageUrl(user.payment_info.qris_image));
-            } else if (user.role === 'mitra') {
-                api.get(`/users/${user.id}/`).then(res => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const userData = res.data as any;
-                    if (userData.payment_info) {
-                        if (userData.payment_info.qris_image) {
-                            setQrisPreview(getImageUrl(userData.payment_info.qris_image));
-                        }
-                        updateProfile({ payment_info: userData.payment_info });
-                    }
-                }).catch(err => console.error("Failed to fetch user details", err));
-            }
+        setName(user.username || '');
+        setEmail(user.email || '');
+        setAvatarPreview(getImageUrl(user.avatar) || null);
+        setQrisPreview(getImageUrl(user.payment_info?.qris_image) || null);
 
-            // Always read QRIS store config for mitra so preview reflects what cashier uses.
-            if (user.role === 'mitra') {
-                api.get<StoreSettings>('/settings/store/').then(res => {
-                    if (res.data?.qris_image) {
-                        setQrisPreview(getImageUrl(res.data.qris_image));
-                    }
-                }).catch(err => console.error("Failed to fetch store settings for qris", err));
-            }
+        let cancelled = false;
+        const fetchStoreSettings = async () => {
+            if (user.role !== 'mitra' && user.role !== 'superadmin') return;
 
-            // Fetch Store Settings
-            if (user.role === 'superadmin') {
-                api.get('/settings/store/').then(res => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const data = res.data as any;
-                    if (data) {
-                        setSpreadsheetUrl(data.spreadsheet_url || '');
-                    }
-                }).catch(console.error);
+            try {
+                const res = await api.get<StoreSettings>('/settings/store/');
+                if (cancelled) return;
+
+                if (user.role === 'superadmin') {
+                    setSpreadsheetUrl(res.data?.spreadsheet_url || '');
+                }
+                if (res.data?.qris_image) {
+                    setQrisPreview(getImageUrl(res.data.qris_image));
+                }
+            } catch (err) {
+                console.error('Failed to fetch store settings', err);
             }
-        }
-    }, [user, updateProfile]);
+        };
+
+        fetchStoreSettings();
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        user?.id,
+        user?.username,
+        user?.email,
+        user?.avatar,
+        user?.payment_info?.qris_image,
+        user?.role,
+    ]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

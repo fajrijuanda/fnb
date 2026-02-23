@@ -19,7 +19,7 @@ export function AdminNavbar() {
     const avatarSrc = user?.avatar ? getImageUrl(user.avatar) : '';
 
     useEffect(() => {
-        if (user) {
+        if (user?.role === 'mitra' || user?.role === 'superadmin') {
             api.get('/settings/store/').then(res => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const data = res.data as any;
@@ -28,7 +28,7 @@ export function AdminNavbar() {
                 }
             }).catch(() => { });
         }
-    }, [user]);
+    }, [user?.id, user?.role]);
 
     const handleLogout = () => {
         const { logout } = useAuthStore.getState();
