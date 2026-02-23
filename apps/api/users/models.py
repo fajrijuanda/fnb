@@ -34,6 +34,7 @@ class Mitra(models.Model):
     ewallet_type = models.CharField(max_length=50, null=True, blank=True) # e.g. OVO, DANA, GOPAY
     ewallet_number = models.CharField(max_length=50, null=True, blank=True)
     qris_image = models.ImageField(upload_to='qris/', null=True, blank=True)
+    qris_data = models.TextField(null=True, blank=True, help_text="Data string dari statis QRIS untuk digenerate menjadi dinamis")
     google_sheet_id = models.CharField(max_length=100, blank=True, null=True, help_text="ID of the Google Sheet for this Mitra's daily report")
     
     def save(self, *args, **kwargs):

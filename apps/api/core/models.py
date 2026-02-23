@@ -2,7 +2,14 @@ from django.db import models
 from core.utils import compress_image
 
 class StoreSettings(models.Model):
-    """Singleton model for store-wide settings (Payment info, etc.)"""
+    """Per-mitra store settings (Payment info, QRIS, etc.)."""
+    mitra = models.OneToOneField(
+        'users.Mitra',
+        on_delete=models.CASCADE,
+        related_name='store_settings',
+        null=True,
+        blank=True,
+    )
     
     # Bank Info
     bank_name = models.CharField(max_length=100, blank=True)
@@ -29,20 +36,18 @@ class StoreSettings(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def save(self, *args, **kwargs):
-        # Ensure only one instance exists
-        if not self.pk and StoreSettings.objects.exists():
-            return StoreSettings.objects.first()
-        
         if self.qris_image:
              if hasattr(self.qris_image, 'file'):
                  from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
                  if isinstance(self.qris_image.file, (InMemoryUploadedFile, TemporaryUploadedFile)):
                      self.qris_image = compress_image(self.qris_image)
 
-        return super(StoreSettings, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
         
     def __str__(self):
-        return "Store Payment Settings"
+        if self.mitra_id:
+            return f"Store Settings - {self.mitra.user.username}"
+        return "Store Settings (Unassigned)"
 
 
 class SeederLog(models.Model):

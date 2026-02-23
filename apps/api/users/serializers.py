@@ -74,6 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
             'ewallet_type': mitra.ewallet_type,
             'ewallet_number': mitra.ewallet_number,
             'qris_image': mitra.qris_image.url if mitra.qris_image else None,
+            'qris_data': mitra.qris_data,
         }
         
     def get_role(self, obj):
@@ -200,6 +201,11 @@ class UserSerializer(serializers.ModelSerializer):
                 else:
                     mitra.qris_image = qris_image
                 mitra.save()
+            
+            qris_data = self.context['request'].data.get('qris_data')
+            if qris_data is not None:
+                 mitra.qris_data = qris_data
+                 mitra.save()
 
         
         # Avatar is on UserProfile

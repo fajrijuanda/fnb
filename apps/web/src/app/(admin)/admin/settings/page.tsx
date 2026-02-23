@@ -210,12 +210,14 @@ export default function SettingsPage() {
             const formData = new FormData();
             formData.append('qris_image', qrisFile);
 
-            await api.patch('/settings/store/', formData, {
+            await api.patch(`/users/${user.id}/`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            const refreshed = await api.get<StoreSettings>('/settings/store/');
-            const savedQrisPath = refreshed.data?.qris_image || null;
+            const refreshed = await api.get(`/users/${user.id}/`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const canonicalUser = ((refreshed.data as any)?.data || refreshed.data) as any;
+            const savedQrisPath = canonicalUser.payment_info?.qris_image || null;
             if (savedQrisPath) {
                 setQrisPreview(getImageUrl(savedQrisPath));
                 updateProfile({

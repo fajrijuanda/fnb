@@ -95,6 +95,7 @@ export interface User {
     ewallet_type?: string;
     ewallet_number?: string;
     qris_image?: string | null;
+    qris_data?: string | null;
   };
 }
 

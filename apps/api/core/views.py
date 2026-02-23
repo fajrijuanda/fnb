@@ -53,15 +53,26 @@ class DynamicQRISView(APIView):
                 status=400
             )
 
-        store = StoreSettings.objects.first()
-        if not store or not store.qris_data:
+        # Get QRIS data from Mitra profile
+        qris_data = None
+        user = request.user
+        
+        try:
+            if hasattr(user, 'mitra_profile'):
+                qris_data = user.mitra_profile.qris_data
+            elif hasattr(user, 'cashier_profile'):
+                qris_data = user.cashier_profile.mitra.qris_data
+        except Exception:
+            pass
+
+        if not qris_data:
             return Response(
-                {'status': 'error', 'message': 'Data QRIS belum dikonfigurasi di Settings.'},
+                {'status': 'error', 'message': 'Data QRIS belum dikonfigurasi di Pengaturan Mitra.'},
                 status=404
             )
 
         from .qris_utils import generate_dynamic_qris
-        qris_base64 = generate_dynamic_qris(store.qris_data, amount_int)
+        qris_base64 = generate_dynamic_qris(qris_data, amount_int)
 
         if not qris_base64:
             return Response(

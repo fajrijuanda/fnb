@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useNotification } from '@/context/NotificationContext';
 import { formatRupiah, cn, getImageUrl } from '@/lib/utils';
 import api from '@/lib/api';
-import type { CreateOrderRequest, OrderResponse, WrappedResponse, StoreSettings } from '@/types/api';
+import type { CreateOrderRequest, OrderResponse, WrappedResponse } from '@/types/api';
 import Image from 'next/image';
 import axios from 'axios';
 
@@ -35,7 +35,6 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
     const [isVisible, setIsVisible] = useState(false);
     const [mounted, setMounted] = useState(false);
 
-    const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
     const [dynamicQris, setDynamicQris] = useState<string | null>(null);
     const [qrisLoading, setQrisLoading] = useState(false);
     const [dynamicQrisSupported, setDynamicQrisSupported] = useState(true);
@@ -45,21 +44,11 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
     }, []);
 
     useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const response = await api.get<StoreSettings>('/settings/store/');
-                setStoreSettings(response.data);
-            } catch (err) {
-                console.error('Failed to fetch store settings', err);
-            }
-        };
-
         if (isOpen) {
             const timer = setTimeout(() => setIsVisible(true), 10);
             setError(null);
             setDynamicQrisSupported(true);
             setDynamicQris(null);
-            fetchSettings();
             return () => clearTimeout(timer);
         }
 
@@ -73,8 +62,8 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
     const changeAmount = paymentMethod === 'CASH' ? Math.max(cashReceived - total, 0) : 0;
     const isCashInsufficient = paymentMethod === 'CASH' && cashReceived < total;
     const paymentInfo = user?.payment_info;
-    const qrisImage = getImageUrl(paymentInfo?.qris_image || storeSettings?.qris_image);
-    const hasDynamicQrisConfig = Boolean(storeSettings?.qris_data?.trim());
+    const qrisImage = getImageUrl(paymentInfo?.qris_image);
+    const hasDynamicQrisConfig = Boolean(paymentInfo?.qris_data?.trim());
     const canUseDynamicQris = isQris && total > 0 && hasDynamicQrisConfig && dynamicQrisSupported;
 
     useEffect(() => {
