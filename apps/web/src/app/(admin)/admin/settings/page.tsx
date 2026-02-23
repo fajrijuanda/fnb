@@ -80,6 +80,9 @@ export default function SettingsPage() {
                     ewallet_type: user.payment_info.ewallet_type || '',
                     ewallet_number: user.payment_info.ewallet_number || ''
                 });
+                if (user.payment_info.qris_image) {
+                    setQrisPreview(user.payment_info.qris_image);
+                }
             } else if (user.role === 'mitra') {
                 api.get(`/users/${user.id}/`).then(res => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any

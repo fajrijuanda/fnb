@@ -237,7 +237,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                     <p className="text-sm font-medium text-card-foreground mb-3">
                         Pilih Metode Pembayaran
                     </p>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         {paymentMethods.map((method) => (
                             <button
                                 key={method.id}
