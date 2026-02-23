@@ -13,12 +13,12 @@ sys.path.insert(0, '/var/www/fnb/apps/api')
 django.setup()
 
 # Run migrations first
-from django.core.management import call_command
+from django.core.management import call_command  # noqa: E402
 print("Running migrations...")
 call_command('migrate', '--noinput')
 print("Migrations done!")
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model  # noqa: E402
 User = get_user_model()
 
 # 1. Create Superuser
@@ -32,10 +32,10 @@ except Exception as e:
     print(f"Admin error: {e}")
 
 # 2. Create Mitra users
-from users.models import Mitra, Cashier
-from subscriptions.models import Subscription
-from django.utils import timezone
-from datetime import timedelta
+from users.models import Mitra, Cashier  # noqa: E402
+from subscriptions.models import Subscription  # noqa: E402
+from django.utils import timezone  # noqa: E402
+from datetime import timedelta  # noqa: E402
 
 mitras = [
     {'username': 'mitra1', 'email': 'mitra1@example.com', 'location': 'Jakarta Selatan', 'plan': 'Eksekutif'},
