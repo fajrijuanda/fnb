@@ -191,7 +191,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
             <div
                 className={cn(
-                    'relative w-[calc(100vw-2rem)] rounded-2xl bg-card shadow-elevated transition-all max-h-[92vh] overflow-y-auto max-w-5xl p-5 lg:p-6',
+                    'relative w-[calc(100vw-2rem)] rounded-2xl bg-card shadow-elevated transition-all max-h-[92vh] overflow-y-auto max-w-4xl p-5 lg:p-6',
                     'transform-none'
                 )}
             >
@@ -204,7 +204,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
                 <div
                     className={cn(
-                        'grid gap-4 lg:gap-5 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] lg:items-start'
+                        'grid gap-4 lg:gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start'
                     )}
                 >
                     <div className="min-w-0">
@@ -341,8 +341,8 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                     )}
 
                     {!isQris && (
-                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 p-4 lg:sticky lg:top-0 flex flex-col gap-4">
-                            <div className="space-y-3 rounded-xl border border-border bg-muted/40 p-3 lg:p-4 shrink-0">
+                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 p-4 lg:sticky lg:top-0 flex flex-col gap-3">
+                            <div className="space-y-3 rounded-xl border border-border bg-muted/40 p-3 shrink-0">
                                 <div>
                                     <label className="mb-2 block text-sm font-medium text-card-foreground">
                                         Uang Diterima
@@ -355,7 +355,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                             placeholder="0"
                                             value={cashReceivedInput}
                                             readOnly
-                                            className="w-full rounded-xl border border-border bg-background py-3 pl-12 pr-4 text-xl font-bold focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary cursor-default"
+                                            className="w-full rounded-xl border border-border bg-background py-2 lg:py-2.5 pl-10 pr-4 text-lg lg:text-xl font-bold focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary cursor-default"
                                         />
                                     </div>
                                     {isCashInsufficient && (
@@ -395,10 +395,10 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                             }
                                         }}
                                         className={cn(
-                                            "rounded-xl border border-border/50 py-4 lg:py-5 text-xl lg:text-2xl font-bold transition-all shadow-sm active:scale-95",
+                                            "rounded-xl border border-border/50 py-2 lg:py-3 text-lg lg:text-xl font-bold transition-all shadow-sm active:scale-95",
                                             key === 'C' ? "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20" :
-                                                key === '⌫' ? "bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-500/20 flex flex-col items-center justify-center text-sm lg:text-base font-semibold min-h-[64px]" :
-                                                    "bg-background text-card-foreground hover:bg-muted lg:hover:shadow-md min-h-[64px]"
+                                                key === '⌫' ? "bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-500/20 flex flex-col items-center justify-center text-sm lg:text-base font-semibold min-h-[48px]" :
+                                                    "bg-background text-card-foreground hover:bg-muted lg:hover:shadow-md min-h-[48px]"
                                         )}
                                     >
                                         {key === '⌫' ? 'Hapus' : key}
@@ -408,7 +408,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                             <button
                                 onClick={handleCheckout}
                                 disabled={isLoading || items.length === 0 || isCashInsufficient}
-                                className="mt-1 shrink-0 w-full rounded-xl bg-gradient-to-r from-primary to-primary/80 py-4 text-white font-bold shadow-md hover:shadow-lg active:scale-95 transition-all text-sm lg:text-base uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="mt-1 shrink-0 w-full rounded-xl bg-gradient-to-r from-primary to-primary/80 py-3 text-white font-bold shadow-md hover:shadow-lg active:scale-95 transition-all text-sm lg:text-base uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
                                 Enter

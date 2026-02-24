@@ -65,17 +65,6 @@ export function SecurityPuller() {
             return;
         }
 
-        const hasEnoughProfileData =
-            Boolean(user?.avatar) ||
-            Boolean(user?.location) ||
-            Boolean(user?.profile) ||
-            Boolean(user?.payment_info);
-
-        if (hasEnoughProfileData) {
-            syncedUserIdRef.current = userId;
-            return;
-        }
-
         if (syncedUserIdRef.current === userId) return;
         if (Date.now() < profileRateLimitedUntilRef.current) return;
 
