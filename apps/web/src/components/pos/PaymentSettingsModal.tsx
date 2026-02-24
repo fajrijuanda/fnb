@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, Save, CreditCard, QrCode, Upload } from 'lucide-react';
+import { X, Loader2, Save, CreditCard, QrCode, Upload, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/components/ToastContext';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -24,7 +24,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
     const [isSaving, setIsSaving] = useState(false);
     const [formData, setFormData] = useState<PaymentFormData>({});
     const [previewImage, setPreviewImage] = useState<string | null>(null);
-    const [isDeletingImage, setIsDeletingImage] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Animation State
@@ -58,7 +58,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
 
         if (isOpen) {
             setMounted(true);
-            setIsDeletingImage(false);
+            setShowDeleteConfirm(false);
             setTimeout(() => setIsVisible(true), 10);
             fetchSettings();
         } else {
@@ -77,7 +77,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
 
             // Store file in formData
             setFormData(prev => ({ ...prev, qris_image_file: file }));
-            setIsDeletingImage(false);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -94,8 +94,6 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
             }
             if (formData.qris_image_file) {
                 data.append('qris_image', formData.qris_image_file);
-            } else if (isDeletingImage) {
-                data.append('qris_image', '');
             }
 
             const res = await api.patch(`/users/${user.id}/`, data);
@@ -112,6 +110,35 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
         } catch (error) {
             console.error('Failed to save settings:', error);
             showError('Gagal menyimpan pengaturan');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDeleteQrisConfirm = async () => {
+        if (!user?.id) return;
+        setPreviewImage(null);
+        setFormData(prev => ({ ...prev, qris_image_file: undefined }));
+        setShowDeleteConfirm(false);
+
+        setIsSaving(true);
+        try {
+            const data = new FormData();
+            data.append('qris_image', '');
+
+            const res = await api.patch(`/users/${user.id}/`, data);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const patchedUser = ((res.data as any)?.data || res.data) as any;
+
+            updateProfile({
+                payment_info: patchedUser.payment_info || user.payment_info
+            });
+
+            success('Gambar QRIS berhasil dihapus');
+        } catch (error) {
+            console.error('Failed to delete QRIS image:', error);
+            showError('Gagal menghapus gambar QRIS');
         } finally {
             setIsSaving(false);
         }
@@ -198,13 +225,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
                                             {previewImage && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => {
-                                                        if (window.confirm('Apakah Anda yakin ingin menghapus gambar QRIS ini? Jangan lupa klik "Simpan Perubahan" setelahnya.')) {
-                                                            setPreviewImage(null);
-                                                            setFormData(prev => ({ ...prev, qris_image_file: undefined }));
-                                                            setIsDeletingImage(true);
-                                                        }
-                                                    }}
+                                                    onClick={() => setShowDeleteConfirm(true)}
                                                     className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-xs font-medium hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
                                                 >
                                                     Hapus Gambar
@@ -262,6 +283,37 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
                     </button>
                 </div>
             </div>
+
+            {/* Custom Confirm Delete Modal */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="w-full max-w-sm bg-white dark:bg-[#1a1a1a] rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden transform transition-all">
+                        <div className="p-6 text-center">
+                            <div className="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center mb-4">
+                                <AlertTriangle className="text-red-600 dark:text-red-400" size={32} />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Hapus Gambar?</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 font-medium leading-relaxed">
+                                Apakah Anda yakin ingin menghapus gambar QRIS ini? Pembeli tidak akan melihat QRIS statis sampai Anda mengunggahnya kembali.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                    className="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-bold text-sm"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={handleDeleteQrisConfirm}
+                                    className="flex-1 px-5 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold text-sm shadow-lg shadow-red-500/20 flex justify-center items-center"
+                                >
+                                    {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Ya, Hapus"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
