@@ -171,9 +171,7 @@ function PaymentPanel({ order, onUploadSuccess }: { order: RestockOrder; onUploa
         try {
             const fd = new FormData();
             fd.append('payment_proof', file);
-            const res = await api.post(`/inventory/restock-orders/${order.id}/upload-proof/`, fd, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            const res = await api.post(`/inventory/restock-orders/${order.id}/upload-proof/`, fd);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const data = res.data as any;
             if (data.verification?.verified) {

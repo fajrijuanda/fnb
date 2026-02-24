@@ -318,14 +318,10 @@ export default function ProductsPage() {
             }
 
             if (editingProduct) {
-                await api.patch(`/catalog/products/${editingProduct.id}/`, data, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                await api.patch(`/catalog/products/${editingProduct.id}/`, data);
                 success('Produk berhasil diperbarui');
             } else {
-                await api.post('/catalog/products/', data, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
+                await api.post('/catalog/products/', data);
                 success('Produk berhasil ditambahkan');
             }
             fetchData();

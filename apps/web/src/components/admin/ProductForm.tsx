@@ -76,13 +76,9 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             }
 
             if (isEditing && initialData) {
-                await api.patch(`/catalog/products/${initialData.id}/`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
+                await api.patch(`/catalog/products/${initialData.id}/`, formData);
             } else {
-                await api.post('/catalog/products/', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
+                await api.post('/catalog/products/', formData);
             }
 
             router.push('/admin/products');

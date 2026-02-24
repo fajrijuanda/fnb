@@ -98,9 +98,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
                 data.append('qris_image', '');
             }
 
-            const res = await api.patch(`/users/${user.id}/`, data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const res = await api.patch(`/users/${user.id}/`, data);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const patchedUser = ((res.data as any)?.data || res.data) as any;

@@ -130,9 +130,7 @@ export default function SettingsPage() {
                 formData.append('avatar', avatarFile);
             }
 
-            const res = await api.patch(`/users/${user.id}/`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const res = await api.patch(`/users/${user.id}/`, formData);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const patchedUser = ((res.data as any)?.data || res.data) as Record<string, unknown>;
@@ -217,9 +215,7 @@ export default function SettingsPage() {
                 formData.append('qris_image', ''); // Backend will see this and delete
             }
 
-            await api.patch(`/users/${user.id}/`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            await api.patch(`/users/${user.id}/`, formData);
 
             const refreshed = await api.get(`/users/${user.id}/`);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

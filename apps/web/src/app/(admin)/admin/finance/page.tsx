@@ -162,9 +162,7 @@ export default function FinancePage() {
                 payload.append('proof_image', formImage);
             }
 
-            await api.post('/finances/expenses/', payload, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            await api.post('/finances/expenses/', payload);
 
             showSuccess('Pengeluaran berhasil dicatat');
             setShowAddModal(false);
