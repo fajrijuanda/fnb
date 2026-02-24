@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import api from "@/lib/api";
 import { Shift, WrappedResponse } from "@/types/api";
+import { useCartStore } from "./useCartStore";
 
 interface ShiftState {
   activeShift: Shift | null;
@@ -67,6 +68,7 @@ export const useShiftStore = create<ShiftState>((set) => ({
         final_cash_actual: finalCashActual,
         notes,
       });
+      useCartStore.getState().clearCart(); // Clear cart when closing shift
       set({ activeShift: null }); // Shift closed
     } catch (err: unknown) {
       set({ error: (err as Error).message || "Failed to close shift" });

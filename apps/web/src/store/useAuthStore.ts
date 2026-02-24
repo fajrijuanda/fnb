@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { User, LoginResponse } from "@/types/api";
+import { useCartStore } from "./useCartStore";
 
 interface AuthState {
   accessToken: string | null;
@@ -49,13 +50,15 @@ export const useAuthStore = create<AuthState>()(
           accessToken: access,
           refreshToken: refresh,
         }),
-      logout: () =>
+      logout: () => {
+        useCartStore.getState().clearCart();
         set({
           accessToken: null,
           refreshToken: null,
           user: null,
           isAuthenticated: false,
-        }),
+        });
+      },
       updateProfile: (data) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...data } : null,
