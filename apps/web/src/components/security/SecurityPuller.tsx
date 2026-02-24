@@ -85,12 +85,8 @@ export function SecurityPuller() {
                     location: (payload.location as string | null | undefined) ?? (profile?.location as string | null | undefined) ?? null,
                     profile: profile as { location?: string; avatar?: string; owner?: number } | undefined,
                     payment_info: paymentInfo as {
-                        bank_name?: string;
-                        bank_account_number?: string;
-                        bank_account_holder?: string;
-                        ewallet_type?: string;
-                        ewallet_number?: string;
                         qris_image?: string | null;
+                        qris_data?: string | null;
                     } | undefined,
                 });
 

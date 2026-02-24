@@ -53,12 +53,8 @@ export default function LoginPage() {
                 location?: string | null;
                 profile?: { location?: string; avatar?: string; owner?: number };
                 payment_info?: {
-                    bank_name?: string;
-                    bank_account_number?: string;
-                    bank_account_holder?: string;
-                    ewallet_type?: string;
-                    ewallet_number?: string;
                     qris_image?: string | null;
+                    qris_data?: string | null;
                 };
             });
         } catch {

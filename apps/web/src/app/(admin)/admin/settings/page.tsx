@@ -48,6 +48,7 @@ export default function SettingsPage() {
     const [qrisPreview, setQrisPreview] = useState<string | null>(null);
     const [qrisFile, setQrisFile] = useState<File | null>(null);
     const qrisInputRef = useRef<HTMLInputElement>(null);
+    const [isConfirmQrisDeleteOpen, setIsConfirmQrisDeleteOpen] = useState(false);
 
     // Security State
     const [newPassword, setNewPassword] = useState('');
@@ -558,13 +559,7 @@ export default function SettingsPage() {
                                                 </p>
                                                 {qrisPreview && (
                                                     <button
-                                                        onClick={() => {
-                                                            if (window.confirm('Apakah Anda yakin ingin menghapus gambar QRIS ini? Jangan lupa klik "Simpan" setelahnya.')) {
-                                                                setQrisPreview(null);
-                                                                setQrisFile(null);
-                                                                if (qrisInputRef.current) qrisInputRef.current.value = "";
-                                                            }
-                                                        }}
+                                                        onClick={() => setIsConfirmQrisDeleteOpen(true)}
                                                         className="text-xs mt-2 font-bold text-red-500 hover:text-red-600 hover:underline"
                                                     >
                                                         Hapus Gambar
@@ -651,6 +646,41 @@ export default function SettingsPage() {
 
                 </div>
             </div>
+
+            {/* Custom Modal for QRIS Deletion */}
+            {isConfirmQrisDeleteOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-6 max-w-sm w-full border border-gray-200 dark:border-white/10 shadow-xl animate-in zoom-in duration-200">
+                        <div className="flex items-center gap-3 mb-4 text-red-600 dark:text-red-400">
+                            <AlertTriangle size={24} />
+                            <h3 className="font-bold text-lg text-gray-900 dark:text-white">Hapus QRIS?</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                            Apakah Anda yakin ingin menghapus gambar QRIS ini? Jangan lupa klik "Simpan" setelahnya.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setIsConfirmQrisDeleteOpen(false)}
+                                className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setQrisPreview(null);
+                                    setQrisFile(null);
+                                    if (qrisInputRef.current) qrisInputRef.current.value = '';
+                                    setIsConfirmQrisDeleteOpen(false);
+                                }}
+                                className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 shadow-md shadow-red-500/20 transition-all active:scale-95"
+                            >
+                                Hapus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div >
     );
 }

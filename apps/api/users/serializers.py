@@ -68,11 +68,6 @@ class UserSerializer(serializers.ModelSerializer):
                 return None
         
         return {
-            'bank_name': mitra.bank_name,
-            'bank_account_number': mitra.bank_account_number,
-            'bank_account_holder': mitra.bank_account_holder,
-            'ewallet_type': mitra.ewallet_type,
-            'ewallet_number': mitra.ewallet_number,
             'qris_image': mitra.qris_image.url if mitra.qris_image else None,
             'qris_data': mitra.qris_data,
         }
@@ -187,12 +182,8 @@ class UserSerializer(serializers.ModelSerializer):
                     except json.JSONDecodeError:
                         payment_info = {}
                 
-                # Handle both JSON dict and FormData (where nested dicts might be flattened or need parsing if complex)
-                if isinstance(payment_info, dict):
-                    for field in ['bank_name', 'bank_account_number', 'bank_account_holder', 'ewallet_type', 'ewallet_number']:
-                        if field in payment_info:
-                            setattr(mitra, field, payment_info[field])
-                    mitra.save()
+                # Fields like bank_name, ewallet removed per user request
+                pass
 
             qris_image = self.context['request'].FILES.get('qris_image')
             if qris_image is not None:
