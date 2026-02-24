@@ -114,7 +114,7 @@ export function SecurityPuller() {
         syncUserProfile();
 
         // Also sync profile periodically to catch QRIS updates
-        const profileSyncInterval = setInterval(syncUserProfile, 5 * 60 * 1000); // Every 5 minutes
+        const profileSyncInterval = setInterval(syncUserProfile, 60 * 60 * 1000); // Every 1 hour
         return () => clearInterval(profileSyncInterval);
     }, [userId, role, accessToken, updateProfile, user?.avatar, user?.location, user?.profile, user?.payment_info]);
 
@@ -139,14 +139,14 @@ export function SecurityPuller() {
 
         checkPendingLogins();
 
-        const interval = setInterval(checkPendingLogins, 60000);
+        const interval = setInterval(checkPendingLogins, 300000); // 5 minutes
 
         const heartbeatInterval = setInterval(() => {
             if (Date.now() < heartbeatRateLimitedUntilRef.current) return;
             api.post('/users/auth/heartbeat/').catch((err) => {
-                heartbeatRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 5 * 60 * 1000);
+                heartbeatRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 15 * 60 * 1000);
             });
-        }, 180000);
+        }, 900000); // 15 minutes
 
         return () => {
             clearInterval(interval);
