@@ -656,7 +656,7 @@ export default function SettingsPage() {
                             <h3 className="font-bold text-lg text-gray-900 dark:text-white">Hapus QRIS?</h3>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                            Apakah Anda yakin ingin menghapus gambar QRIS ini? Jangan lupa klik "Simpan" setelahnya.
+                            Apakah Anda yakin ingin menghapus gambar QRIS ini? Jangan lupa klik &quot;Simpan&quot; setelahnya.
                         </p>
                         <div className="flex justify-end gap-3">
                             <button
