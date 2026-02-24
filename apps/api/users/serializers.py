@@ -196,11 +196,13 @@ class UserSerializer(serializers.ModelSerializer):
 
             qris_image = self.context['request'].FILES.get('qris_image')
             if qris_image is not None:
-                if qris_image == '':
-                    mitra.qris_image = None
-                else:
-                    mitra.qris_image = qris_image
+                mitra.qris_image = qris_image
                 mitra.save()
+            elif 'qris_image' in self.context['request'].data:
+                qris_str = self.context['request'].data.get('qris_image')
+                if qris_str in ['', 'null', None]:
+                    mitra.qris_image = None
+                    mitra.save()
             
             qris_data = self.context['request'].data.get('qris_data')
             if qris_data is not None:

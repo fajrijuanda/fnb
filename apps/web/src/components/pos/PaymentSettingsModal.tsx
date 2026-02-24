@@ -24,6 +24,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
     const [isSaving, setIsSaving] = useState(false);
     const [formData, setFormData] = useState<PaymentFormData>({});
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isDeletingImage, setIsDeletingImage] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Animation State
@@ -57,6 +58,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
 
         if (isOpen) {
             setMounted(true);
+            setIsDeletingImage(false);
             setTimeout(() => setIsVisible(true), 10);
             fetchSettings();
         } else {
@@ -75,6 +77,7 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
 
             // Store file in formData
             setFormData(prev => ({ ...prev, qris_image_file: file }));
+            setIsDeletingImage(false);
         }
     };
 
@@ -91,6 +94,8 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
             }
             if (formData.qris_image_file) {
                 data.append('qris_image', formData.qris_image_file);
+            } else if (isDeletingImage) {
+                data.append('qris_image', '');
             }
 
             const res = await api.patch(`/users/${user.id}/`, data, {
@@ -184,13 +189,30 @@ export function PaymentSettingsModal({ isOpen, onClose }: PaymentSettingsModalPr
                                             className="hidden"
                                             onChange={handleFileChange}
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-white/5 text-xs font-medium hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
-                                        >
-                                            Pilih Gambar
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-white/5 text-xs font-medium hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                                            >
+                                                Pilih Gambar
+                                            </button>
+                                            {previewImage && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (window.confirm('Apakah Anda yakin ingin menghapus gambar QRIS ini? Jangan lupa klik "Simpan Perubahan" setelahnya.')) {
+                                                            setPreviewImage(null);
+                                                            setFormData(prev => ({ ...prev, qris_image_file: undefined }));
+                                                            setIsDeletingImage(true);
+                                                        }
+                                                    }}
+                                                    className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 text-xs font-medium hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+                                                >
+                                                    Hapus Gambar
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -214,7 +214,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                 <div
                     className={cn(
                         'grid gap-5',
-                        isQris ? 'lg:grid-cols-[minmax(0,1fr)_430px] xl:grid-cols-[minmax(0,1fr)_470px] lg:items-start' : 'grid-cols-1'
+                        isQris ? 'lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] lg:items-start' : 'grid-cols-1'
                     )}
                 >
                     <div className="min-w-0">
@@ -238,10 +238,18 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                             />
                         </div>
 
-                        <div className="bg-muted rounded-xl p-4 mb-5">
+                        <div className="bg-muted rounded-xl p-3 lg:p-4 mb-4">
                             <p className="text-sm text-muted-foreground mb-1">Total Pembayaran</p>
-                            <p className="text-3xl font-bold text-primary">{formatRupiah(total)}</p>
+                            <p className="text-2xl lg:text-3xl font-bold text-primary">{formatRupiah(total)}</p>
                         </div>
+
+                        {isQris && (
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-3 mb-5 dark:border-red-500/20 dark:bg-red-500/10">
+                                <p className="text-xs font-medium text-red-600 dark:text-red-400">
+                                    Pastikan pelanggan menunjukkan bukti pembayaran berhasil dengan nominal yang sesuai sebelum menekan tombol Bayar.
+                                </p>
+                            </div>
+                        )}
 
                         <div className="mb-5">
                             <p className="text-sm font-medium text-card-foreground mb-3">Pilih Metode Pembayaran</p>
@@ -338,40 +346,33 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                         <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 p-4 lg:sticky lg:top-0">
                             <div className="mb-3 text-center">
                                 <p className="text-sm font-semibold text-gray-900 dark:text-white">Scan QRIS untuk membayar</p>
-                                <p className="text-2xl font-bold text-primary">{formatRupiah(total)}</p>
+                                <p className="text-xl font-bold text-primary">{formatRupiah(total)}</p>
                             </div>
 
                             {qrisLoading ? (
-                                <div className="mx-auto mb-4 flex aspect-square w-full max-w-[380px] items-center justify-center rounded-xl border border-dashed border-border">
+                                <div className="mx-auto mb-3 flex aspect-square w-full max-w-[320px] items-center justify-center rounded-xl border border-dashed border-border">
                                     <Loader2 className="animate-spin text-primary" size={32} />
                                 </div>
                             ) : dynamicQris ? (
-                                <div className="mx-auto mb-4 relative aspect-square w-full max-w-[380px] overflow-hidden rounded-xl bg-white p-2">
+                                <div className="mx-auto mb-3 relative aspect-square w-full max-w-[320px] overflow-hidden rounded-xl bg-white p-2">
                                     <Image src={dynamicQris} alt="QRIS Dynamic" fill className="object-contain" unoptimized loading="eager" />
                                 </div>
                             ) : qrisImage ? (
-                                <div className="mx-auto mb-4 w-full max-w-[420px] overflow-hidden rounded-xl bg-white p-2">
-                                    <div className="relative aspect-[4/6] w-full">
+                                <div className="mx-auto mb-3 w-full max-w-[340px] overflow-hidden rounded-xl bg-white p-2">
+                                    <div className="relative aspect-[4/5] w-full">
                                         <Image src={qrisImage} alt="QRIS Code" fill className="object-contain" unoptimized loading="eager" />
                                     </div>
                                 </div>
                             ) : (
-                                <div className="mx-auto mb-4 flex aspect-square w-full max-w-[380px] items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5">
+                                <div className="mx-auto mb-3 flex aspect-square w-full max-w-[320px] items-center justify-center rounded-xl bg-gray-100 dark:bg-white/5">
                                     <QrCode className="text-gray-400" size={56} />
                                 </div>
                             )}
 
                             {qrisImage || dynamicQris ? (
-                                <>
-                                    <p className="text-xs text-center text-gray-500 mb-3">
-                                        Scan menggunakan aplikasi E-Wallet atau M-Banking.
-                                    </p>
-                                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-500/20 dark:bg-red-500/10">
-                                        <p className="text-xs font-medium text-red-600 dark:text-red-400">
-                                            Pastikan pelanggan menunjukkan bukti pembayaran berhasil dengan nominal yang sesuai sebelum menekan tombol Bayar.
-                                        </p>
-                                    </div>
-                                </>
+                                <p className="text-xs text-center text-gray-500 mb-1">
+                                    Scan menggunakan aplikasi E-Wallet atau M-Banking.
+                                </p>
                             ) : (
                                 <p className="text-sm text-center text-gray-500">QRIS belum dikonfigurasi.</p>
                             )}

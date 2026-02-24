@@ -200,7 +200,9 @@ export default function SettingsPage() {
 
     const handleSavePayment = async () => {
         if (!user) return;
-        if (!qrisFile) {
+        const isDeleting = !qrisFile && !qrisPreview;
+
+        if (!qrisFile && !isDeleting) {
             showToastError('Pilih gambar QRIS terlebih dahulu sebelum menyimpan');
             return;
         }
@@ -208,7 +210,11 @@ export default function SettingsPage() {
         setIsSaving(true);
         try {
             const formData = new FormData();
-            formData.append('qris_image', qrisFile);
+            if (qrisFile) {
+                formData.append('qris_image', qrisFile);
+            } else if (isDeleting) {
+                formData.append('qris_image', ''); // Backend will see this and delete
+            }
 
             await api.patch(`/users/${user.id}/`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -218,17 +224,17 @@ export default function SettingsPage() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const canonicalUser = ((refreshed.data as any)?.data || refreshed.data) as any;
             const savedQrisPath = canonicalUser.payment_info?.qris_image || null;
-            if (savedQrisPath) {
-                setQrisPreview(getImageUrl(savedQrisPath));
-                updateProfile({
-                    payment_info: {
-                        ...(user.payment_info || {}),
-                        qris_image: savedQrisPath,
-                    }
-                });
-            }
+
+            setQrisPreview(savedQrisPath ? getImageUrl(savedQrisPath) : null);
+            updateProfile({
+                payment_info: {
+                    ...(user.payment_info || {}),
+                    qris_image: savedQrisPath,
+                }
+            });
+
             setQrisFile(null);
-            success('QRIS berhasil disimpan');
+            success(isDeleting ? 'QRIS berhasil dihapus' : 'QRIS berhasil disimpan');
         } catch (err) {
             console.error(err);
             const axiosMessage =
@@ -551,7 +557,16 @@ export default function SettingsPage() {
                                                     Format: JPG, PNG. Maksimal ukuran: 5MB. Pastikan gambar terlihat jelas dan dapat di-scan.
                                                 </p>
                                                 {qrisPreview && (
-                                                    <button onClick={() => { setQrisPreview(null); setQrisFile(null); if (qrisInputRef.current) qrisInputRef.current.value = ""; }} className="text-xs mt-2 font-bold text-red-500 hover:text-red-600 hover:underline">
+                                                    <button
+                                                        onClick={() => {
+                                                            if (window.confirm('Apakah Anda yakin ingin menghapus gambar QRIS ini? Jangan lupa klik "Simpan" setelahnya.')) {
+                                                                setQrisPreview(null);
+                                                                setQrisFile(null);
+                                                                if (qrisInputRef.current) qrisInputRef.current.value = "";
+                                                            }
+                                                        }}
+                                                        className="text-xs mt-2 font-bold text-red-500 hover:text-red-600 hover:underline"
+                                                    >
                                                         Hapus Gambar
                                                     </button>
                                                 )}
