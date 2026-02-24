@@ -213,20 +213,20 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
                 <div
                     className={cn(
-                        'grid gap-5',
+                        'grid gap-4 lg:gap-5',
                         isQris ? 'lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] lg:items-start' : 'grid-cols-1'
                     )}
                 >
                     <div className="min-w-0">
                         {currentTime && (
-                            <div className="mb-5 flex flex-col items-center justify-center rounded-xl bg-muted/50 p-3 text-center border border-border">
-                                <p className="text-sm font-medium text-muted-foreground">{formatDate(currentTime)}</p>
-                                <p className="text-2xl font-black text-primary tracking-wider font-mono">{formatTime(currentTime)}</p>
+                            <div className="mb-3 flex flex-col items-center justify-center rounded-xl bg-muted/50 p-2 lg:p-3 text-center border border-border">
+                                <p className="text-xs lg:text-sm font-medium text-muted-foreground">{formatDate(currentTime)}</p>
+                                <p className="text-xl lg:text-2xl font-black text-primary tracking-wider font-mono">{formatTime(currentTime)}</p>
                             </div>
                         )}
 
-                        <div className="mb-4">
-                            <label className="mb-2 block text-sm font-medium text-card-foreground">
+                        <div className="mb-3">
+                            <label className="mb-1 block text-sm font-medium text-card-foreground">
                                 Nama Pelanggan <span className="text-muted-foreground">(Opsional)</span>
                             </label>
                             <input
@@ -234,26 +234,26 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                 placeholder="Masukkan nama pelanggan..."
                                 value={customerName}
                                 onChange={(e) => setCustomerName(e.target.value)}
-                                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                className="w-full rounded-xl border border-border bg-background px-4 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                             />
                         </div>
 
-                        <div className="bg-muted rounded-xl p-3 lg:p-4 mb-4">
+                        <div className="bg-muted rounded-xl p-3 mb-3">
                             <p className="text-sm text-muted-foreground mb-1">Total Pembayaran</p>
                             <p className="text-2xl lg:text-3xl font-bold text-primary">{formatRupiah(total)}</p>
                         </div>
 
                         {isQris && (
-                            <div className="rounded-lg border border-red-200 bg-red-50 p-3 mb-5 dark:border-red-500/20 dark:bg-red-500/10">
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-3 mb-4 dark:border-red-500/20 dark:bg-red-500/10">
                                 <p className="text-xs font-medium text-red-600 dark:text-red-400">
                                     Pastikan pelanggan menunjukkan bukti pembayaran berhasil dengan nominal yang sesuai sebelum menekan tombol Bayar.
                                 </p>
                             </div>
                         )}
 
-                        <div className="mb-5">
-                            <p className="text-sm font-medium text-card-foreground mb-3">Pilih Metode Pembayaran</p>
-                            <div className="grid grid-cols-2 gap-3">
+                        <div className="mb-4">
+                            <p className="text-sm font-medium text-card-foreground mb-2">Pilih Metode Pembayaran</p>
+                            <div className="grid grid-cols-2 gap-2 lg:gap-3">
                                 {paymentMethods.map((method) => (
                                     <button
                                         key={method.id}
@@ -261,7 +261,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                             setPaymentMethod(method.id);
                                             setError(null);
                                         }}
-                                        className={`flex flex-col items-center gap-2 rounded-xl p-4 border-2 transition-all ${paymentMethod === method.id
+                                        className={`flex flex-col items-center gap-1.5 lg:gap-2 rounded-xl p-2.5 lg:p-3 border-2 transition-all ${paymentMethod === method.id
                                             ? 'border-primary bg-red-50 dark:bg-primary/10 text-primary'
                                             : 'border-border hover:border-primary/50 hover:bg-red-50/50 dark:hover:bg-primary/5'}`}
                                     >
@@ -279,9 +279,9 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                         </div>
 
                         {paymentMethod === 'CASH' && (
-                            <div className="mb-5 space-y-3 rounded-xl border border-border bg-muted/40 p-4">
+                            <div className="mb-4 space-y-2 rounded-xl border border-border bg-muted/40 p-3">
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-card-foreground">
+                                    <label className="mb-1 block text-sm font-medium text-card-foreground">
                                         Uang Diterima
                                     </label>
                                     <div className="relative">
@@ -292,11 +292,11 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                             placeholder="0"
                                             value={cashReceivedInput}
                                             onChange={(e) => handleCashReceivedChange(e.target.value)}
-                                            className="w-full rounded-xl border border-border bg-background py-3 pl-12 pr-4 text-base font-semibold focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                            className="w-full rounded-xl border border-border bg-background py-2 lg:py-2.5 pl-12 pr-4 text-base font-semibold focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                         />
                                     </div>
                                     {isCashInsufficient && (
-                                        <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
+                                        <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">
                                             Uang kurang {formatRupiah(total - cashReceived)}
                                         </p>
                                     )}
@@ -315,17 +315,17 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                             </div>
                         )}
 
-                        <div className="flex gap-3">
+                        <div className="flex gap-2 lg:gap-3">
                             <button
                                 onClick={onClose}
-                                className="flex-1 rounded-xl border border-gray-200 dark:border-white/10 py-3 font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                                className="flex-1 rounded-xl border border-gray-200 dark:border-white/10 py-2.5 lg:py-3 font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm lg:text-base"
                             >
                                 Batal
                             </button>
                             <button
                                 onClick={handleCheckout}
                                 disabled={isLoading || items.length === 0 || isCashInsufficient}
-                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-red-600"
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 lg:py-3 rounded-xl font-bold text-white transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-red-600 text-sm lg:text-base"
                             >
                                 {isLoading ? (
                                     <>
