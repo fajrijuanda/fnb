@@ -7,6 +7,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 class UserSerializer(serializers.ModelSerializer):
+    """Serializer for User model with payment info scoped per Mitra."""
     role = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True, required=False)
     avatar = serializers.ImageField(source='profile.avatar', required=False, allow_null=True)
