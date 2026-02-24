@@ -319,9 +319,9 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                     <Image src={dynamicQris} alt="QRIS Dynamic" fill className="object-contain" unoptimized loading="eager" />
                                 </div>
                             ) : qrisImage ? (
-                                <div className="mx-auto mb-3 w-full max-w-[340px] overflow-hidden rounded-xl bg-white p-2">
-                                    <div className="relative aspect-[4/5] w-full">
-                                        <Image src={qrisImage} alt="QRIS Code" fill className="object-contain" unoptimized loading="eager" />
+                                <div className="mx-auto mb-3 w-full max-w-[340px] overflow-hidden rounded-xl bg-white p-2 border border-border">
+                                    <div className="relative aspect-square w-full rounded-lg overflow-hidden flex items-center justify-center bg-white">
+                                        <Image src={qrisImage} alt="QRIS Code" fill className="object-cover scale-[1.35] lg:scale-[1.4]" unoptimized loading="eager" />
                                     </div>
                                 </div>
                             ) : (

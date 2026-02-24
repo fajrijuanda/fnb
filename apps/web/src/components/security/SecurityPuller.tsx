@@ -107,18 +107,22 @@ export function SecurityPuller() {
 
                 syncedUserIdRef.current = userId;
             } catch (err) {
-                profileRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 10 * 60 * 1000);
+                profileRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 2 * 60 * 1000); // 2 minutes retry for profile
             }
         };
 
         syncUserProfile();
+
+        // Also sync profile periodically to catch QRIS updates
+        const profileSyncInterval = setInterval(syncUserProfile, 5 * 60 * 1000); // Every 5 minutes
+        return () => clearInterval(profileSyncInterval);
     }, [userId, role, accessToken, updateProfile, user?.avatar, user?.location, user?.profile, user?.payment_info]);
 
     useEffect(() => {
         if (!userId || !accessToken) return;
-        if (role !== 'mitra' && role !== 'superadmin') return;
 
         const checkPendingLogins = async () => {
+            if (role !== 'mitra' && role !== 'superadmin') return; // Only owner checks pending logins
             if (Date.now() < pendingRateLimitedUntilRef.current) return;
 
             try {
