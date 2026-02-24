@@ -191,7 +191,7 @@ class UserSerializer(serializers.ModelSerializer):
                 mitra.save()
             elif 'qris_image' in self.context['request'].data:
                 qris_str = self.context['request'].data.get('qris_image')
-                if qris_str in ['', 'null', None]:
+                if qris_str in ['', 'null', None, 'undefined']:
                     mitra.qris_image = None
                     mitra.save()
             

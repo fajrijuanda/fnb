@@ -1,0 +1,15 @@
+--- d:/Project/fnb/apps/api/users/serializers.py
++++ d:/Project/fnb/apps/api/users/serializers.py
+@@ -188,7 +188,10 @@
+             if qris_image is not None:
+                 mitra.qris_image = qris_image
+                 mitra.save()
+             elif 'qris_image' in self.context['request'].data:
++                print("QRIS image in request data! Value:", repr(self.context['request'].data.get('qris_image')))
++                print("Request data keys:", self.context['request'].data.keys())
+                 qris_str = self.context['request'].data.get('qris_image')
+                 if qris_str in ['', 'null', None, 'undefined']:
+                     mitra.qris_image = None
+                     mitra.save()
++            else:
++                print("QRIS image NOT in request data. Keys:", self.context['request'].data.keys())

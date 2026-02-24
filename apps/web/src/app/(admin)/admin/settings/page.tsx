@@ -651,8 +651,8 @@ export default function SettingsPage() {
                             <AlertTriangle size={24} />
                             <h3 className="font-bold text-lg text-gray-900 dark:text-white">Hapus QRIS?</h3>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                            Apakah Anda yakin ingin menghapus gambar QRIS ini? Jangan lupa klik &quot;Simpan&quot; setelahnya.
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 font-medium">
+                            Apakah Anda yakin ingin menghapus gambar QRIS ini? Pelanggan tidak akan melihat QRIS sampai Anda mengunggahnya kembali.
                         </p>
                         <div className="flex justify-end gap-3">
                             <button
@@ -662,13 +662,39 @@ export default function SettingsPage() {
                                 Batal
                             </button>
                             <button
-                                onClick={() => {
-                                    setQrisPreview(null);
-                                    setQrisFile(null);
-                                    if (qrisInputRef.current) qrisInputRef.current.value = '';
+                                onClick={async () => {
                                     setIsConfirmQrisDeleteOpen(false);
+                                    if (!user?.id) return;
+                                    setIsSaving(true);
+                                    try {
+                                        // Use JSON payload instead of FormData for deleting, to bypass any multipart empty string bugs
+                                        await api.patch(`/users/${user.id}/`, { qris_image: '' });
+
+                                        setQrisPreview(null);
+                                        setQrisFile(null);
+                                        if (qrisInputRef.current) qrisInputRef.current.value = '';
+
+                                        const refreshed = await api.get(`/users/${user.id}/`);
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        const canonicalUser = ((refreshed.data as any)?.data || refreshed.data) as any;
+                                        const savedQrisPath = canonicalUser.payment_info?.qris_image || null;
+
+                                        updateProfile({
+                                            payment_info: {
+                                                ...(user.payment_info || {}),
+                                                qris_image: savedQrisPath,
+                                            }
+                                        });
+
+                                        success('QRIS berhasil dihapus');
+                                    } catch (err) {
+                                        console.error('Failed to delete QRIS:', err);
+                                        showToastError('Gagal menghapus QRIS');
+                                    } finally {
+                                        setIsSaving(false);
+                                    }
                                 }}
-                                className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 shadow-md shadow-red-500/20 transition-all active:scale-95"
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 shadow-md shadow-red-500/20 transition-all active:scale-95"
                             >
                                 Hapus
                             </button>
@@ -677,6 +703,6 @@ export default function SettingsPage() {
                 </div>
             )}
 
-        </div >
+        </div>
     );
 }
