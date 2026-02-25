@@ -1,20 +1,17 @@
-416d02f feat: Add initial Django project settings including core configurations, DRF, CORS, Gemini API, and Web Push.
-6cee312 chore: update dependencies.
-8d3fcec feat: introduce initial Django settings for the API application.
-084b08f feat: Add utility functions for sending web push notifications to users.
-a035b68 chore: Update project dependencies.
-e90ba71 feat: Implement web push notifications with service worker, VAPID key management, and subscription APIs.
-a10a825 feat: Add initial Django API settings and update gitignore to exclude new project files.
-5d0257b feat: Implement core Point of Sale (POS) system with cart, shift, product variant, and order management features.
-cb57f1b feat: Implement a comprehensive user management system including roles, authentication, profile settings, and device management.
-05b2337 feat: Implement POS checkout with multiple payment methods including dynamic QRIS generation and store settings.
-66a5505 feat: Implement comprehensive inventory management including ingredients, recipes, stock logs, restock orders, and payment expiration.
-2baa538 feat: Implement comprehensive inventory management for ingredients, recipes, and restock orders with API endpoints and an admin interface.
-4ebefbd feat: Introduce admin inventory management, reports, and settings pages, and update admin component exports.
-42c6cf3 feat: Implement admin inventory page with ingredient CRUD, stock ordering via email, and AI prediction integration.
-4ffcdea feat: add admin pages for product and category management
-8274347 feat: Introduce user seeding script for various roles and a subscription API viewset with access control.
-e493031 feat: Implement admin reports page with sales and stock log analytics, supporting API types, and a basic settings page.
-ddfcad2 feat: Implement admin inventory management with premium access and add subscription pages and API views.
-e512e40 feat: implement admin subscriptions page with overview statistics and detailed list for superadmins.
-6f26296 feat: add admin subscriptions page with role-based views for managing and displaying subscription details.
+commit df11739888735e8fd72de291871b2f60df9a8216
+Author: fajrijuanda <if22.fajrijuanda@mhs.ubpkarawang.ac.id>
+Date:   Tue Feb 24 13:42:53 2026 +0700
+
+    feat: implement admin settings page with profile, security, payment, and preferences management, including QRIS image upload/deletion and API serializer updates
+
+commit 8fe969141e6bf62bbc1d24d497b583aaea896260
+Author: fajrijuanda <if22.fajrijuanda@mhs.ubpkarawang.ac.id>
+Date:   Tue Feb 24 13:18:42 2026 +0700
+
+    test: create script to verify QRIS image deletion.
+
+commit 7f7b0dd7d8f5924cfbde980b49d205e1ae567d5d
+Author: fajrijuanda <if22.fajrijuanda@mhs.ubpkarawang.ac.id>
+Date:   Tue Feb 24 13:17:09 2026 +0700
+
+    fix(pos): implement custom delete modal and auto-save for QRIS in PaymentSettingsModal
