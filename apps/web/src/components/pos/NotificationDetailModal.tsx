@@ -1,5 +1,8 @@
-import { X, Calendar, Link as LinkIcon, AlertCircle, CheckCircle2, Info } from 'lucide-react';
-import { Notification } from '@/types/api';
+import { useState } from 'react';
+import { X, Calendar, Link as LinkIcon, AlertCircle, CheckCircle2, Info, Loader2 } from 'lucide-react';
+import { Notification, OrderResponse } from '@/types/api';
+import api from '@/lib/api';
+import { TransactionDetailModal } from './TransactionDetailModal';
 
 interface NotificationDetailModalProps {
     isOpen: boolean;
@@ -8,7 +11,35 @@ interface NotificationDetailModalProps {
 }
 
 export function NotificationDetailModal({ isOpen, onClose, notification }: NotificationDetailModalProps) {
+    const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+    const [orderData, setOrderData] = useState<OrderResponse | null>(null);
+
     if (!isOpen || !notification) return null;
+
+    const handleViewDetail = async () => {
+        if (!notification.related_link) return;
+
+        // If it's an order link, fetch the receipt and show it in a modal
+        if (notification.related_link.includes('/orders/')) {
+            setIsLoadingReceipt(true);
+            try {
+                const response = await api.get(notification.related_link);
+                const fetchedOrder = (response.data?.data || response.data) as OrderResponse;
+                setOrderData(fetchedOrder);
+                setIsReceiptOpen(true);
+            } catch (error) {
+                console.error('Failed to fetch order details:', error);
+                // Fallback to normal routing if fetch fails
+                window.location.href = notification.related_link;
+            } finally {
+                setIsLoadingReceipt(false);
+            }
+        } else {
+            // Normal fallback for other links
+            window.location.href = notification.related_link;
+        }
+    };
 
     const getIcon = () => {
         switch (notification.notification_type) {
@@ -82,13 +113,14 @@ export function NotificationDetailModal({ isOpen, onClose, notification }: Notif
 
                     {notification.related_link && notification.related_link !== '#' && (
                         <div className="mt-6">
-                            <a
-                                href={notification.related_link}
-                                className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-bold text-sm"
+                            <button
+                                onClick={handleViewDetail}
+                                disabled={isLoadingReceipt}
+                                className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-bold text-sm disabled:opacity-50"
                             >
-                                <LinkIcon size={16} />
-                                Lihat Detail
-                            </a>
+                                {isLoadingReceipt ? <Loader2 size={16} className="animate-spin" /> : <LinkIcon size={16} />}
+                                {isLoadingReceipt ? 'Memuat Detail...' : 'Lihat Detail'}
+                            </button>
                         </div>
                     )}
                 </div>
@@ -103,6 +135,19 @@ export function NotificationDetailModal({ isOpen, onClose, notification }: Notif
                     </button>
                 </div>
             </div>
+
+            {/* Receipt Modal Overlay */}
+            <TransactionDetailModal
+                isOpen={isReceiptOpen}
+                onClose={() => setIsReceiptOpen(false)}
+                notification={orderData ? {
+                    type: notification.notification_type as 'success' | 'error' | 'info',
+                    title: notification.title,
+                    message: notification.message,
+                    timestamp: new Date(notification.created_at),
+                    data: orderData
+                } : undefined}
+            />
         </div>
     );
 }

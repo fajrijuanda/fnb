@@ -9,6 +9,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { formatRupiah, cn, getImageUrl } from '@/lib/utils';
 import api from '@/lib/api';
 import type { CreateOrderRequest, OrderResponse, WrappedResponse } from '@/types/api';
+import { useNotificationStore } from '@/store/useNotificationStore';
 import Image from 'next/image';
 import axios from 'axios';
 
@@ -136,6 +137,9 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
             const response = await api.post<WrappedResponse<OrderResponse>>('/sales/orders/', orderData);
 
             if (response.data.status === 'success') {
+                // Force update global notifications API silently to keep the notification bell realtime
+                useNotificationStore.getState().fetchNotifications(1).catch(console.error);
+
                 clearCart();
                 const createdOrder = response.data.data as OrderResponse;
                 onSuccess(createdOrder);
