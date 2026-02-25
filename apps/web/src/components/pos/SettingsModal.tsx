@@ -9,8 +9,18 @@ import { useToast } from '@/components/ToastContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { DeviceManagement } from '@/components/settings/DeviceManagement';
 import { CloseShiftModal } from '@/components/pos/CloseShiftModal';
+import { FormSelect } from '@/components/admin/FormSelect';
 import api from '@/lib/api';
 import { formatRupiah } from '@/lib/utils';
+
+const EXPENSE_CATEGORIES = [
+    { value: 'GAS', label: 'Gas LPG' },
+    { value: 'BAHAN_DARURAT', label: 'Bahan Baku Darurat' },
+    { value: 'PACKAGING', label: 'Kemasan & Packaging' },
+    { value: 'TRANSPORT', label: 'Transportasi' },
+    { value: 'MAINTENANCE', label: 'Perawatan Alat' },
+    { value: 'LAINNYA', label: 'Lainnya' },
+];
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -319,18 +329,13 @@ export function SettingsModal({ isOpen, onClose, initialTab = 'shift' }: Setting
                                             </div>
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kategori</label>
-                                                <select
-                                                    value={expenseCategory}
-                                                    onChange={(e) => setExpenseCategory(e.target.value)}
-                                                    className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-gray-700 dark:text-gray-300"
-                                                >
-                                                    <option value="GAS">Gas LPG</option>
-                                                    <option value="BAHAN_DARURAT">Bahan Baku Darurat</option>
-                                                    <option value="PACKAGING">Kemasan & Packaging</option>
-                                                    <option value="TRANSPORT">Transportasi</option>
-                                                    <option value="MAINTENANCE">Perawatan Alat</option>
-                                                    <option value="LAINNYA">Lainnya</option>
-                                                </select>
+                                                <div className="relative z-[60]">
+                                                    <FormSelect
+                                                        options={EXPENSE_CATEGORIES}
+                                                        value={expenseCategory}
+                                                        onChange={setExpenseCategory}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
