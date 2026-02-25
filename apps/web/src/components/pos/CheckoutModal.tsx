@@ -142,6 +142,23 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
                 clearCart();
                 const createdOrder = response.data.data as OrderResponse;
+
+                // Play Voice Announcement (TTS)
+                if ('speechSynthesis' in window) {
+                    try {
+                        window.speechSynthesis.cancel(); // Stop any currently playing audio
+                        const nominalText = createdOrder.total_amount.toLocaleString('id-ID');
+                        const textToSpeak = `Total pembayaran sebesar ${nominalText} rupiah. Terima kasih.`;
+                        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                        utterance.lang = 'id-ID';
+                        utterance.rate = 0.95; // Slightly slower for clarity
+                        utterance.pitch = 1.0;
+                        window.speechSynthesis.speak(utterance);
+                    } catch (e) {
+                        console.error('Failed to play voice announcement:', e);
+                    }
+                }
+
                 onSuccess(createdOrder);
                 addNotification({
                     type: 'success',
