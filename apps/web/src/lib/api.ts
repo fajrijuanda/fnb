@@ -34,6 +34,11 @@ api.interceptors.request.use((config) => {
     config.headers["X-Device-ID"] = deviceId;
   }
 
+  // Remove default Content-Type for FormData to let the browser auto-set it with boundary
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+  }
+
   return config;
 });
 
