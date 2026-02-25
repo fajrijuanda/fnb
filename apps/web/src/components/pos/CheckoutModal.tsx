@@ -204,7 +204,7 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
 
                 <div
                     className={cn(
-                        'grid gap-4 lg:gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start'
+                        'grid gap-4 lg:gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch'
                     )}
                 >
                     <div className="min-w-0">
@@ -405,14 +405,6 @@ export function CheckoutModal({ isOpen, onClose, onSuccess }: CheckoutModalProps
                                     </button>
                                 ))}
                             </div>
-                            <button
-                                onClick={handleCheckout}
-                                disabled={isLoading || items.length === 0 || isCashInsufficient}
-                                className="mt-1 shrink-0 w-full rounded-xl bg-gradient-to-r from-primary to-primary/80 py-3 text-white font-bold shadow-md hover:shadow-lg active:scale-95 transition-all text-sm lg:text-base uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
-                                Enter
-                            </button>
                         </div>
                     )}
                 </div>
