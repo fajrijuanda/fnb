@@ -22,6 +22,7 @@ import { AdminSelect } from '@/components/admin/AdminSelect';
 import { AdminDataTable, Column } from '@/components/admin/AdminDataTable';
 import { StatCard } from '@/components/admin/StatCard';
 import { useAuthStore } from '@/store/useAuthStore';
+import { TransactionDetailModal } from '@/components/pos/TransactionDetailModal';
 import AnalyticsPage from '../analytics/page';
 
 type TabType = 'sales' | 'profit_loss' | 'stock' | 'analytics';
@@ -111,6 +112,8 @@ export default function ReportsPage() {
     );
 
     const SalesView = () => {
+        const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
+
         const salesColumns: Column<OrderResponse>[] = [
             {
                 header: 'Invoice',
@@ -199,6 +202,7 @@ export default function ReportsPage() {
                         isLoading={isLoading}
                         emptyMessage="Tidak ada data transaksi."
                         keyExtractor={(item) => item.id}
+                        onRowClick={(item) => setSelectedOrder(item)}
                         mobileCardRender={(order) => (
                             <div className="bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-4">
                                 <div className="flex justify-between items-start mb-2">
@@ -225,6 +229,18 @@ export default function ReportsPage() {
                         <AdminPagination currentPage={currentPage} totalItems={filteredOrders.length} pageSize={pageSize} onPageChange={setCurrentPage} />
                     )}
                 </div>
+
+                <TransactionDetailModal
+                    isOpen={!!selectedOrder}
+                    onClose={() => setSelectedOrder(null)}
+                    notification={selectedOrder ? {
+                        type: selectedOrder.status === 'CANCELLED' ? 'error' : 'success',
+                        title: 'Detail Transaksi',
+                        message: `Order #${selectedOrder.invoice_number}`,
+                        timestamp: new Date(selectedOrder.created_at),
+                        data: selectedOrder
+                    } : undefined}
+                />
             </div>
         );
     };
