@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useShiftStore } from '@/store/useShiftStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useRouter } from 'next/navigation';
 import { Loader2, X } from 'lucide-react';
 
 interface CloseShiftModalProps {
@@ -11,6 +13,8 @@ interface CloseShiftModalProps {
 
 export function CloseShiftModal({ isOpen, onClose }: CloseShiftModalProps) {
     const { closeShift, isLoading, error } = useShiftStore();
+    const logout = useAuthStore((state) => state.logout);
+    const router = useRouter();
     const [actualCash, setActualCash] = useState<string>('');
     const [notes, setNotes] = useState('');
 
@@ -24,6 +28,8 @@ export function CloseShiftModal({ isOpen, onClose }: CloseShiftModalProps) {
         try {
             await closeShift(cash, notes);
             onClose();
+            logout();
+            router.push('/login');
         } catch {
             // Error handled in store
         }
