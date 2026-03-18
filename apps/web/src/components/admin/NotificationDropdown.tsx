@@ -5,37 +5,27 @@ import { Bell, Check, Clock, Info, AlertCircle, CheckCircle2 } from 'lucide-reac
 import { useNotificationStore } from '@/store/useNotificationStore';
 import { Notification } from '@/types/api';
 import { NotificationDetailModal } from '@/components/pos/NotificationDetailModal';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export function NotificationDropdown() {
-    const { unreadCount, notifications, pollNotifications, fetchNotifications, markAsRead, markAllAsRead } = useNotificationStore();
+    const { unreadCount, notifications, fetchNotifications, markAsRead, markAllAsRead, connectWebSocket } = useNotificationStore();
     const [isOpen, setIsOpen] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
 
-    // Initial fetch and polling
+    const accessToken = useAuthStore(state => state.accessToken);
+
+    // Initial fetch and WebSocket connect
     useEffect(() => {
         fetchNotifications(1);
+        
+        if (accessToken) {
+            connectWebSocket(accessToken);
+        }
 
-        const poll = () => {
-            if (typeof document !== 'undefined' && document.hidden) return;
-            pollNotifications();
-        };
-
-        const interval = setInterval(() => {
-            poll();
-        }, 120000); // Poll every 2 minutes for admin
-
-        const handleVisibilityChange = () => {
-            if (!document.hidden) {
-                poll();
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
         return () => {
-            clearInterval(interval);
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
+             // Let the store handle global connection reuse or teardown.
         };
-    }, [fetchNotifications, pollNotifications]);
+    }, [fetchNotifications, accessToken, connectWebSocket]);
 
     // Close dropdown when clicking outside
     useEffect(() => {

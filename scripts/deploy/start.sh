@@ -7,5 +7,5 @@ python apps/api/manage.py migrate --noinput
 echo "=== Starting seed in background ==="
 python apps/api/run_seed.py &
 
-echo "=== Starting gunicorn on 0.0.0.0:8000 ==="
-cd apps/api && exec gunicorn config.wsgi --bind 0.0.0.0:8000 --workers 2 --timeout 120 --log-file - --access-logfile -
+echo "=== Starting Daphne (ASGI) on 0.0.0.0:8000 ==="
+cd apps/api && exec daphne -b 0.0.0.0 -p 8000 config.asgi:application

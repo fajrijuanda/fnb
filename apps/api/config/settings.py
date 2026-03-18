@@ -25,6 +25,7 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -49,6 +50,8 @@ INSTALLED_APPS = [
     'notifications',
     'subscriptions',
     'finances',
+    
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -82,7 +85,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1')],
+        },
+    },
+}
 
 # Database
 # Using SQLite for development, switch to PostgreSQL for production
