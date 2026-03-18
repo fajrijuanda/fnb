@@ -213,7 +213,7 @@ class UserSerializer(serializers.ModelSerializer):
 class TrustedDeviceSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrustedDevice
-        fields = ['id', 'device_name', 'ip_address', 'last_used', 'created_at']
+        fields = ['id', 'device_id', 'device_name', 'ip_address', 'last_used', 'created_at']
 
 
 class LoginAttemptSerializer(serializers.ModelSerializer):

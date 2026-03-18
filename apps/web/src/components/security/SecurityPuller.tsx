@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import api from '@/lib/api';
 import { ShieldAlert, Check, X, Smartphone } from 'lucide-react';
@@ -48,7 +48,7 @@ const getRateLimitRetryMs = (error: unknown, fallbackMs: number): number => {
 
 export function SecurityPuller() {
     const { user, accessToken, updateProfile } = useAuthStore();
-    const [pendingAttempt, setPendingAttempt] = useState<LoginAttempt | null>(null);
+    const [pendingAttempts, setPendingAttempts] = useState<LoginAttempt[]>([]);
     const { success, error } = useToast();
 
     const syncedUserIdRef = useRef<number | null>(null);
@@ -92,59 +92,58 @@ export function SecurityPuller() {
 
                 syncedUserIdRef.current = userId;
             } catch (err) {
-                profileRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 2 * 60 * 1000); // 2 minutes retry for profile
+                profileRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 2 * 60 * 1000);
             }
         };
 
         syncUserProfile();
 
-        // Also sync profile periodically to catch QRIS updates
-        const profileSyncInterval = setInterval(syncUserProfile, 60 * 60 * 1000); // Every 1 hour
+        const profileSyncInterval = setInterval(syncUserProfile, 60 * 60 * 1000);
         return () => clearInterval(profileSyncInterval);
     }, [userId, role, accessToken, updateProfile, user?.avatar, user?.location, user?.profile, user?.payment_info]);
 
+    const checkPendingLogins = useCallback(async () => {
+        if (role !== 'mitra' && role !== 'superadmin') return;
+        if (Date.now() < pendingRateLimitedUntilRef.current) return;
+
+        try {
+            const response = await api.get<{ data: LoginAttempt[] }>('/users/auth/pending/');
+            if (response.data.data.length > 0) {
+                setPendingAttempts(response.data.data);
+            } else {
+                setPendingAttempts([]);
+            }
+        } catch (err) {
+            pendingRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 5 * 60 * 1000);
+        }
+    }, [role]);
+
     useEffect(() => {
         if (!userId || !accessToken) return;
+        // Run initial check after a microtask to avoid synchronous setState cascade
+        const timeout = setTimeout(checkPendingLogins, 0);
 
-        const checkPendingLogins = async () => {
-            if (role !== 'mitra' && role !== 'superadmin') return; // Only owner checks pending logins
-            if (Date.now() < pendingRateLimitedUntilRef.current) return;
-
-            try {
-                const response = await api.get<{ data: LoginAttempt[] }>('/users/auth/pending/');
-                if (response.data.data.length > 0) {
-                    setPendingAttempt(response.data.data[0]);
-                } else {
-                    setPendingAttempt(null);
-                }
-            } catch (err) {
-                pendingRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 5 * 60 * 1000);
-            }
-        };
-
-        checkPendingLogins();
-
-        const interval = setInterval(checkPendingLogins, 300000); // 5 minutes
+        // Poll every 10 seconds so the approval modal shows up fast
+        const interval = setInterval(checkPendingLogins, 10000);
 
         const heartbeatInterval = setInterval(() => {
             if (Date.now() < heartbeatRateLimitedUntilRef.current) return;
             api.post('/users/auth/heartbeat/').catch((err) => {
                 heartbeatRateLimitedUntilRef.current = Date.now() + getRateLimitRetryMs(err, 15 * 60 * 1000);
             });
-        }, 900000); // 15 minutes
+        }, 60000); // Heartbeat every 1 minute
 
         return () => {
+            clearTimeout(timeout);
             clearInterval(interval);
             clearInterval(heartbeatInterval);
         };
-    }, [userId, role, accessToken]);
+    }, [userId, role, accessToken, checkPendingLogins]);
 
-    const handleAction = async (action: 'APPROVE' | 'REJECT') => {
-        if (!pendingAttempt) return;
-
+    const handleAction = async (attemptId: string, action: 'APPROVE' | 'REJECT') => {
         try {
             await api.post('/users/auth/approve/', {
-                attempt_id: pendingAttempt.id,
+                attempt_id: attemptId,
                 action
             });
 
@@ -153,13 +152,14 @@ export function SecurityPuller() {
             } else {
                 success('Login ditolak');
             }
-            setPendingAttempt(null);
+            // Remove the processed attempt from array
+            setPendingAttempts(prev => prev.filter(a => a.id !== attemptId));
         } catch {
             error('Gagal memproses permintaan');
         }
     };
 
-    if (!pendingAttempt) return null;
+    if (pendingAttempts.length === 0) return null;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -170,40 +170,48 @@ export function SecurityPuller() {
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white">Peringatan Keamanan</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Ada upaya login baru ke akun Anda</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {pendingAttempts.length === 1
+                                ? 'Ada upaya login baru ke akun Anda'
+                                : `${pendingAttempts.length} perangkat mencoba login ke akun Anda`}
+                        </p>
                     </div>
                 </div>
 
-                <div className="p-6 space-y-4">
-                    <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10">
-                        <Smartphone className="text-gray-400 mt-1" size={20} />
-                        <div className="space-y-1">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{pendingAttempt.device_name}</p>
-                            <p className="text-xs text-gray-500 font-mono">IP: {pendingAttempt.ip_address}</p>
-                            <p className="text-xs text-gray-400">{new Date(pendingAttempt.created_at).toLocaleString('id-ID')}</p>
+                <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
+                    {pendingAttempts.map((attempt) => (
+                        <div key={attempt.id} className="p-4 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 space-y-3">
+                            <div className="flex items-start gap-3">
+                                <Smartphone className="text-gray-400 mt-0.5 shrink-0" size={20} />
+                                <div className="space-y-0.5 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{attempt.device_name}</p>
+                                    <p className="text-xs text-gray-500 font-mono">IP: {attempt.ip_address}</p>
+                                    <p className="text-xs text-gray-400">{new Date(attempt.created_at).toLocaleString('id-ID')}</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={() => handleAction(attempt.id, 'REJECT')}
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors font-medium text-xs"
+                                >
+                                    <X size={14} />
+                                    Tolak
+                                </button>
+                                <button
+                                    onClick={() => handleAction(attempt.id, 'APPROVE')}
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20 transition-all font-bold text-xs"
+                                >
+                                    <Check size={14} />
+                                    Izinkan
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    ))}
 
-                    <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
-                        Apakah ini Anda? Jika disetujui, sesi ini (perangkat ini) akan dikeluarkan.
+                    <p className="text-xs text-center text-gray-400 dark:text-gray-500 pt-1">
+                        Jika disetujui, sesi baru akan mengambil alih perangkat aktif.
                     </p>
-
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                        <button
-                            onClick={() => handleAction('REJECT')}
-                            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors font-medium text-sm"
-                        >
-                            <X size={16} />
-                            Tolak
-                        </button>
-                        <button
-                            onClick={() => handleAction('APPROVE')}
-                            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20 transition-all font-bold text-sm"
-                        >
-                            <Check size={16} />
-                            Izinkan Login
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
